@@ -1,0 +1,14 @@
+.runtime/
+.secrets/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.ruff_cache/
+*.log
+*.db
+*.sqlite*
+.venv/
+node_modules/
+config/local/

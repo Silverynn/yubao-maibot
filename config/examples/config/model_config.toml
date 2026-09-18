@@ -1,0 +1,140 @@
+[inner]
+version = "1.17.9"
+
+[[models]]
+model_identifier = "agnes-3.0-flash"
+name = "agnes-3.0-flash"
+api_provider = "AgnesAI"
+price_in = 0
+price_out = 0
+cache = false
+cache_price_in = 0
+send_temperature = true
+visual = true
+force_stream_mode = false
+
+[models.extra_params]
+
+[[models]]
+model_identifier = "deepseek-flash"
+name = "deepseek-official-flash"
+api_provider = "DeepSeek"
+price_in = 0
+price_out = 0
+cache = true
+cache_price_in = 0
+send_temperature = true
+visual = true
+force_stream_mode = false
+
+[models.extra_params]
+[model_task_config.replyer]
+model_list = ["deepseek-official-flash"]
+max_tokens = 2048
+temperature = 0.8
+slow_threshold = 12
+selection_strategy = "sequential"
+hard_timeout = 90
+
+[model_task_config.planner]
+model_list = ["deepseek-official-flash"]
+max_tokens = 4096
+temperature = 0.5
+slow_threshold = 12
+selection_strategy = "sequential"
+hard_timeout = 90
+
+[model_task_config.memory]
+model_list = ["deepseek-official-flash"]
+max_tokens = 4096
+temperature = 0.5
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 200
+
+[model_task_config.mid_memory]
+model_list = []
+max_tokens = 4096
+temperature = 0.5
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 200
+
+[model_task_config.utils]
+model_list = ["deepseek-official-flash"]
+max_tokens = 2048
+temperature = 0.3
+slow_threshold = 12
+selection_strategy = "sequential"
+hard_timeout = 90
+
+[model_task_config.learner]
+model_list = []
+max_tokens = 2048
+temperature = 0.3
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 200
+
+[model_task_config.expression_use]
+model_list = []
+max_tokens = 1024
+temperature = 0.3
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 200
+
+[model_task_config.emoji]
+model_list = []
+max_tokens = 1024
+temperature = 0.3
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 200
+
+[model_task_config.vlm]
+model_list = ["deepseek-official-flash"]
+max_tokens = 2048
+temperature = 0.3
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 200
+
+[model_task_config.voice]
+model_list = []
+max_tokens = 2048
+temperature = 0.3
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 200
+
+[model_task_config.embedding]
+model_list = []
+max_tokens = 1024
+temperature = 0.3
+slow_threshold = 60
+selection_strategy = "sequential"
+hard_timeout = 60
+
+[[api_providers]]
+name = "AgnesAI"
+base_url = "https://apihub.agnes-ai.com/v1"
+api_key = "REPLACE_WITH_YOUR_SECRET"
+client_type = "openai"
+auth_type = "bearer"
+max_retry = 2
+timeout = 90
+retry_interval = 5
+
+[api_providers.default_headers]
+
+[[api_providers]]
+name = "DeepSeek"
+base_url = "https://api.deepseek.com"
+api_key = "REPLACE_WITH_YOUR_SECRET"
+client_type = "openai"
+max_retry = 2
+timeout = 30
+retry_interval = 10
+
+[api_providers.default_headers]

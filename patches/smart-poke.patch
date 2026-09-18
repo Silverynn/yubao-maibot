@@ -1,0 +1,18 @@
+diff --git a/plugin.py b/plugin.py
+index bda7f0b..a62b133 100644
+--- a/plugin.py
++++ b/plugin.py
+@@ -523,10 +523,10 @@ class SmartPokePlugin(MaiBotPlugin):
+ 
+         # ----- 分支一：戳的不是麦麦（别人互戳）-----
+         if not ctx.is_poking_bot:
+-            # send_poke 出去后 napcat 会回灌一条 poker_id=self_id 的事件，提前过滤掉
+-            # 多次连续回戳产生的 n 倍回声逐一走完整套检查的开销
++            # send_poke 出去后 napcat 会回灌一条 poker_id=self_id 的事件。必须中止后续
++            # Host 处理，否则通知里的机器人昵称会被误判为名字呼叫并额外生成文字回复。
+             if ctx.poker_id == ctx.self_id:
+-                return None
++                return {"action": "abort"}
+             triggered = self._bystander.maybe_trigger(ctx)
+             if triggered and self.config.bystander.swallow_event:
+                 return {"action": "abort"}

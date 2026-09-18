@@ -1,0 +1,24 @@
+[plugin]
+enabled = true
+config_version = "0.3.0"
+
+[schedule]
+scan_interval_seconds = 20
+max_pending_per_stream = 20
+default_advance_minutes = []
+
+[parse]
+model_task = ""
+
+[delivery]
+use_proactive = true
+fallback_after_seconds = 120
+
+[observe]
+auto_observe = true
+max_per_hour = 2
+match_prior_day_time = "20:00"
+match_advance_minutes = 180
+training_advance_minutes = 60
+meal_advance_minutes = 30
+general_advance_minutes = 30

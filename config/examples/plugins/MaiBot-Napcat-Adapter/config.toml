@@ -1,0 +1,44 @@
+[plugin]
+enabled = false
+enable_private_chat_tool = false
+config_version = "0.1.0"
+
+[napcat_server]
+host = "127.0.0.1"
+port = 3001
+token = ""
+heartbeat_interval = 30.0
+reconnect_delay_sec = 5.0
+action_timeout_sec = 15.0
+connection_id = ""
+
+[chat]
+enable_chat_list_filter = true
+show_dropped_chat_list_messages = true
+group_list_type = "whitelist"
+group_list = ["9000000103", "9000000104", "9000000105", "9000000106", "9000000107"]
+private_list_type = "whitelist"
+private_list = ["9000000001"]
+ban_user_id = []
+ban_qq_bot = false
+
+[notice]
+enabled = true
+enable_poke = true
+enable_friend_recall = true
+enable_group_recall = true
+enable_group_ban = true
+enable_group_msg_emoji_like = true
+enable_group_upload = true
+enable_group_increase = true
+enable_group_decrease = true
+enable_group_admin = true
+enable_essence = true
+enable_group_name = true
+
+[filters]
+ignore_self_message = true
+regex_filter_enabled = false
+regex_filter_mode = "blacklist"
+regex_filter_patterns = []
+regex_filter_show_dropped = false

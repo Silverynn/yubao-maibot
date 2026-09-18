@@ -1,0 +1,55 @@
+diff --git a/codecs/notice/message_codec.py b/codecs/notice/message_codec.py
+index 3584439..3449b44 100644
+--- a/codecs/notice/message_codec.py
++++ b/codecs/notice/message_codec.py
+@@ -45,6 +45,13 @@ class NapCatNoticeCodec:
+         group_id = str(payload.get("group_id") or "").strip()
+         user_id = resolve_actor_user_id(payload)
+         self_id = str(payload.get("self_id") or "").strip()
++        sub_type = str(payload.get("sub_type") or "").strip()
++        is_poke_to_self = (
++            notice_type == "notify"
++            and sub_type == "poke"
++            and bool(self_id)
++            and str(payload.get("target_id") or "").strip() == self_id
++        )
+ 
+         user_info = await self._entity_resolver.build_user_info(group_id=group_id, user_id=user_id)
+         group_info = await self._entity_resolver.build_group_info(group_id)
+@@ -56,8 +63,9 @@ class NapCatNoticeCodec:
+         additional_config: Dict[str, Any] = {
+             "self_id": self_id,
+             "napcat_notice_type": notice_type,
+-            "napcat_notice_sub_type": str(payload.get("sub_type") or "").strip(),
++            "napcat_notice_sub_type": sub_type,
+             "napcat_notice_payload": dict(payload),
++            "force_reply_with_at_actor": is_poke_to_self,
+         }
+         if group_id:
+             additional_config["platform_io_target_group_id"] = group_id
+@@ -79,7 +87,8 @@ class NapCatNoticeCodec:
+             "message_info": message_info,
+             "raw_message": [{"type": "text", "data": notice_text}],
+             "is_mentioned": False,
+-            "is_at": False,
++            # 复用 Host 已有的 @ 必答触发：别人戳机器人时立即唤醒 Planner。
++            "is_at": is_poke_to_self,
+             "is_emoji": False,
+             "is_picture": False,
+             "is_command": False,
+diff --git a/codecs/outbound/segment_encoder.py b/codecs/outbound/segment_encoder.py
+index b2c92ae..d0d711c 100644
+--- a/codecs/outbound/segment_encoder.py
++++ b/codecs/outbound/segment_encoder.py
+@@ -116,7 +116,10 @@ class NapCatOutboundSegmentEncoder:
+         target_user_id = str(item_data.get("target_user_id") or "").strip()
+         if not target_user_id:
+             return []
+-        return [{"type": "at", "data": {"qq": target_user_id}}]
++        return [
++            {"type": "at", "data": {"qq": target_user_id}},
++            {"type": "text", "data": {"text": " "}},
++        ]
+ 
+     def _build_reply_segments(self, item: Mapping[str, Any]) -> List[Dict[str, Any]]:
+         """构造回复消息段。

@@ -1,0 +1,71 @@
+[plugin]
+name = "smart_poke_plugin"
+config_version = "1.7.6"
+enabled = true
+record_self_poke_to_context = false
+
+[reaction]
+react_probability = 1.0
+back_poke_weight = 0.1
+llm_weight = 0.2
+emoji_weight = 0.2
+text_weight = 0.5
+silent_chat_probability = 0.0
+swallow_when_silent = true
+min_delay_seconds = 1.0
+max_delay_seconds = 2.5
+cooldown_seconds = 8
+max_reactions_per_minute = 6
+back_poke_max_times = 3
+spam_threshold = 5
+spam_window_seconds = 45
+react_in_group = true
+react_in_private = true
+llm_model = "planner"
+llm_max_tokens = 32
+llm_temperature = 1.0
+llm_persona = ""
+llm_response_style = "像真人被突然戳时的随手反应，可以只回一个标点、一个词或很短一句；自然、随机，少解释，不要每次都完整描述你戳我。禁止使用呗；少用嘛、啊、呀、啦、呢、吧等句末语气词。"
+llm_context_messages = 0
+
+[fallback]
+normal_replies = ["？", "神秘", "嗯？", "有事？", "怎么了", "戳我？", "你最好真有事"]
+spam_replies = ["？", "别戳了", "手拿开", "你没完了是吧", "戳上瘾了？", "再戳一下试试"]
+silent_replies = ["？", "……", "神秘"]
+
+[user_control]
+blacklist = []
+ignore_self_poke = true
+
+[emoji]
+description_keywords = ["疑惑", "无奈", "生气", "无语", "哼", "瞪"]
+allow_random_fallback = true
+
+[bystander]
+enabled = true
+probability = 0.35
+target_strategy = "victim"
+cooldown_seconds = 60
+swallow_event = false
+min_delay_seconds = 1.5
+max_delay_seconds = 4.0
+
+[proactive]
+enabled = true
+probability = 0.035
+active_hour_start = 9
+active_hour_end = 24
+per_chat_cooldown_seconds = 600
+global_cooldown_seconds = 90
+max_pokes_per_day = 3
+lookback_seconds = 1800
+recent_window_seconds = 300
+recent_fetch_limit = 100
+min_recent_messages = 3
+respect_spam_history = true
+respect_spam_window_seconds = 600
+target_strategy = "active_speaker"
+min_delay_seconds = 2.0
+max_delay_seconds = 6.0
+whitelist_groups = []
+blacklist_groups = []
