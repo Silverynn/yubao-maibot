@@ -1,4 +1,4 @@
-# 鱼宝 · MaiBot 定制与协作项目
+# 极创二面题heart项目
 
 基于 **MaiBot + NapCatQQ** 的 QQ 角色机器人定制。用于学习和完成 [Heart Heart Heart 项目](https://join.geek-tech.club/problems2/heart-heart-heart)：理解对话、状态、记忆与工具执行，并逐步加入虚拟形象和实时语音。
 
