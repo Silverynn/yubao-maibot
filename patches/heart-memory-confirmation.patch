@@ -1,0 +1,19 @@
+diff --git a/src/plugin_runtime/capabilities/registry.py b/src/plugin_runtime/capabilities/registry.py
+--- a/src/plugin_runtime/capabilities/registry.py
++++ b/src/plugin_runtime/capabilities/registry.py
+@@ -2,6 +2,7 @@
+ 
+ from src.common.logger import get_logger
+ from src.plugin_runtime.host.capability_service import CapabilityImpl
++from src.services.heart_memory_backend import resolve_capability
+ 
+ if TYPE_CHECKING:
+     from src.plugin_runtime.host.supervisor import PluginSupervisor
+@@ -24,6 +25,7 @@
+         """
+         cap_service.register_capability(name, impl)
+ 
++    _register("heart.memory.resolve", resolve_capability)
+     _register("send.text", manager._cap_send_text)
+     _register("send.emoji", manager._cap_send_emoji)
+     _register("send.image", manager._cap_send_image)

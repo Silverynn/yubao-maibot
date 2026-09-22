@@ -1,0 +1,9 @@
+[plugin]
+config_version = "1.0.0"
+enabled = true
+
+[conflicts]
+enabled = true
+candidate_limit = 15
+timeout_seconds = 20
+confirmation_minutes = 10
