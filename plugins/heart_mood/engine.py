@@ -59,6 +59,8 @@ class MoodEngine:
             state = db.execute("SELECT * FROM moods WHERE session=?", (session,)).fetchone()
             before = float(state["value"]) if state else settings.baseline
             elapsed = max(0, now - float(state["updated"])) if state else 0
+            previous_detail = json.loads(state["detail"]) if state else {}
+            previous_target = previous_detail.get("recovery_target")
             distance = settings.baseline - before
             recovered = min(abs(distance), elapsed / 3600 * settings.recovery_per_hour)
             decay = recovered if distance > 0 else -recovered
@@ -78,6 +80,10 @@ class MoodEngine:
             delta = max(-settings.max_delta, min(settings.max_delta, delta))
             value = round(max(0, min(100, before + decay + delta)), 4)
             detail = {"status": "持久化心情", "before": before, "recovery": round(decay, 4),
+                      "recovery_target": settings.baseline,
+                      "recovery_per_hour": settings.recovery_per_hour,
+                      "recovery_elapsed_seconds": round(elapsed, 1),
+                      "previous_recovery_target": previous_target,
                       "stimulus_delta": delta, "actual_delta": round(value - before, 4), "value": value,
                       "reason": reason, "evidence": evidence, "timestamp": now,
                       "assessment": assessment or {"method": "关键词", "reason": reason},

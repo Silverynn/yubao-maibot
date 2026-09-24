@@ -57,11 +57,25 @@ def render_event(event, data):
     if mood.get("value") is None:
         lines.append("心情：暂无可关联的记录")
     elif kind == "心情变化":
-        lines.append(f"心情：{number(mood.get('before'))} → {number(mood['value'])} / 100；{plain(mood.get('reason', ''))}")
+        lines.append(f"心情：{number(mood.get('before'))} → {number(mood['value'])} / 100")
     else:
         lines.append(f"心情：{number(mood['value'])} / 100")
     if kind == "心情变化":
         lines += ["调用：心情插件 · 已更新状态", "触发对话：" + plain(mood.get("trigger", {}).get("text", ""))]
+        recovery = mood.get("recovery", 0)
+        target = mood.get("recovery_target")
+        elapsed = mood.get("recovery_elapsed_seconds")
+        rate = mood.get("recovery_per_hour")
+        if recovery and isinstance(target, (int, float)) and isinstance(elapsed, (int, float)) and isinstance(rate, (int, float)):
+            hours = elapsed / 3600
+            lines.append(f"数值变化原因：距上次结算约{number(hours)}小时，按每小时{number(rate)}分向当前恢复目标{number(target)}靠近，时间恢复{number(recovery)}分；与本条对话的AI判断分开计算。")
+        elif recovery:
+            lines.append(f"数值变化原因：时间恢复{number(recovery)}分；旧记录缺少恢复目标和间隔，不能从日志确定更具体的原因。")
+        previous_target = mood.get("previous_recovery_target")
+        if isinstance(previous_target, (int, float)) and isinstance(target, (int, float)) and previous_target != target:
+            lines.append(f"配置变化：上次记录的恢复目标为{number(previous_target)}，本次为{number(target)}；本次把上次结算以来的间隔按新目标计算，无法确定配置具体何时改动。")
+        if recovery:
+            lines.append("说明：单条对话的变化上限只约束情绪刺激；时间恢复按经过时长另行结算。重启本身不会重置已有心情。")
         assessment = mood.get("assessment") or {}
         lines.append("判断方式：" + plain(assessment.get("method", "关键词")))
         lines.append("判断原因：" + plain(assessment.get("reason", mood.get("reason", ""))))
@@ -156,6 +170,10 @@ def render_memory(data):
 
 def render_status(detail, index):
     trigger = detail.get("trigger") or {}
-    return [f"人物/聊天 {index}：{plain(trigger.get('name', '未命名聊天'), 80)}",
-            f"心情：{number(detail.get('before'))} → {number(detail.get('value'))} / 100",
-            "原因：" + plain(detail.get("reason", "")), "触发对话：" + plain(trigger.get("text", "")), ""]
+    lines = [f"人物/聊天 {index}：{plain(trigger.get('name', '未命名聊天'), 80)}",
+             f"心情：{number(detail.get('before'))} → {number(detail.get('value'))} / 100"]
+    if detail.get("recovery"):
+        lines.append(f"时间恢复：{number(detail['recovery'])}分，向当前目标{number(detail.get('recovery_target'))}靠近；本条对话刺激{number(detail.get('stimulus_delta'))}分")
+    lines.extend(["对话判断原因：" + plain(detail.get("reason", "")),
+                  "触发对话：" + plain(trigger.get("text", "")), ""])
+    return lines

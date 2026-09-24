@@ -102,6 +102,25 @@ class MoodTests(unittest.TestCase):
             result = self.update("你真没用", mid=f"neg-{i}")
         self.assertEqual(result["value"], 0)
 
+    def test_recovery_log_explains_large_change_and_target_setting(self):
+        self.update("普通消息")
+        with self.store.connect() as db:
+            db.execute("UPDATE moods SET value=?, updated=? WHERE session=?", (90.4, self.now.timestamp(), "s1"))
+        self.config.mood.baseline = 60
+        self.now += timedelta(hours=16)
+        result = self.update("并不知道此人转一堆聊天记录想干嘛", mid="m2")
+        self.assertEqual(result["stimulus_delta"], 0)
+        self.assertEqual(result["recovery"], -30.4)
+        self.assertEqual(result["value"], 60)
+        self.assertEqual(result["recovery_target"], 60)
+        self.assertEqual(result["previous_recovery_target"], 50)
+        log = (self.root / "logs" / "2030-01-01.txt").read_text(encoding="utf-8-sig")
+        self.assertIn("当前恢复目标60", log)
+        self.assertIn("上次记录的恢复目标为50", log)
+        self.assertIn("距上次结算约16小时", log)
+        self.assertIn("时间恢复-30.4分", log)
+        self.assertIn("单条对话的变化上限只约束情绪刺激", log)
+
     def test_concurrent_same_message_only_once(self):
         with ThreadPoolExecutor(max_workers=4) as pool:
             values = list(pool.map(lambda _: self.update()["value"], range(8)))
