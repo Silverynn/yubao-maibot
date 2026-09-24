@@ -11,7 +11,7 @@
 3. 在改动运行目录前确认机器人已关闭，备份插件配置、下述三个原生文件和已有 Heart 数据。保存备份于本机，不提交到 GitHub。不要停止其他无关进程。
 4. 在仓库根目录执行 `python scripts/install_heart_plugins.py --target "实际MaiBot路径"`。这是只检查。若报告接口冲突或不认识的修改，停止并展示具体差异，让我决定如何处理；不要强行覆盖或跳过校验。
 5. 预检通过后，执行相同命令并加 `--apply`。它部署两个插件、共用模块、宿主适配模块和两份补丁，保留已有 config.toml。安装器不是跨文件事务，失败时应检查实际改动后恢复，不要假定全部回滚。
-6. 使用目标 MaiBot 的 Python 环境，在外层仓库运行 `python -m unittest discover -s tests -p "test_heart*.py"`（将 python 替换为该环境解释器）。当前基线是 50 项离线测试。该测试使用虚构模型结果，不调用付费模型、不发 QQ 消息。`verify_heart_integration.py` 会加载目标插件，只能在隔离测试实例执行，不能未经检查在正式实例执行。
+6. 使用目标 MaiBot 的 Python 环境，在外层仓库运行 `python -m unittest discover -s tests -p "test_heart*.py"`（将 python 替换为该环境解释器）。当前基线是 51 项离线测试。该测试使用虚构模型结果，不调用付费模型、不发 QQ 消息。`verify_heart_integration.py` 会加载目标插件，只能在隔离测试实例执行，不能未经检查在正式实例执行。
 7. 再运行安装器只检查，确认无待更新文件和补丁。说明修改了哪些文件、测试结果及未验证事项。不要直接改我的模型密钥、QQ 身份、人设、群白名单或开机启动设置。
 8. 指导我在 WebUI 配置插件。AI 心情默认关闭；开启前说明会调用 utils 模型并可能计费，先征得我的同意。检查 ai.timeout_seconds（建议从20秒开始）、max_output_tokens（默认4096）、delta_multiplier、positive_limit、negative_limit、mood.max_delta 与冷却时间。旧配置不会自动替换为新版默认值。
 9. 指导我设置 states 分数区间和对应风格。保持0—100完整覆盖、不重叠；风格只影响表达，不能降低帮助质量、修改事实或让机器人责怪用户。说明 AI 评估异步执行，可能影响下一次回复而非本次。

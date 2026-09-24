@@ -59,6 +59,22 @@ class MemoryTests(unittest.TestCase):
         self.store.append("检索", "s1")
         self.assertIn("不代表", self.events()[-1]["relation"])
 
+    def test_readable_log_distinguishes_group_and_personal_mood(self):
+        group = self.message(session="group-session", message_id="g1")
+        group["message_info"]["group_info"] = {"group_name": "测试群"}
+        self.store.record_message(group)
+        self.store.record_message(self.message(session="personal-session", message_id="p1"))
+        self.store.append("模型请求中的记忆参考", "personal-session", references=[])
+        self.store.append("记忆操作结果", "personal-session", evidence_message_ids=["unknown"],
+                          operation="get_person_profile", outcome={"result": {}})
+        content = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        self.assertIn("会话：群聊 测试群（心情按会话分别计算）", content)
+        self.assertIn("会话：与测试同学的会话（心情按会话分别计算）", content)
+        self.assertNotIn("group-session", content)
+        self.assertNotIn("personal-session", content)
+        self.assertEqual(self.events()[-1]["dialogue"], [])
+        self.assertEqual(self.events()[-1]["session_name"], "测试同学")
+
     def test_concurrent_and_restart(self):
         with ThreadPoolExecutor(max_workers=4) as pool:
             list(pool.map(lambda i: self.store.append("test", "s1", number=i), range(20)))

@@ -42,6 +42,15 @@ def number(value):
     return f"{value:.1f}".removesuffix(".0") if isinstance(value, (int, float)) else "未知"
 
 
+def session_label(data):
+    """显示聊天流名称，避免把不同会话的心情值读成一次跳变。"""
+    dialogue = data.get("dialogue") or []
+    name = plain(data.get("session_name") or (dialogue[-1].get("name", "") if dialogue else ""), 80)
+    if " / " in name:
+        return "群聊 " + name.rsplit(" / ", 1)[0]
+    return "与" + name + "的会话" if name else "名称未记录"
+
+
 def render_event(event, data):
     kind = event["kind"]
     mood = data.get("mood") or {}
@@ -50,7 +59,9 @@ def render_event(event, data):
     if not names and mood.get("trigger", {}).get("name"):
         names = [plain(mood["trigger"]["name"], 80)]
     timestamp = datetime.fromisoformat(event["time"]).strftime("%Y-%m-%d %H:%M:%S")
-    lines = [f"#{event['seq']} 时间：{timestamp}｜{kind}", f"人物：{'、'.join(names) or '后台操作（未明确关联人物）'}"]
+    lines = [f"#{event['seq']} 时间：{timestamp}｜{kind}",
+             f"会话：{session_label(data)}（心情按会话分别计算）",
+             f"人物：{'、'.join(names) or '后台操作（未明确关联人物）'}"]
     relation = data.get("relation", "")
     if dialogue and relation != "证据消息ID关联":
         lines.append("说明：以下人物和对话仅供上下文参考，不能确定为此次调用的触发来源。")

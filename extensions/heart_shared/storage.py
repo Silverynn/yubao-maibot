@@ -143,7 +143,10 @@ class AuditStore:
             source_mood = db.execute("SELECT detail FROM mood_processed WHERE session=? AND message_id=?", (session, str(ids[0]))).fetchone()
             if source_mood:
                 mood = json.loads(source_mood[0])
-        body = {"relation": relation, "dialogue": rows, "mood": mood, **payload}
+        # 会话名称只用于辨认聊天流，不把最近发言者误认成此次后台操作的触发者。
+        latest = db.execute("SELECT name FROM messages WHERE session=? ORDER BY rowid DESC LIMIT 1", (session,)).fetchone()
+        body = {"relation": relation, "dialogue": rows, "session_name": latest[0] if latest else "",
+                "mood": mood, **payload}
         db.execute("INSERT OR IGNORE INTO events(event_id,day,time,session,kind,payload) VALUES(?,?,?,?,?,?)",
                    (event_id, now.date().isoformat(), now.isoformat(timespec="milliseconds"), session, kind, dumps(body)))
         # 写库和生成文本在同一数据库写锁内，跨插件/跨进程不会互相覆盖。
