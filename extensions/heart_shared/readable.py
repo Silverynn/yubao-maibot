@@ -171,6 +171,10 @@ def render_memory(data):
     lines = [title]
     result = outcome.get("result") or {}
     error = outcome.get("error") or (result.get("error") if isinstance(result, dict) else "")
+    if operation == "ingest_text" and outcome.get("status", "").startswith(("候选待确认", "冲突待确认")):
+        lines.append("结果：" + outcome["status"])
+        lines.append("待处理内容：" + plain(outcome.get("submitted_text", "")))
+        return lines
     if error or "失败" in outcome.get("status", ""):
         reason = "等待超时" if "timeout" in str(error).lower() else "调用未成功，详细错误保留后台"
         lines.append("结果：未成功 · " + reason)

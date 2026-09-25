@@ -86,6 +86,15 @@ class MemoryTests(unittest.TestCase):
     def test_result_status_and_redaction(self):
         self.assertIn("跳过", plugin.memory_summary("ingest_text", {}, {"skipped_ids": ["x"]}, "")["status"])
         self.assertIn("不能认定", plugin.memory_summary("ingest_text", {}, {"success": True}, "")["status"])
+        self.assertIn("候选待确认", plugin.memory_summary("ingest_text", {}, {"success": False,
+            "detail": "已进入候选记忆 #3；尚未写入长期记忆"}, "")["status"])
+        self.assertIn("冲突待确认", plugin.memory_summary("ingest_text", {}, {"success": False,
+            "detail": "新旧信息疑似冲突，等待本人私聊确认后更新"}, "")["status"])
+        self.store.append("记忆操作结果", "s1", operation="ingest_text", outcome=plugin.memory_summary(
+            "ingest_text", {"text": "测试同学在学Python"}, {"success": False,
+                "detail": "已进入候选记忆 #3；尚未写入长期记忆"}, ""))
+        readable = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        self.assertIn("结果：候选待确认，尚未写入长期记忆", readable)
         self.assertEqual(plugin.memory_summary("search_memory", {}, {}, "TimeoutError")["status"], "调用失败")
         self.store.append("test", "s1", api_key="no-leak", text="Bearer xyz123")
         self.assertNotIn("xyz123", json.dumps(self.events()))

@@ -52,7 +52,12 @@ def memory_summary(component, arguments, result, error):
         return {"status": "返回格式无法确认", "result_type": type(result).__name__}
     if component in {"ingest_text", "ingest_summary"}:
         stored, skipped = result.get("stored_ids") or [], result.get("skipped_ids") or []
-        if result.get("success") is False or result.get("error"):
+        detail = str(result.get("detail") or result.get("reason") or result.get("error") or "")
+        if detail.startswith("已进入候选记忆"):
+            status = "候选待确认，尚未写入长期记忆"
+        elif "等待本人私聊确认" in detail:
+            status = "冲突待确认，尚未更新长期记忆"
+        elif result.get("success") is False or result.get("error"):
             status = "写入失败"
         elif stored:
             status = "原生记忆服务报告已存储（不承诺每个ID都是全新记忆）"
@@ -62,7 +67,7 @@ def memory_summary(component, arguments, result, error):
             status = "未报告存储ID；不能认定新增成功"
         return {"status": status, "submitted_text": arguments.get("text", ""),
                 "stored_ids": stored, "skipped_ids": skipped,
-                "detail": result.get("detail") or result.get("reason") or result.get("error", "")}
+                "detail": detail}
     if component == "search_memory":
         hits = result.get("hits") or []
         return {"status": "检索失败" if result.get("success") is False or result.get("error") else "检索完成",
