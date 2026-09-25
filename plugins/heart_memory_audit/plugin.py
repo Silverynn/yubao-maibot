@@ -3,6 +3,7 @@
 import asyncio
 
 from heart_shared.storage import AuditStore
+from heart_shared.forget import NATURAL_FORGET_PATTERN, NATURAL_RESOLVE_PATTERN
 from maibot_sdk import Command, Field, HookHandler, MaiBotPlugin, PluginConfigBase
 from maibot_sdk.types import HookMode, HookOrder
 
@@ -104,6 +105,22 @@ class MemoryAudit(MaiBotPlugin):
     async def resolve_forget(self, stream_id: str = "", **kwargs):
         result = await self.ctx.call_capability("heart.memory.manage", session_id=stream_id)
         message = result.get("message", "删除确认未完成，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
+
+    @Command("natural_forget_memory", description="本人自然语言请求忘记长期记忆，先定位再确认",
+             pattern=NATURAL_FORGET_PATTERN)
+    async def natural_forget_memory(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.manage", session_id=stream_id)
+        message = result.get("message", "没有改动长期记忆，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
+
+    @Command("natural_resolve_forget", description="本人不用斜杠确认或取消忘记",
+             pattern=NATURAL_RESOLVE_PATTERN)
+    async def natural_resolve_forget(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.manage", session_id=stream_id)
+        message = result.get("message", "没有改动长期记忆，请查看日志。")
         await self.ctx.send.text(message, stream_id)
         return bool(result.get("success")), message, True
 

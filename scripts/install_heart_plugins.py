@@ -5,7 +5,8 @@ import hashlib
 import json
 import shutil
 import subprocess
-import tempfile
+import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,20 @@ def git(target, *args):
     return subprocess.run(["git", "-C", str(target), *args], capture_output=True, text=True, encoding="utf-8", check=False)
 
 
+@contextmanager
+def preflight_directory():
+    """Windows 上避免 tempfile 的受限 ACL；只清理本次创建的预检目录。"""
+    parent = ROOT / ".runtime"
+    parent.mkdir(parents=True, exist_ok=True)
+    staging = parent / f"heart-install-check-{uuid.uuid4().hex}"
+    staging.mkdir()
+    try:
+        yield staging
+    finally:
+        if staging.resolve().parent == parent.resolve() and staging.name.startswith("heart-install-check-"):
+            shutil.rmtree(staging)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", type=Path, default=ROOT / ".runtime/MaiBot")
@@ -30,8 +45,7 @@ def main():
         raise SystemExit("找不到 MaiBot 源码。先按 README 准备上游，或用 --target 指定 MaiBot 根目录。")
     pending_patches = []
     # 在临时副本按顺序预演，支持第三份补丁依赖前两份已应用后的上下文。
-    with tempfile.TemporaryDirectory(prefix="heart-install-check-") as scratch:
-        staging = Path(scratch)
+    with preflight_directory() as staging:
         for relative in ("src/services/memory_service.py", "src/plugin_runtime/hook_catalog.py",
                          "src/plugin_runtime/capabilities/registry.py", "src/services/memory_flow_service.py"):
             file = staging / relative
