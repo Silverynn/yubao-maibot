@@ -5,6 +5,7 @@ import hashlib
 import json
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,14 +29,34 @@ def main():
     if not (target / "src/services/memory_service.py").is_file():
         raise SystemExit("找不到 MaiBot 源码。先按 README 准备上游，或用 --target 指定 MaiBot 根目录。")
     pending_patches = []
-    for name in ("heart-memory-observer.patch", "heart-memory-confirmation.patch"):
-        patch = ROOT / "patches" / name
-        applicable = git(target, "apply", "--check", str(patch))
-        applied = git(target, "apply", "--reverse", "--check", str(patch))
-        if applicable.returncode and applied.returncode:
-            raise SystemExit("接口与此版本冲突，未修改任何文件：\n" + applicable.stderr)
-        if applied.returncode:
-            pending_patches.append(patch)
+    # 在临时副本按顺序预演，支持第三份补丁依赖前两份已应用后的上下文。
+    with tempfile.TemporaryDirectory(prefix="heart-install-check-") as scratch:
+        staging = Path(scratch)
+        for relative in ("src/services/memory_service.py", "src/plugin_runtime/hook_catalog.py",
+                         "src/plugin_runtime/capabilities/registry.py", "src/services/memory_flow_service.py"):
+            file = staging / relative
+            file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(target / relative, file)
+        for name in ("heart-memory-observer.patch", "heart-memory-confirmation.patch",
+                     "heart-memory-entry.patch", "heart-memory-prompt.patch",
+                     "heart-memory-decision-log.patch"):
+            patch = ROOT / "patches" / name
+            applicable = git(staging, "apply", "--check", str(patch))
+            applied = git(staging, "apply", "--reverse", "--check", str(patch))
+            if applicable.returncode and applied.returncode and name == "heart-memory-confirmation.patch":
+                # 后续 entry 补丁在同一 registry 增加命令，导致旧补丁反向检查的上下文变化。
+                # 仅当确认接口的导入和注册两处都已存在时视为已应用；半安装仍拒绝。
+                registry = (staging / "src/plugin_runtime/capabilities/registry.py").read_text(encoding="utf-8")
+                if ("from src.services.heart_memory_backend import resolve_capability" in registry
+                        and '_register("heart.memory.resolve", resolve_capability)' in registry):
+                    continue
+            if applicable.returncode and applied.returncode:
+                raise SystemExit("接口与此版本冲突，未修改任何文件：\n" + applicable.stderr)
+            if applied.returncode:
+                result = git(staging, "apply", str(patch))
+                if result.returncode:
+                    raise SystemExit("接口补丁预演失败，未修改目标：\n" + result.stderr)
+                pending_patches.append(patch)
     source_pairs = [(ROOT / "extensions" / name, target / "src/services" / name)
                     for name in ("heart_host_observer.py", "heart_memory_backend.py")]
     directories = [(ROOT / "extensions/heart_shared", target / "heart_shared"),

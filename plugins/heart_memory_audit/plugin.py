@@ -19,9 +19,17 @@ class Conflicts(PluginConfigBase):
     confirmation_minutes: int = Field(default=10, ge=1, le=60, description="私聊确认有效分钟数，超过不更新")
 
 
+class AutoCandidates(PluginConfigBase):
+    enabled: bool = Field(default=True, description="把原生AI自动提取的人物事实先放进候选区；本人私聊确认后才写入长期记忆")
+    max_pending_per_person: int = Field(default=20, ge=1, le=50, description="每人的待确认候选上限，避免无限累积")
+    selection_guidance: str = Field(default="只记对用户本人具有持续意义、将来可能帮助理解其需求的事实或偏好。普通寒暄、一次性安排、猜测、引用他人的话、口令和敏感凭据都不要提取。不确定时输出空数组，不要为填满候选区而提取。",
+                                    description="WebUI可修改：追加给原生AI提取器的筛选原则；空白则仍遵守原生规则；不应要求保存第三方隐私或密码")
+
+
 class Config(PluginConfigBase):
     plugin: Switch = Field(default_factory=Switch)
     conflicts: Conflicts = Field(default_factory=Conflicts)
+    auto_candidates: AutoCandidates = Field(default_factory=AutoCandidates)
 
 
 def text_parts(value):
@@ -65,6 +73,49 @@ def memory_summary(component, arguments, result, error):
 
 class MemoryAudit(MaiBotPlugin):
     config_model = Config
+
+    @Command("remember", description="本人明确要求写入长期记忆", pattern=r"^/记住\s+(?P<content>.{1,500})$")
+    async def remember(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.manual", session_id=stream_id)
+        message = result.get("message", "手动记忆请求未完成，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
+
+    @Command("my_memories", description="本人私聊查看长期人物事实", pattern=r"^/我的记忆(?:\s+\d+)?$")
+    async def my_memories(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.manage", session_id=stream_id)
+        message = result.get("message", "查询未完成，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
+
+    @Command("forget_memory", description="本人私聊提出删除长期记忆", pattern=r"^/(?:忘记|忘掉)\s+.{1,200}$")
+    async def forget_memory(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.manage", session_id=stream_id)
+        message = result.get("message", "删除请求未完成，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
+
+    @Command("resolve_forget", description="本人私聊确认或取消忘记", pattern=r"^/(?:确认|取消)忘记\s+\d+$")
+    async def resolve_forget(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.manage", session_id=stream_id)
+        message = result.get("message", "删除确认未完成，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
+
+    @Command("memory_candidates", description="本人私聊查看候选记忆", pattern=r"^/?候选记忆$")
+    async def memory_candidates(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.candidates", session_id=stream_id)
+        message = result.get("message", "候选记忆查询未完成，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
+
+    @Command("resolve_candidate", description="本人私聊确认或忽略候选记忆",
+             pattern=r"^/?(?:确认|忽略)候选记忆\s+\d+$")
+    async def resolve_candidate(self, stream_id: str = "", **kwargs):
+        result = await self.ctx.call_capability("heart.memory.candidates", session_id=stream_id)
+        message = result.get("message", "候选记忆处理未完成，请查看日志。")
+        await self.ctx.send.text(message, stream_id)
+        return bool(result.get("success")), message, True
 
     @Command("confirm_memory", description="本人私聊确认或取消记忆更新", pattern=r"^/?(?:确认|取消)记忆更新\s+\d+$")
     async def confirm_memory(self, stream_id: str = "", **kwargs):

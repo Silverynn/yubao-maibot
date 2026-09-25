@@ -2,15 +2,18 @@
 
 本包不只是两个plugin.py。新增功能以插件及独立模块为主，原生接入点尽量小。请用安装器，勿漏拷共用模块。
 
-## 一、修改的原生文件：三个文件，各新增两行
+## 一、修改的原生文件：四个文件、五份小补丁
 
 | 原生路径 | 改动 | 用处 | 对应补丁 |
 |---|---|---|---|
 | src/services/memory_service.py | 导入observed_memory_call；给MemoryService._invoke加装饰器 | 经过这个入口的记忆调用可被记录，指定写入可先核查冲突 | heart-memory-observer.patch |
 | src/plugin_runtime/hook_catalog.py | 导入register_heart_hook_specs；加进注册列表 | 注册heart.memory.after_operation只读通知事件 | heart-memory-observer.patch |
 | src/plugin_runtime/capabilities/registry.py | 导入resolve_capability；注册heart.memory.resolve | 将插件确认命令接到宿主，核对真实发言者并处理确认 | heart-memory-confirmation.patch |
+| src/plugin_runtime/capabilities/registry.py | 再注册手动记住、候选和本人记忆管理能力 | 命令通过宿主核实真实发送者 | heart-memory-entry.patch |
+| src/services/memory_flow_service.py | 在原生筛选Prompt后追加WebUI可改的筛选原则 | 不改原生提取算法；用户可以调整候选标准 | heart-memory-prompt.patch |
+| src/services/memory_flow_service.py | 将AI筛选结果（包括空结果）发给Heart审计 | 记录这次是否筛出了候选，但不冒充已写入长期记忆 | heart-memory-decision-log.patch |
 
-“六行”仅指接入点，不是所有实现总共六行。实际逻辑在下述新增文件中。观察通知本身只读；写入前冲突关卡会主动拦截，并非整个扩展都是只读。
+接入点只有少量新增代码；实际逻辑在下述新增文件中。观察通知本身只读；写入前冲突关卡会主动拦截，并非整个扩展都是只读。
 
 原生入口的关键形式：
 
@@ -63,7 +66,7 @@ async def _invoke(...):
 
 ## 四、没有改什么
 
-- 没有修改src/A_memorix实现、原生数据库结构、向量算法或原生事实提取Prompt。
+- 没有修改src/A_memorix实现、原生数据库结构或向量算法；只在原生事实提取Prompt末尾追加可配置筛选原则，不放宽原始证据约束。
 - 没有覆盖机器人永久人设；心情风格只是追加当次extra_prompt。
 - AI心情使用现有llm.generate能力，没有为这次400修复改LLM底层客户端。
 - 没有把现在读取到的原生_log_length_truncation告警函数当作我们新增代码。
@@ -74,16 +77,16 @@ async def _invoke(...):
 
 新增data/heart_observation/events.sqlite3保存对话快照、事件、心情、去重状态与heart_proposals待确认流程。它不是原生长期记忆库，也不是把原生记忆全量迁走。
 
-记忆插件清单声明heart.memory.resolve与send.text；心情声明llm.generate。安装包里的config.toml是默认配置，不是原使用者的账号/密钥配置。
+记忆插件清单声明heart.memory.resolve、heart.memory.manual、heart.memory.candidates、heart.memory.manage与send.text；心情声明llm.generate。安装包里的config.toml是默认配置，不是原使用者的账号/密钥配置。
 
 ## 六、合并、升级与撤销
 
-安装器先对两份patch做git apply --check或反向检查，再检查自己管理的文件指纹；发现未知修改停止。运行配置始终保留。因此旧配置里的6秒等待不会被默认20秒自动覆盖。
+安装器先对五份patch做git apply --check或反向检查，再检查自己管理的文件指纹；发现未知修改停止。运行配置始终保留。因此旧配置里的6秒等待不会被默认20秒自动覆盖。
 
-合并时请同时带上两个plugins目录、extensions目录、两份patch、安装器和测试；只合并外层合作仓库中的源文件后，还需向真正运行目录部署。不要把整个运行目录或.git历史当作这个扩展发布。
+合并时请同时带上两个plugins目录、extensions目录、五份patch、安装器和测试；只合并外层合作仓库中的源文件后，还需向真正运行目录部署。不要把整个运行目录或.git历史当作这个扩展发布。
 
 上游升级后先在副本测试，不绕过失败检查。SDK和调用接口可能变，原生参考块标记也可能变，日志空参考不证明没有使用任何记忆。
 
-回退先停机并关闭两插件。若使用反向patch，先在目标目录对两份patch执行反向检查，通过后才应用；只撤销这里列出的六行。不要git reset --hard或覆盖整个src。新增文件可以先保留不用，确认无依赖再处理。数据应单独备份，不随代码回退删除。
+回退先停机并关闭两插件。若使用反向patch，按安装顺序的反方向逐份检查和撤销；不要git reset --hard或覆盖整个src。新增文件可以先保留不用，确认无依赖再处理。数据应单独备份，不随代码回退删除。
 
 朋友如果需要完整团队机器人，还需按团队基础仓库准备其余依赖与定制；本扩展不是整机克隆。GitHub 合并只更新外层源码，运行实例仍需执行安装器部署。

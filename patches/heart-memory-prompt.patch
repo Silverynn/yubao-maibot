@@ -1,0 +1,18 @@
+diff --git a/src/services/memory_flow_service.py b/src/services/memory_flow_service.py
+--- a/src/services/memory_flow_service.py
++++ b/src/services/memory_flow_service.py
+@@ -363,5 +363,14 @@
+ 严格输出 JSON 数组，例如：
+ ["他喜欢深夜打游戏", "他养了一只猫"]
+ 如果没有可写入的事实，输出 []"""
++        # Heart 只追加可在 WebUI 编辑的筛选原则；原生证据约束和写入算法不变。
++        try:
++            from src.services.heart_memory_backend import memory_selection_guidance
++
++            guidance = memory_selection_guidance().strip()
++            if guidance:
++                prompt += "\n\n补充筛选原则（不得放宽上述证据与归属要求）：" + guidance
++        except ImportError:
++            pass
+         try:
+             if self._extractor is None:

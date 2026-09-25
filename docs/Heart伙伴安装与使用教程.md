@@ -4,7 +4,7 @@
 
 这是MaiBot的增量扩展，不是一个包含QQ账号和全部运行环境的整合机器人。
 
-- `heart.memory-audit` 1.1.0：观察原生记忆、按天导出中文日志，以及人物事实冲突的本人确认流程。
+- `heart.memory-audit` 1.2.0：观察原生记忆、按天导出中文日志、本人记住/查看/忘记、自动候选，以及人物事实冲突的本人确认流程。新指令见《Heart记忆升级1.2使用说明.md》。
 - `heart.mood` 1.3.0：一个持久化心情值、关键词/可选AI评估、自定义分数区间与聊天风格，和记忆共用日志。
 
 冲突保护是记忆扩展的一部分，不是第三个需要安装的插件。原生A_memorix仍负责实际存储、检索、人物画像和修改操作。
@@ -46,7 +46,7 @@ python scripts/install_heart_plugins.py --target "D:\MaiBot" --apply
 
 安装器检查补丁是否已应用、目标代码是否被你改过；已有config.toml一律保留。遇到冲突不强行覆盖，请比较文件。安装不是一个跨文件整体事务，应保留备份；安装器不会启动机器人、连接QQ或主动测试模型。
 
-5. 正常启动你自己的MaiBot和NapCat。插件管理中确认两项Heart插件加载正常。记忆插件需要heart.memory.resolve、send.text能力；心情插件需要llm.generate能力。
+5. 正常启动你自己的MaiBot和NapCat。插件管理中确认两项Heart插件加载正常。记忆插件需要heart.memory.resolve、heart.memory.manual、heart.memory.candidates、heart.memory.manage和send.text能力；心情插件需要llm.generate能力。
 
 ## 4. 记忆插件怎么用
 
@@ -59,10 +59,13 @@ python scripts/install_heart_plugins.py --target "D:\MaiBot" --apply
 | conflicts.candidate_limit | 15 | 比较多少条检索候选；不是扫描全库 |
 | conflicts.timeout_seconds | 20 | 冲突判断等待秒数 |
 | conflicts.confirmation_minutes | 10 | 本人私聊确认有效分钟数 |
+| auto_candidates.enabled | true | 原生自动提取先进入候选；关闭后直接走原生写入 |
+| auto_candidates.max_pending_per_person | 20 | 每人候选上限 |
+| auto_candidates.selection_guidance | 中文筛选规则 | 在WebUI修改AI判断哪些内容值得记住 |
 
 如果旧配置没有conflicts节，代码使用默认值；界面保存后写入配置。默认日志和冲突保护会记录明文对话，开始多人测试前请告知参与者。
 
-正常聊天，等原生系统提取出事实并尝试写入。发现疑似冲突时，插件暂缓该条写入，私聊原用户展示新旧内容。例如机器人要求处理编号1：
+默认情况下，正常聊天由原生系统提取事实并放入候选，用户私聊 `/候选记忆` 查看并用 `/确认候选记忆 编号` 写入。也可直接 `/记住 内容`，私聊 `/我的记忆` 查看，`/忘记 关键词` 后 `/确认忘记 编号` 删除。详见独立的1.2使用说明。发现疑似冲突时，插件暂缓该条写入，私聊原用户展示新旧内容。例如机器人要求处理编号1：
 
 ```text
 /确认记忆更新 1
@@ -153,10 +156,10 @@ data/heart_observation/
 
 最小回退：关闭ai.enabled回到关键词；关闭conflicts.enabled停止写入前检查，保留记录；关闭states.enabled回到旧三档。先关闭功能比删数据更安全。
 
-彻底回退请停机并参照底层改动清单，关闭两个插件后逆向撤销属于Heart的两份补丁（先git apply --reverse --check再实际apply），或从自己的备份恢复对应文件。不能整个src覆盖回去破坏别人的修改。保留data，直到确认备份和需要的历史。
+彻底回退请停机并参照底层改动清单，关闭两个插件后按反向顺序撤销属于Heart的五份补丁（先git apply --reverse --check再实际apply），或从自己的备份恢复对应文件。不能整个src覆盖回去破坏别人的修改。保留data，直到确认备份和需要的历史。
 
 ## 8. 如何继续团队协作
 
-提交/共享plugins/heart_*、extensions/heart_*、两份patch、安装器、测试和新教程；不要提交.runtime、运行配置、密钥、真实日志和QQ登录态。仅提交外层仓库不会自动包含实际运行目录的临时改动。
+提交/共享plugins/heart_*、extensions/heart_*、五份patch、安装器、测试和新教程；不要提交.runtime、运行配置、密钥、真实日志和QQ登录态。仅提交外层仓库不会自动包含实际运行目录的临时改动。
 
 此次包包含Heart扩展，不包含原使用者在maisaka_generator_base.py、src/chat/utils/utils.py等其他文件上的定制；若要整机一致，另做范围核对和脱敏，不能声称本包等于完整机器人克隆。

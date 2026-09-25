@@ -7,3 +7,8 @@ enabled = true
 candidate_limit = 15
 timeout_seconds = 20
 confirmation_minutes = 10
+
+[auto_candidates]
+enabled = true
+max_pending_per_person = 20
+selection_guidance = "只记对用户本人具有持续意义、将来可能帮助理解其需求的事实或偏好。普通寒暄、一次性安排、猜测、引用他人的话、口令和敏感凭据都不要提取。不确定时输出空数组，不要为填满候选区而提取。"

@@ -116,6 +116,29 @@ def render_event(event, data):
         lines.append("新内容：" + plain(data.get("new_memory", "")))
         if data.get("reason"):
             lines.append("说明：" + plain(data["reason"]))
+    elif kind == "候选记忆":
+        lines.append(f"调用：候选记忆 · #{data.get('candidate_id', '?')} · " + plain(data.get("status", "")))
+        lines.append("候选内容：" + plain(data.get("new_memory", "")))
+        if data.get("reason"):
+            lines.append("说明：" + plain(data["reason"]))
+    elif kind == "自动记忆判断":
+        memories = data.get("memories") or []
+        lines.append("调用：原生AI记忆筛选 · " + plain(data.get("status", "")))
+        for memory in memories[:5]:
+            lines.append("筛出内容：" + plain(memory))
+        if memories:
+            lines.append("说明：筛出内容尚不等于写入长期记忆；请查看后续候选或原生写入结果。")
+    elif kind == "手动记忆请求":
+        lines.append("调用：/记住 · " + plain(data.get("status", "")))
+        lines.append("请求内容：" + plain(data.get("new_memory", "")))
+        if data.get("detail"):
+            lines.append("说明：" + plain(data["detail"]))
+    elif kind == "忘记记忆":
+        lines.append("调用：/我的记忆 或 /忘记 · " + plain(data.get("status", "")))
+        if data.get("memory"):
+            lines.append("目标记忆：" + plain(data["memory"]))
+        if data.get("reason"):
+            lines.append("说明：" + plain(data["reason"]))
     elif kind == "模型请求中的记忆参考":
         refs = data.get("references") or []
         stage = "思考阶段" if data.get("stage") == "planner" else "回复阶段"
