@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "id": "heart.mood",
   "name": "Heart 持久化心情状态",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "单一心情值按会话持久化、可解释变化、影响回复风格，并写入共用本地日志。",
   "author": {"name": "Heart project contributors", "url": "https://github.com/Silverynn/yubao-maibot"},
   "urls": {"repository": "https://github.com/Silverynn/yubao-maibot"},

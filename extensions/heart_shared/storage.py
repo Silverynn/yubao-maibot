@@ -1,14 +1,23 @@
-"""SQLite 保存事实事件，按天导出人类可读日志；两个插件共用同一个写锁。"""
+"""SQLite 保存审计事件，按会话和日期导出日志；两个插件共用同一个写锁。"""
 
+import asyncio
+import hashlib
 import json
+import logging
 import re
 import sqlite3
 import uuid
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from .readable import render_event
+
+
+RETENTION_DAYS = 3  # 保留今天与前三个自然日；更早的整日记录自动删除。
+LOG_NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})_(?:群聊|私聊|未知会话|后台)_.+_[0-9a-f]{10}\.txt$")
+LEGACY_LOG_NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})\.txt$")
+TEMP_LOG_NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:_(?:群聊|私聊|未知会话|后台)_.+_[0-9a-f]{10})?\.tmp$")
 
 
 def clean(value):
@@ -69,6 +78,12 @@ class AuditStore:
                     day TEXT NOT NULL, time TEXT NOT NULL, session TEXT NOT NULL,
                     kind TEXT NOT NULL, payload TEXT NOT NULL);
                 CREATE INDEX IF NOT EXISTS events_day ON events(day,seq);
+                CREATE INDEX IF NOT EXISTS messages_received ON messages(received);
+                CREATE TABLE IF NOT EXISTS sessions(
+                    session TEXT PRIMARY KEY, chat_type TEXT NOT NULL, title TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS session_files(
+                    day TEXT NOT NULL, session TEXT NOT NULL, filename TEXT NOT NULL,
+                    PRIMARY KEY(day,session));
             """)
 
     def connect(self):
@@ -93,7 +108,11 @@ class AuditStore:
     def message_fields(message):
         info = message.get("message_info", {})
         user = info.get("user_info", {})
-        group = info.get("group_info") or {}
+        group_info = info.get("group_info")
+        group = group_info or {}
+        is_group = group_info is not None
+        title = str((group.get("group_name") or group.get("group_id") or "未命名群聊") if is_group else
+                    (user.get("user_nickname") or user.get("user_id") or "未命名用户"))
         return {
             "session": str(message.get("session_id") or ""),
             "message_id": str(message.get("message_id") or ""),
@@ -101,12 +120,17 @@ class AuditStore:
             "name": (f"{group['group_name']} / " if group.get("group_name") else "")
                     + str(user.get("user_nickname") or "未命名人物"),
             "text": str(message.get("processed_plain_text") or "[非文本消息/尚未转写]"),
+            "chat_type": "群聊" if is_group else "私聊",
+            "title": title,
         }
 
     def save_message(self, db, message):
         fields = self.message_fields(message)
         if not fields["session"] or not fields["message_id"]:
             return fields
+        db.execute("""INSERT INTO sessions(session,chat_type,title) VALUES(?,?,?)
+            ON CONFLICT(session) DO UPDATE SET chat_type=excluded.chat_type,title=excluded.title""",
+            (fields["session"], fields["chat_type"], fields["title"]))
         db.execute("INSERT OR IGNORE INTO messages VALUES(?,?,?,?,?,?)", (
             fields["session"], fields["message_id"], fields["user"], fields["name"],
             clean(fields["text"]), self.clock().isoformat(timespec="milliseconds")))
@@ -150,7 +174,8 @@ class AuditStore:
         db.execute("INSERT OR IGNORE INTO events(event_id,day,time,session,kind,payload) VALUES(?,?,?,?,?,?)",
                    (event_id, now.date().isoformat(), now.isoformat(timespec="milliseconds"), session, kind, dumps(body)))
         # 写库和生成文本在同一数据库写锁内，跨插件/跨进程不会互相覆盖。
-        self.export_day(db, now.date().isoformat())
+        self.export_session_day(db, now.date().isoformat(), session)
+        self.prune_in(db, now.date())
         return event_id
 
     def record_message(self, message):
@@ -162,19 +187,101 @@ class AuditStore:
                 "memory_status": "此时尚未观测到本条消息的记忆结果；后台结果会另记，不等于未使用记忆",
             })
 
-    def export_day(self, db, day):
-        blocks = [
-            render_event(event, json.loads(event["payload"]))
-            for event in db.execute("SELECT * FROM events WHERE day=? ORDER BY seq", (day,))
-        ]
-        target = self.root / "logs" / f"{day}.txt"
-        target.parent.mkdir(exist_ok=True)
+    @staticmethod
+    def safe_title(title):
+        """文件名可读，但不能含 Windows 非法字符、路径分隔符或末尾空格/点。"""
+        value = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", str(title or "").strip())
+        value = re.sub(r"\s+", " ", value).strip(" .")[:40].rstrip(" .")
+        return value or "未命名"
+
+    def session_filename(self, db, day, session):
+        if session:
+            row = db.execute("SELECT chat_type,title FROM sessions WHERE session=?", (session,)).fetchone()
+            if row is None:
+                # 升级前的 messages 只有“群名 / 发言人”；只用于旧日志迁移。
+                old = db.execute("SELECT name FROM messages WHERE session=? ORDER BY rowid DESC LIMIT 1",
+                                 (session,)).fetchone()
+                old_name = str(old[0] or "") if old else ""
+                chat_type = "群聊" if " / " in old_name else "私聊" if old_name else "未知会话"
+                title = old_name.rsplit(" / ", 1)[0] if chat_type == "群聊" else old_name or "未命名"
+                db.execute("INSERT OR IGNORE INTO sessions VALUES(?,?,?)", (session, chat_type, title))
+            else:
+                chat_type, title = row[0], row[1]
+        else:
+            chat_type, title = "后台", "未关联会话"
+        short_id = hashlib.sha256(session.encode("utf-8")).hexdigest()[:10]
+        return f"{day}_{chat_type}_{self.safe_title(title)}_{short_id}.txt"
+
+    def export_session_day(self, db, day, session):
+        events = db.execute("SELECT * FROM events WHERE day=? AND session=? ORDER BY seq", (day, session)).fetchall()
+        if not events:
+            return
+        blocks = [render_event(event, json.loads(event["payload"])) for event in events]
+        logs = self.root / "logs"
+        logs.mkdir(exist_ok=True)
+        filename = self.session_filename(db, day, session)
+        target = logs / filename
         temporary = target.with_suffix(".tmp")
         temporary.write_text("\n\n".join(blocks) + "\n", encoding="utf-8-sig")
         temporary.replace(target)
+        previous = db.execute("SELECT filename FROM session_files WHERE day=? AND session=?", (day, session)).fetchone()
+        db.execute("""INSERT INTO session_files(day,session,filename) VALUES(?,?,?)
+            ON CONFLICT(day,session) DO UPDATE SET filename=excluded.filename""", (day, session, filename))
+        if previous and previous[0] != filename and self.managed_log_name(previous[0]):
+            try:
+                (logs / previous[0]).unlink(missing_ok=True)
+            except OSError:
+                logging.getLogger(__name__).exception("Heart 旧会话文件更名清理失败：%s", previous[0])
+
+    def export_day(self, db, day):
+        for row in db.execute("SELECT DISTINCT session FROM events WHERE day=?", (day,)).fetchall():
+            self.export_session_day(db, day, row[0])
+
+    @staticmethod
+    def managed_log_name(name):
+        return bool(LOG_NAME.fullmatch(name) or LEGACY_LOG_NAME.fullmatch(name))
+
+    def prune_in(self, db, today):
+        cutoff = (today - timedelta(days=RETENTION_DAYS)).isoformat()
+        db.execute("DELETE FROM events WHERE day<?", (cutoff,))
+        db.execute("""DELETE FROM mood_processed WHERE EXISTS(
+            SELECT 1 FROM messages WHERE messages.session=mood_processed.session
+            AND messages.message_id=mood_processed.message_id AND messages.received<?)""", (cutoff + "T",))
+        db.execute("DELETE FROM messages WHERE received<?", (cutoff + "T",))
+        db.execute("DELETE FROM session_files WHERE day<?", (cutoff,))
+        logs = self.root / "logs"
+        if logs.is_dir():
+            for path in logs.iterdir():
+                match = ((LOG_NAME.fullmatch(path.name) or LEGACY_LOG_NAME.fullmatch(path.name)
+                          or TEMP_LOG_NAME.fullmatch(path.name)) if path.is_file() else None)
+                if match and match[1] < cutoff:
+                    try:
+                        path.unlink()
+                    except OSError:
+                        logging.getLogger(__name__).exception("Heart 旧日志删除失败：%s", path)
+
+    def prune(self):
+        """供插件启动及定时任务调用；不会删除原生长期记忆或心情当前值。"""
+        with self.transaction() as db:
+            self.prune_in(db, self.clock().date())
+
+    async def retention_loop(self):
+        """即使整天无人聊天，也至少每小时检查一次到期日志。"""
+        while True:
+            await asyncio.sleep(3600)
+            try:
+                await asyncio.to_thread(self.prune)
+            except Exception:
+                logging.getLogger(__name__).exception("Heart 定时日志清理失败；下次继续重试")
 
     def rebuild(self):
         """崩溃或手动编辑导出文本后，可由数据库重建；数据库才是原始凭证。"""
         with self.transaction() as db:
+            self.prune_in(db, self.clock().date())
             for row in db.execute("SELECT DISTINCT day FROM events").fetchall():
                 self.export_day(db, row[0])
+                # 仅在该日全部会话文件成功导出后移除旧版混合文件。
+                try:
+                    (self.root / "logs" / f"{row[0]}.txt").unlink(missing_ok=True)
+                except OSError:
+                    logging.getLogger(__name__).exception("Heart 旧版混合日志清理失败：%s", row[0])

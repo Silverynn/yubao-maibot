@@ -1,6 +1,7 @@
 """读取持久化心情，追加临时回复要求；不覆盖原有人设和历史。"""
 
 import asyncio
+from contextlib import suppress
 
 from heart_shared.storage import AuditStore
 from maibot_sdk import Field, HookHandler, MaiBotPlugin, PluginConfigBase
@@ -109,11 +110,17 @@ class MoodPlugin(MaiBotPlugin):
 
     async def on_load(self):
         self.store = AuditStore()
+        await asyncio.to_thread(self.store.prune)
+        self._retention_task = asyncio.create_task(self.store.retention_loop())
         self.engine = MoodEngine(self.store)
         self.appraiser = AIAppraiser(self)
         self._get_logger().info("Heart心情插件已加载；数值保存在：%s", self.store.root)
 
     async def on_unload(self):
+        if hasattr(self, "_retention_task"):
+            self._retention_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._retention_task
         if hasattr(self, "appraiser"):
             await self.appraiser.close()
 

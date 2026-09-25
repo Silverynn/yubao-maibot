@@ -1,6 +1,7 @@
 """记录原生记忆事件，并为宿主冲突保护提供配置与本人确认命令。"""
 
 import asyncio
+from contextlib import suppress
 
 from heart_shared.storage import AuditStore
 from heart_shared.forget import NATURAL_FORGET_PATTERN, NATURAL_RESOLVE_PATTERN
@@ -149,10 +150,14 @@ class MemoryAudit(MaiBotPlugin):
     async def on_load(self):
         self.store = AuditStore()
         await asyncio.to_thread(self.store.rebuild)
+        self._retention_task = asyncio.create_task(self.store.retention_loop())
         self._get_logger().info("Heart记忆记录已加载：%s；冲突保护需配套宿主接口", self.store.root)
 
     async def on_unload(self):
-        """每次操作自行关闭连接，无常驻线程或后台任务需要终止。"""
+        if hasattr(self, "_retention_task"):
+            self._retention_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._retention_task
 
     async def on_config_update(self, scope, config_data, version):
         """Runner 已注入新配置；每次 Hook 都读取当前 self.config。"""

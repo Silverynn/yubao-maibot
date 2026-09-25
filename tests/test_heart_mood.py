@@ -114,7 +114,7 @@ class MoodTests(unittest.TestCase):
         self.assertEqual(result["value"], 60)
         self.assertEqual(result["recovery_target"], 60)
         self.assertEqual(result["previous_recovery_target"], 50)
-        log = (self.root / "logs" / "2030-01-01.txt").read_text(encoding="utf-8-sig")
+        log = next((self.root / "logs").glob("2030-01-01_*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("当前恢复目标60", log)
         self.assertIn("上次记录的恢复目标为50", log)
         self.assertIn("距上次结算约16小时", log)

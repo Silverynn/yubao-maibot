@@ -7,7 +7,7 @@ import sys
 import unittest
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,7 +48,8 @@ class MemoryTests(unittest.TestCase):
         content = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("\n\n#", content)
         self.assertIn("我在学Python", content)
-        self.store.clock = lambda: datetime(2030, 1, 1, tzinfo=timezone.utc)
+        next_day = self.store.clock() + timedelta(days=1)
+        self.store.clock = lambda: next_day
         self.store.append("test", "s1")
         self.assertEqual(len(list((self.root / "logs").glob("*.txt"))), 2)
 
@@ -67,13 +68,89 @@ class MemoryTests(unittest.TestCase):
         self.store.append("模型请求中的记忆参考", "personal-session", references=[])
         self.store.append("记忆操作结果", "personal-session", evidence_message_ids=["unknown"],
                           operation="get_person_profile", outcome={"result": {}})
-        content = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
-        self.assertIn("会话：群聊 测试群（心情按会话分别计算）", content)
-        self.assertIn("会话：与测试同学的会话（心情按会话分别计算）", content)
-        self.assertNotIn("group-session", content)
-        self.assertNotIn("personal-session", content)
+        files = sorted((self.root / "logs").glob("*.txt"))
+        self.assertEqual(len(files), 2)
+        group_log = next(path.read_text(encoding="utf-8-sig") for path in files if "_群聊_测试群_" in path.name)
+        private_log = next(path.read_text(encoding="utf-8-sig") for path in files if "_私聊_测试同学_" in path.name)
+        self.assertIn("会话：群聊 测试群（心情按会话分别计算）", group_log)
+        self.assertNotIn("与测试同学的会话", group_log)
+        self.assertIn("会话：与测试同学的会话（心情按会话分别计算）", private_log)
+        self.assertNotIn("群聊 测试群", private_log)
+        self.assertNotIn("group-session", group_log + private_log)
+        self.assertNotIn("personal-session", group_log + private_log)
         self.assertEqual(self.events()[-1]["dialogue"], [])
         self.assertEqual(self.events()[-1]["session_name"], "测试同学")
+
+    def test_same_display_name_still_gets_separate_files_and_safe_filename(self):
+        first = self.message(session="private-one", message_id="a", text="第一人的话")
+        second = self.message(session="private-two", message_id="b", text="第二人的话")
+        first["message_info"]["user_info"]["user_nickname"] = "小明:/\\?*"
+        second["message_info"]["user_info"]["user_nickname"] = "小明:/\\?*"
+        self.store.record_message(first)
+        self.store.record_message(second)
+        files = sorted((self.root / "logs").glob("*.txt"))
+        self.assertEqual(len(files), 2)
+        self.assertNotEqual(files[0].name, files[1].name)
+        for path in files:
+            self.assertIn("_私聊_小明", path.name)
+            self.assertFalse(any(char in path.name for char in ':\\/?*'))
+            text = path.read_text(encoding="utf-8-sig")
+            self.assertNotEqual("第一人的话" in text, "第二人的话" in text)
+
+    def test_three_day_retention_removes_database_and_files_without_resurrection(self):
+        day = [datetime(2026, 9, value, 12, tzinfo=timezone.utc) for value in (21, 22, 25, 26)]
+        self.store.clock = lambda: day[0]
+        self.store.record_message(self.message(message_id="old", text="超过三天的对话"))
+        with self.store.connect() as db:
+            db.execute("INSERT INTO mood_processed VALUES(?,?,?)", ("s1", "old", '{"value":60}'))
+            db.execute("INSERT INTO moods VALUES(?,?,?,?)", ("s1", 60, day[0].timestamp(), '{"value":60}'))
+        untouched = self.root / "logs" / "my-notes.txt"
+        untouched.write_text("用户自己的文件", encoding="utf-8")
+        old_temp = self.root / "logs" / "2026-09-21_私聊_测试同学_aaaaaaaaaa.tmp"
+        old_temp.write_text("旧临时日志", encoding="utf-8")
+        self.store.clock = lambda: day[1]
+        self.store.record_message(self.message(message_id="border", text="三天前的对话"))
+        self.store.clock = lambda: day[2]
+        self.store.record_message(self.message(message_id="now", text="今天的对话"))
+        self.assertTrue(untouched.exists())
+        self.assertFalse(old_temp.exists())
+        files = list((self.root / "logs").glob("2026-*.txt"))
+        self.assertEqual({path.name[:10] for path in files}, {"2026-09-22", "2026-09-25"})
+        self.assertNotIn("超过三天的对话", json.dumps(self.events(), ensure_ascii=False))
+        with self.store.connect() as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM mood_processed").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT value FROM moods WHERE session='s1'").fetchone()[0], 60)
+        self.store.clock = lambda: day[3]
+        self.store.prune()
+        AuditStore(self.root, clock=lambda: day[3]).rebuild()
+        files = list((self.root / "logs").glob("2026-*.txt"))
+        self.assertEqual({path.name[:10] for path in files}, {"2026-09-25"})
+        self.assertNotIn("三天前的对话", json.dumps(self.events(), ensure_ascii=False))
+        self.assertEqual(untouched.read_text(encoding="utf-8"), "用户自己的文件")
+
+    def test_rebuild_replaces_legacy_mixed_daily_file(self):
+        self.store.record_message(self.message(session="one", message_id="a", text="甲会话"))
+        self.store.record_message(self.message(session="two", message_id="b", text="乙会话"))
+        day = self.store.clock().date().isoformat()
+        legacy = self.root / "logs" / f"{day}.txt"
+        legacy.write_text("旧版混合日志", encoding="utf-8")
+        self.store.rebuild()
+        self.assertFalse(legacy.exists())
+        self.assertEqual(len(list((self.root / "logs").glob("*.txt"))), 2)
+
+    def test_rebuild_names_legacy_group_session_from_old_message_row(self):
+        now = self.store.clock()
+        day = now.date().isoformat()
+        with self.store.transaction() as db:
+            db.execute("INSERT INTO messages VALUES(?,?,?,?,?,?)",
+                       ("legacy-group", "old-1", "user", "旧群 / 老用户", "旧对话", now.isoformat()))
+            db.execute("INSERT INTO events(event_id,day,time,session,kind,payload) VALUES(?,?,?,?,?,?)",
+                       ("legacy-event", day, now.isoformat(), "legacy-group", "收到对话",
+                        json.dumps({"text": "旧对话", "session_name": "旧群 / 老用户"}, ensure_ascii=False)))
+        self.store.rebuild()
+        files = list((self.root / "logs").glob(f"{day}_群聊_旧群_*.txt"))
+        self.assertEqual(len(files), 1)
+        self.assertIn("旧对话", files[0].read_text(encoding="utf-8-sig"))
 
     def test_concurrent_and_restart(self):
         with ThreadPoolExecutor(max_workers=4) as pool:
