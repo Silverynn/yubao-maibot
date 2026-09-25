@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "id": "heart.memory-audit",
+  "name": "Heart 记忆与对话记录",
+  "version": "1.2.2",
+  "description": "中文日志记录原生记忆；支持本人记住、查看、自然语言忘记确认及AI自动候选记忆，保留冲突确认。",
+  "author": {"name": "Heart project contributors", "url": "https://github.com/Silverynn/yubao-maibot"},
+  "urls": {"repository": "https://github.com/Silverynn/yubao-maibot"},
+  "i18n": {"default_locale": "zh-CN", "locales_path": "_locales", "supported_locales": ["zh-CN"]},
+  "license": "GPL-3.0-or-later",
+  "host_application": {"min_version": "1.2.4", "max_version": "1.2.99"},
+  "sdk": {"min_version": "2.8.0", "max_version": "2.99.99"},
+  "dependencies": [],
+  "capabilities": ["heart.memory.resolve", "heart.memory.manual", "heart.memory.candidates", "heart.memory.manage", "send.text"]
+}

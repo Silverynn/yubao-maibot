@@ -1,0 +1,17 @@
+diff --git a/src/services/memory_flow_service.py b/src/services/memory_flow_service.py
+--- a/src/services/memory_flow_service.py
++++ b/src/services/memory_flow_service.py
+@@ -94,6 +94,13 @@
+         user_evidence_text = self._format_user_evidence(evidence)
+ 
+         facts = await self._extract_facts(target_person, reply_text, user_evidence_text)
++        # Heart 记录可观察到的提取结果；即使空结果也不能武断归因为“没有价值”。
++        from src.services.heart_memory_backend import record_auto_selection
++
++        await record_auto_selection(
++            getattr(message, "session_id", ""), facts,
++            [getattr(item, "message_id", "") for item in evidence.target_messages],
++        )
+         if not facts:
+             return
+ 

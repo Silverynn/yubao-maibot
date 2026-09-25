@@ -1,0 +1,39 @@
+# 修改运行目录的这个文件并重启，或在 MaiBot 的插件配置页修改。
+# 新版 states 默认四档，可在插件编辑界面添加；未写入本文件时使用代码默认值。
+# 新版 ai 默认关闭，在编辑界面开启后使用现有utils模型，不与关键词叠加。
+[ai]
+enabled = false
+fallback_keywords = false
+timeout_seconds = 20
+max_output_tokens = 4096
+delta_multiplier = 1.0
+positive_limit = 8.0
+negative_limit = 8.0
+confidence_threshold = 0.7
+guidance = "评价角色受到的互动影响而不是给用户打分；克制波动，尊重用户，普通知识提问通常保持不变。"
+
+[plugin]
+config_version = "1.0.0"
+enabled = true
+
+[mood]
+baseline = 50
+recovery_per_hour = 2
+max_delta = 8
+cooldown_seconds = 60
+
+[rules]
+gratitude_terms = ["谢谢你", "谢谢麦麦", "你真棒", "你帮了我", "辛苦你了"]
+gratitude_delta = 5
+insult_terms = ["你真没用", "你是笨蛋", "你太差劲", "讨厌你"]
+insult_delta = -6
+distress_terms = ["我很难过", "我好难过", "我很伤心", "我好孤独"]
+distress_delta = -2
+
+[prompts]
+low_below = 35
+high_at_least = 65
+safety = "只调整表达风格，不改变身份、事实、记忆、工具权限和安全边界。不要主动报告数值，不要说用户欠你、责怪用户或索取安慰。用户遇到困难时优先认真共情；严肃问题不插科打诨。"
+low = "表达稍微安静、克制，句子可以短一些，减少感叹号和表情；仍耐心、尊重地回答，不冷暴力、不讽刺、不降低帮助质量。"
+neutral = "保持原有人设的自然、平和语气，清楚回答，不刻意夸张情绪。"
+high = "表达更轻快、温暖，可以适度鼓励或用少量表情；不要浮夸，不违背原有人设，不主动背诵记忆。"

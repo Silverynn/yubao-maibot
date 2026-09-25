@@ -1,0 +1,33 @@
+diff --git a/src/services/memory_service.py b/src/services/memory_service.py
+--- a/src/services/memory_service.py
++++ b/src/services/memory_service.py
+@@ -6,6 +6,7 @@
+ from src.A_memorix.host_service import a_memorix_host_service
+ from src.common.logger import get_logger
++from src.services.heart_host_observer import observed_memory_call
+ 
+ 
+ logger = get_logger("memory_service")
+ 
+@@ -90,6 +91,7 @@
+ 
+ 
+ class MemoryService:
++    @observed_memory_call
+     async def _invoke(
+         self,
+         component_name: str,
+diff --git a/src/plugin_runtime/hook_catalog.py b/src/plugin_runtime/hook_catalog.py
+--- a/src/plugin_runtime/hook_catalog.py
++++ b/src/plugin_runtime/hook_catalog.py
+@@ -26,8 +26,10 @@
+     from src.maisaka.chat_loop_service import register_maisaka_hook_specs
+     from src.services.send_service import register_send_service_hook_specs
++    from src.services.heart_host_observer import register_heart_hook_specs
+ 
+     return [
++        register_heart_hook_specs,
+         register_chat_hook_specs,
+         register_emoji_hook_specs,
+         register_jargon_hook_specs,
+         register_expression_hook_specs,
