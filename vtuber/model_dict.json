@@ -1,0 +1,55 @@
+[
+    {
+        "name": "mao_pro",
+        "description": "",
+        "url": "/live2d-models/mao_pro/runtime/mao_pro.model3.json",
+        "kScale": 0.5,
+        "initialXshift": 0,
+        "initialYshift": 0,
+        "kXOffset": 1150,
+        "idleMotionGroupName": "Idle",
+        "emotionMap": {
+            "neutral": 0,
+            "anger": 2,
+            "disgust": 2,
+            "fear": 1,
+            "joy": 3,
+            "smirk": 3,
+            "sadness": 1,
+            "surprise": 3
+        },
+        "tapMotions": {
+            "HitAreaHead": {
+                "": 1
+            },
+            "HitAreaBody": {
+                "": 1
+            }
+        }
+    },
+    {
+        "name": "ds-whale-girl",
+        "url": "/live2d-models/ds-whale-girl/c_0120.model3.json",
+        "kScale": 0.5,
+        "idleMotionGroupName": "Idle",
+        "defaultEmotion": "平静",
+        "emotionMap": {
+         "neutral": "平静",
+          "blush": "脸红",
+          "love_eyes": "爱心眼",
+          "star_eyes": "星星眼",
+          "joy": "开心兴奋",
+         "sadness": "悲伤",
+         "crying": "大哭",
+         "anger": "生气",
+         "dizzy": "晕晕",
+         "gloomy": "阴暗",
+         "playful": "调皮",
+         "drooling": "闭眼口水",
+         "soul_out": "吐魂",
+         "tongue_out": "吐舌",
+         "blank_eyes": "呆呆眼",
+         "surprise": "感叹号"
+        }
+    }
+]

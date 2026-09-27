@@ -1,0 +1,7 @@
+conf.yaml
+.env
+*.log
+logs/
+cache/
+chat_history/
+.venv/
