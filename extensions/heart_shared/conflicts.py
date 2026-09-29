@@ -4,12 +4,18 @@ import asyncio
 import hashlib
 import json
 import math
+import re
 import time
 from collections import defaultdict
 
 
 def fingerprint(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+
+
+def normalized_fact_text(value):
+    """只消除排版空白；不删除否定词、时间或其他可能改变事实的字符。"""
+    return re.sub(r"\s+", "", str(value or "")).casefold()
 
 
 def own_hits(result, person_id):
@@ -83,6 +89,18 @@ class ConflictGuard:
             reason=reason, old_memories=[hit["content"] for hit in proposal.get("old", [])], new_memory=args["text"],
             evidence_message_ids=(args.get("metadata") or {}).get("evidence_message_ids", []))
 
+    def duplicate(self, proposal, matches, reason):
+        """同义旧事实已足够表达新事实；只拦截本次写入，不改旧记忆。"""
+        args = proposal["args"]
+        self.store.append("记忆去重", args["chat_id"],
+                          status="已跳过重复写入", reason=reason,
+                          old_memories=[hit["content"] for hit in matches],
+                          new_memory=args["text"],
+                          evidence_message_ids=(args.get("metadata") or {}).get("evidence_message_ids", []))
+        return {"success": True, "stored_ids": [],
+                "skipped_ids": [hit["hash"] for hit in matches],
+                "detail": "已有同义长期记忆，本次未重复写入"}
+
     def pending(self, chat):
         with self.store.connect() as db:
             return db.execute("SELECT 1 FROM heart_proposals WHERE chat=? AND status IN ('pending','executing') AND expires>?",
@@ -107,6 +125,10 @@ class ConflictGuard:
                                   evidence_message_ids=(args.get('metadata') or {}).get('evidence_message_ids', []),
                                   new_memory=args['text'], old_memories=[hit['content'] for hit in hits],
                                   status='检索到可比较旧事实' if hits else '本会话暂无可比较的旧事实')
+                exact = [hit for hit in hits
+                         if normalized_fact_text(hit["content"]) == normalized_fact_text(args["text"])]
+                if exact:
+                    return self.duplicate(proposal, exact[:1], "仅空白或大小写不同；无需调用模型")
                 if not hits:
                     self.event(proposal, "检查完成", "未检索到可比较的本人旧事实，允许原生写入；不保证检索覆盖全部历史")
                     return None
@@ -116,15 +138,27 @@ class ConflictGuard:
                         or isinstance(confidence, bool) or not math.isfinite(confidence)
                         or not settings.get("conflict_min_confidence", 0.8) <= confidence <= 1):
                     raise ValueError("新事实来源或判断把握不足，暂不写入")
+                if judgment.get("verdict") == "duplicate":
+                    ids = judgment.get("duplicate_ids")
+                    by_id = {hit["hash"]: hit for hit in hits}
+                    if (confidence < settings.get("duplicate_min_confidence", 0.9)
+                            or not isinstance(ids, list) or not 1 <= len(ids) <= 3
+                            or any(not isinstance(i, str) for i in ids)
+                            or not set(ids) <= set(by_id)
+                            or judgment.get("conflict_ids")):
+                        raise ValueError("同义重复判断不可靠，暂缓写入")
+                    matches = [by_id[i] for i in dict.fromkeys(ids)]
+                    return self.duplicate(proposal, matches, f"AI判断与旧事实同义且无新增信息；把握程度{confidence:.0%}")
                 if judgment.get("verdict") == "clear":
-                    if judgment.get("conflict_ids"):
+                    if judgment.get("conflict_ids") or judgment.get("duplicate_ids"):
                         raise ValueError("判断结果自相矛盾，暂不写入")
                     self.event(proposal, "检查完成", "未发现明确冲突，允许原生写入")
                     return None
                 if judgment.get("verdict") != "conflict":
                     raise ValueError("无法确认新事实得到用户原文支持，或冲突判断不确定")
                 ids = judgment.get("conflict_ids")
-                if not isinstance(ids, list) or not ids or len(ids) > 3 or any(not isinstance(i, str) for i in ids):
+                if (not isinstance(ids, list) or not ids or len(ids) > 3
+                        or any(not isinstance(i, str) for i in ids) or judgment.get("duplicate_ids")):
                     raise ValueError("冲突结果格式无效")
                 by_id = {hit["hash"]: hit for hit in hits}
                 if not set(ids) <= set(by_id):

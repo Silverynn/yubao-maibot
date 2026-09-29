@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_NAME = "heart-2026-09-29"
+PACKAGE_NAME = "heart-2026-09-29-dedup"
 
 CORE_DIRECTORIES = (
     "extensions/heart_shared",
@@ -34,6 +34,7 @@ CORE_FILES = (
     "docs/Heart交付说明-2026-09-29.md",
     "docs/Heart给同伴GPT安装-2026-09-29.md",
     "docs/Heart功能覆盖与验收-2026-09-29.md",
+    "docs/Heart同义去重修复与旧记忆整理.md",
     "docs/MaiBot原生记忆与Heart插件说明.md",
     "docs/Heart话题情绪与Live2D接入.md",
 )

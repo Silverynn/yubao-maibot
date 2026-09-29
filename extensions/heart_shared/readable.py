@@ -156,6 +156,14 @@ def render_event(event, data):
         lines.append("新内容：" + plain(data.get("new_memory", "")))
         if data.get("reason"):
             lines.append("说明：" + plain(data["reason"]))
+    elif kind == "记忆去重":
+        lines.append("调用：长期记忆去重 · " + plain(data.get("status", "")))
+        lines.append("准备写入：" + plain(data.get("new_memory", "")))
+        for text in data.get("old_memories", []):
+            lines.append("已有记忆：" + plain(text))
+        if data.get("reason"):
+            lines.append("判断依据：" + plain(data["reason"]))
+        lines.append("结果：旧记忆保留；本次没有新增长期记忆。")
     elif kind == "候选记忆":
         lines.append(f"调用：候选记忆 · #{data.get('candidate_id', '?')} · " + plain(data.get("status", "")))
         lines.append("候选内容：" + plain(data.get("new_memory", "")))

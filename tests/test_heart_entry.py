@@ -16,7 +16,7 @@ from heart_shared.candidates import CandidateInbox
 from heart_shared.forget import ForgetManager, NATURAL_FORGET_PATTERN, NATURAL_RESOLVE_PATTERN
 import re
 from heart_shared.storage import AuditStore
-from heart_memory_backend import NativeBackend, candidates_capability, group_person_hits, manage_capability
+from heart_memory_backend import NativeBackend, before_memory_write, candidates_capability, group_person_hits, manage_capability
 
 
 HASH = "a" * 64
@@ -83,6 +83,39 @@ class EntryTests(unittest.TestCase):
         log = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("候选记忆", log)
         self.assertIn("测试同学喜欢Python", log)
+
+    def test_same_evidence_candidate_spacing_variant_is_not_duplicated(self):
+        inbox = CandidateInbox(self.store, self.backend)
+        args = {"chat_id": "private-1", "text": "测试同学觉得 C++ 算法很难",
+                "metadata": {"evidence_message_ids": ["msg-1"]}}
+        asyncio.run(inbox.capture(args))
+        result = asyncio.run(inbox.capture({**args, "text": "测试同学觉得C++算法很难"}))
+        self.assertFalse(result["success"])
+        self.assertIn("未重复写入", result["detail"])
+        self.assertEqual(len(inbox.list_for("person-1")), 1)
+
+    def test_auto_candidate_mode_skips_existing_semantic_duplicate(self):
+        class Guard:
+            async def check(self, args, config):
+                return {"success": True, "stored_ids": [], "skipped_ids": [HASH],
+                        "detail": "已有同义长期记忆，本次未重复写入"}
+
+            def pending(self, chat):
+                raise AssertionError("同义重复不需要进入冲突确认")
+
+        class Inbox:
+            async def capture(self, args, limit):
+                raise AssertionError("已存同义事实不应再进入候选区")
+
+        args = {"chat_id": "private-1", "text": "测试同学喜欢 Python",
+                "source_type": "person_fact", "metadata": {"writeback_source": "memory_flow_service"}}
+        config = {"auto_candidates_enabled": True, "auto_write_verified": False,
+                  "max_pending_per_person": 20, "enabled": True}
+        with patch("heart_memory_backend.settings", return_value=config), \
+             patch("heart_memory_backend.guardian", return_value=Guard()), \
+             patch("heart_memory_backend.candidate_inbox", return_value=Inbox()):
+            result = asyncio.run(before_memory_write("ingest_text", args))
+        self.assertEqual(result["skipped_ids"], [HASH])
 
     def test_candidate_conflict_still_requires_second_confirmation(self):
         inbox = CandidateInbox(self.store, self.backend)

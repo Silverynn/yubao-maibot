@@ -21,6 +21,7 @@ class Backend:
         self.sent, self.calls = [], []
         self.prepared = {"stored_ids": ["new"]}
         self.result = {"success": True, "execution": {"superseded_targets": [{"hash": "old"}]}}
+        self.judged = 0
 
     async def owner(self, args):
         return {"person_id": "owner", "name": "测试同学", "evidence": ["我现在不想学Python"]}
@@ -29,6 +30,7 @@ class Backend:
         return {"hits": [self.hit]}
 
     async def judge(self, *args):
+        self.judged += 1
         return self.judgment
 
     async def preview(self, proposal):
@@ -173,6 +175,49 @@ class ConflictTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_clear_can_proceed(self):
         self.backend.judgment.update(verdict="clear", conflict_ids=[])
+        self.assertIsNone(await self.guard.check(self.args, self.config))
+
+    async def test_spacing_duplicate_is_skipped_without_model_or_new_write(self):
+        self.backend.hit["content"] = "测试同学觉得 C++ 算法很难"
+        self.args["text"] = "测试同学觉得C++算法很难"
+        result = await self.guard.check(self.args, self.config)
+        self.assertEqual(result["skipped_ids"], ["old"])
+        self.assertEqual(self.backend.judged, 0)
+        self.assertEqual(self.backend.sent, [])
+        log = next((self.store.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
+        self.assertIn("长期记忆去重", log)
+        self.assertIn("准备写入：测试同学觉得C++算法很难", log)
+        self.assertIn("已有记忆：测试同学觉得 C++ 算法很难", log)
+        self.assertIn("本次没有新增长期记忆", log)
+
+    async def test_semantic_duplicate_is_skipped_and_logged(self):
+        self.backend.hit["content"] = "测试同学常感到心里空落落，好像缺少什么"
+        self.args["text"] = "测试同学总觉得内心空落落，好像少了点什么"
+        self.backend.judgment = {"supported": True, "confidence": .96, "verdict": "duplicate",
+                                 "conflict_ids": [], "duplicate_ids": ["old"]}
+        result = await self.guard.check(self.args, self.config)
+        self.assertEqual(result["skipped_ids"], ["old"])
+        self.assertEqual(self.backend.judged, 1)
+        self.assertEqual(self.backend.sent, [])
+        log = next((self.store.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
+        self.assertIn("AI判断与旧事实同义", log)
+        self.assertIn("已有记忆：测试同学常感到心里空落落", log)
+
+    async def test_low_confidence_or_foreign_duplicate_id_never_skips_as_success(self):
+        self.backend.judgment = {"supported": True, "confidence": .85, "verdict": "duplicate",
+                                 "conflict_ids": [], "duplicate_ids": ["old"]}
+        result = await self.guard.check(self.args, self.config)
+        self.assertFalse(result["success"])
+        self.backend.judgment.update(confidence=.96, duplicate_ids=["not-in-the-scoped-hits"])
+        result = await self.guard.check(self.args, self.config)
+        self.assertFalse(result["success"])
+        self.assertEqual(self.backend.sent, [])
+
+    async def test_related_but_distinct_fact_still_writes(self):
+        self.backend.hit["content"] = "测试同学有朋友"
+        self.args["text"] = "测试同学认为自己的朋友们都很好"
+        self.backend.judgment = {"supported": True, "confidence": .96, "verdict": "clear",
+                                 "conflict_ids": [], "duplicate_ids": []}
         self.assertIsNone(await self.guard.check(self.args, self.config))
 
     async def test_model_timeout_does_not_pass(self):

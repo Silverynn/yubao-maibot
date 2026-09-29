@@ -16,11 +16,13 @@ class Switch(PluginConfigBase):
 
 
 class Conflicts(PluginConfigBase):
-    enabled: bool = Field(default=True, description="人物事实写入前检查冲突；额外调用模型，疑似冲突先私聊本人确认")
+    enabled: bool = Field(default=True, description="人物事实写入前检查冲突与同义重复；疑似冲突先私聊本人确认")
     candidate_limit: int = Field(default=15, ge=1, le=30, description="比较的旧记忆候选数量；不保证覆盖全部历史")
     timeout_seconds: int = Field(default=20, ge=5, le=60, description="冲突判断等待秒数；失败则暂缓本次写入")
     confirmation_minutes: int = Field(default=10, ge=1, le=60, description="私聊确认有效分钟数，超过不更新")
     min_confidence: float = Field(default=0.8, ge=0.8, le=1.0, description="冲突判断最低把握程度；低于此值暂缓写入，不允许低于80%")
+    duplicate_min_confidence: float = Field(default=0.9, ge=0.8, le=1.0,
+                                            description="AI判定同义重复的最低把握程度；低于此值不当作已存在")
     guidance: str = Field(default="优先比较同一人的当前偏好和长期状态；不要把不同时间的经历或补充信息误判为矛盾。", max_length=2000,
                           description="冲突判断的补充提示词；不能覆盖本人来源核实、群聊隔离或先确认后修改的规则")
 
@@ -60,10 +62,11 @@ WEBUI_LABELS = {
     "plugin": ("总开关与记录", {
         "config_version": "配置版本（无需修改）", "enabled": "启用记忆插件与本地日志",
     }),
-    "conflicts": ("新旧记忆冲突", {
-        "enabled": "启用冲突检查", "candidate_limit": "最多比较多少条旧记忆",
+    "conflicts": ("新旧记忆冲突与去重", {
+        "enabled": "启用冲突与同义去重检查", "candidate_limit": "最多比较多少条旧记忆",
         "timeout_seconds": "冲突判断最长等待（秒）", "confirmation_minutes": "私聊确认有效时间（分钟）",
-        "min_confidence": "最低判断把握程度", "guidance": "冲突判断补充提示词",
+        "min_confidence": "冲突判断最低把握程度", "duplicate_min_confidence": "同义重复最低把握程度",
+        "guidance": "冲突与同义判断补充提示词",
     }),
     "auto_candidates": ("自动记忆与候选区", {
         "enabled": "启用自动候选记忆", "auto_write_verified": "核实后自动写入长期记忆",
