@@ -9,6 +9,7 @@ from types import SimpleNamespace
 stage = Path(__file__).resolve().parent
 root = Path(os.environ['VTUBER_TEST_ROOT']) if os.environ.get('VTUBER_TEST_ROOT') else stage.parent if (stage.parent / 'maibot_client.py').is_file() else stage.parents[1] / 'Open-LLM-VTuber'
 sys.path.insert(0, str(root))
+sys.path.insert(0, str(stage.parent))  # test the delivered expression catalog, not the old runtime copy
 name = 'src.open_llm_vtuber.agent.agents.maibot_agent'
 source = stage / 'maibot_agent.py'
 if not source.is_file():
@@ -67,6 +68,28 @@ async def check():
         assert len(replies) == 1
         assert replies[0].actions.expressions == expected
         assert replies[0].tts_text == ''
+    for text in ('/表情列表', '/表情 列表'):
+        inputs = BatchInput(texts=[TextData(source=TextSource.INPUT, content=text)])
+        replies = [reply async for reply in bot.chat(inputs)]
+        assert '/表情 开心' in replies[0].display_text.text
+        assert replies[0].actions.expressions is None
+    fish_model = SimpleNamespace(live2d_model_name='ds-whale-girl',
+        model_info={'url':'/live2d-models/ds-whale-girl/c_0120.model3.json'},
+        emo_map={'neutral':'平静'})
+    fish_bot = agent.MaiBotAgent(fish_model)
+    inputs = BatchInput(texts=[TextData(source=TextSource.INPUT, content='/表情 情绪花花')])
+    replies = [reply async for reply in fish_bot.chat(inputs)]
+    assert replies[0].actions.expressions == ['情绪花花']
+
+    other = agent.MaiBotAgent(SimpleNamespace(
+        live2d_model_name='mao_pro', emo_map={'neutral': 0, 'joy': 3, 'anger': 2}))
+    for text, expected in [('/表情 平静', [0]), ('/表情 开心', [3]), ('/表情 生气', [2])]:
+        inputs = BatchInput(texts=[TextData(source=TextSource.INPUT, content=text)])
+        replies = [reply async for reply in other.chat(inputs)]
+        assert replies[0].actions.expressions == expected
+    inputs = BatchInput(texts=[TextData(source=TextSource.INPUT, content='/表情列表')])
+    replies = [reply async for reply in other.chat(inputs)]
+    assert 'mao_pro' in replies[0].display_text.text and '/表情 开心' in replies[0].display_text.text
 
     with patch.dict(os.environ,{'HEART_MAIBOT_ROOT':'offline-test'}), patch('heart_bridge.request_manual_expression',create=True) as request:
         for text,expected in [('/表情 开心','开心兴奋'),('/表情 疑惑','问号'),('/表情 自动',None)]:
@@ -75,6 +98,10 @@ async def check():
             request.assert_called_with(expected)
             assert replies[0].actions.expressions is None,'统一控制，不走旧的表情通道'
             assert '已请求' in replies[0].display_text.text
+        inputs=BatchInput(texts=[TextData(source=TextSource.INPUT,content='/表情 平静')])
+        replies=[reply async for reply in other.chat(inputs)]
+        request.assert_called_with(0)
+        assert replies[0].actions.expressions is None
         with patch('heart_bridge.request_manual_expression',side_effect=RuntimeError('bridge not ready')):
             replies=[reply async for reply in bot.chat(inputs)]
             assert '未完成' in replies[0].display_text.text

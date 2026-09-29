@@ -1,5 +1,13 @@
 # 鱼宝 VTuber 配置与本地接入
 
+## Heart 表情兼容（换形象后必读）
+
+Heart 桥现在从 Open-LLM-VTuber **当前加载的 `live2d_model.emo_map`** 读取表情，不再检查 `ds-whale-girl` 目录。鱼宝的中文表情名和 `mao_pro` 的数字编号都受支持。换形象后，重启 VTuber、在浏览器按 Ctrl+F5，再发送 `/表情列表` 查看当前形象实际提供的表情；`/表情 开心` 等只会调用列表中存在的语义类型。若形象没有“疑惑”这一类，面板仍显示“疑惑”与真实心情值，动作退回该形象的中性表情，不伪装成另一种情绪。
+
+同伴的 Live2D 项目应**逐文件比较后合并**：`heart_bridge.py`、新增的 `expression_catalog.py`、`frontend/heart-avatar.mjs`、`frontend/heart-controller.mjs`、`src/open_llm_vtuber/agent/agents/maibot_agent.py` 及 `scripts/install_heart_bridge.py`。`expression_catalog.py` 要放在 VTuber 根目录，与 `heart_bridge.py` 同级。不要整目录覆盖同伴的形象、配置、前端或 `src`。在对应版本运行安装脚本，确保 `frontend/index.html` 包含 `heart-avatar.mjs`，`server.py` 把当前模型提供给 Heart 桥，并保留网页重进的两个隔离钩子。旧桥的 `create_router()` 会由安装脚本迁移为动态模型接口。环境变量 `HEART_MAIBOT_ROOT` 须指向真实 MaiBot 根目录。
+
+验收顺序：打开 `http://127.0.0.1:12393/heart/state`，应返回 JSON；打开 `/heart/expressions`，应显示当前模型名和 `emotionMap`；网页右上角应有 Heart 方框；发送 `/表情列表`、`/表情 开心`，观察面板和形象，8 秒后恢复自动。若 JSON 可访问而无方框，检查页面是否装入 `heart-avatar.mjs`，不是模型素材的问题；若方框存在但动作失败，检查当前模型是否真有该表情及前端动作回执。`/heart/state` 仅允许本机同源访问，不能当远程控制接口。
+
 这份目录是正在运行的 Open-LLM-VTuber 定制快照，基于上游 `Open-LLM-VTuber/Open-LLM-VTuber` 提交 `992309c0aa19845960228f880013d4685fde93b5`。`frontend/` 是上游独立子模块，当前本地版本为 `06a659b114fff788cf0daaa86e484576db4975bf`。本目录不是完整的上游程序；先取得这两个上游版本，再放入这里的定制文件。
 
 ## 分享了什么

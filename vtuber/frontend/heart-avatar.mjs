@@ -15,10 +15,11 @@ async function report(state, status) {
   if (acknowledged.size > 256) acknowledged.delete(acknowledged.values().next().value);
 }
 const controller = new HeartController(report);
-window.yubaoHeartController = controller;
+window.heartController = controller;
+window.yubaoHeartController = controller; // compatibility with the older timing shim
 const panel = document.createElement('section');
 panel.id = 'heart-mood-panel';
-panel.setAttribute('aria-label', '鱼宝当前心情与话题情绪');
+panel.setAttribute('aria-label', '当前形象的心情与话题情绪');
 panel.style.cssText = 'position:fixed;right:18px;top:16px;z-index:1000;width:260px;max-width:calc(100vw - 36px);padding:14px 18px;color:#fff;background:rgba(15,23,42,.9);border:1px solid #64748b;border-radius:14px;font:14px/1.6 system-ui;pointer-events:none;box-shadow:0 4px 20px #0004';
 const heading = document.createElement('div'); heading.style.cssText='color:#cbd5e1;font-size:12px';
 const score = document.createElement('div'); score.style.cssText='font-size:23px;font-weight:600';
@@ -36,7 +37,7 @@ async function poll() {
     if (!response.ok) throw Error('心情接口未连接');
     const state = await response.json();
     if (state.ready) {
-      heading.textContent='Heart · ' + state.session_name;
+      heading.textContent='Heart · ' + (state.model_name || '当前形象') + ' · ' + state.session_name;
       score.textContent='心情 ' + (typeof state.value === 'number' ? state.value.toFixed(1).replace(/\.0$/,'') : '--') + ' / 100 · ' + state.band;
       emotion.textContent=state.active ? '当前情绪：' + state.label + ' · 强度 ' + Math.round(state.intensity*100) + '%' : '当前情绪：无额外的小情绪';
       topic.textContent=state.active ? '话题：' + state.topic : '临时情绪结束后，恢复心情对应的常态';

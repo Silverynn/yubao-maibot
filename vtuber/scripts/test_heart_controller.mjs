@@ -20,6 +20,16 @@ assert.equal(reports.at(-1),'unavailable');
 await controller.update({ready:false},adapter);
 assert.equal(controller.owns(),false);
 console.log('PASS: persistent state, no repeated reaction, base restoration, reload and failure receipts');
+// Different Open-LLM-VTuber model, including an expression at numeric index 0.
+const otherCalls=[];
+const otherModel={_modelHomeDir:'/mao_pro/',_expressions:{getValue:name=>name==='idle' ? 0 : null},setExpression:name=>otherCalls.push(name)};
+const otherAdapter={getModel:()=>otherModel,getExpressionName:index=>index===0?'idle':undefined};
+await controller.update({...state,command_id:'alternate-model',expression:0},otherAdapter);
+assert.deepEqual(otherCalls,['idle']);
+assert.equal(reports.at(-1),'applied');
+await controller.update({...state,command_id:'missing',expression:99},otherAdapter);
+assert.equal(reports.at(-1),'unavailable');
+console.log('PASS: non-fish model, numeric index zero, missing expression');
 let attempts=0;
 const retryStatuses=[], retryCalls=[];
 const retryModel={...model,setExpression:e=>retryCalls.push(e)};

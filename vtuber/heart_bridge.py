@@ -14,10 +14,17 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+from expression_catalog import model_expression_names
 
 
 _active_bridge = None
 MANUAL_SECONDS = 8
+EMOTION_KEYS = {
+    '开心': 'joy', '兴奋': 'joy', '生气': 'anger', '愤怒': 'anger',
+    '难过': 'sadness', '低落': 'sadness', '疑惑': 'confusion',
+    '困惑': 'confusion', '惊讶': 'surprise', '害羞': 'blush',
+    '平静': 'neutral', '无': 'neutral',
+}
 
 
 def request_manual_expression(expression):
@@ -54,9 +61,12 @@ class AvatarReceipt(BaseModel):
 
 
 class HeartBridge:
-    def __init__(self, store, allowed_expressions, clock=time.monotonic):
+    def __init__(self, store, allowed_expressions=None, clock=time.monotonic, model_provider=None):
         self.store = store
-        self.allowed = set(allowed_expressions)
+        # allowed_expressions is retained for old tests/clients. Production reads
+        # the currently loaded Open-LLM-VTuber model on every state request.
+        self.allowed = set(allowed_expressions or ())
+        self.model_provider = model_provider
         self.csrf = secrets.token_urlsafe(32)
         self.lock = threading.Lock()
         self.commands = {}
@@ -68,6 +78,39 @@ class HeartBridge:
         self.ignored_performance = None
         self.seen_performance = None
         self.current_user_id = None
+
+    def _catalog(self):
+        model = self.model_provider() if self.model_provider else None
+        mapping = (getattr(model, 'emo_map', None) or
+                   (getattr(model, 'model_info', {}) or {}).get('emotionMap') or {}) if model else {}
+        name = (getattr(model, 'live2d_model_name', '') or
+                (getattr(model, 'model_info', {}) or {}).get('name', '')) if model else ''
+        return str(name), {str(k).lower(): v for k, v in mapping.items()} if mapping else {}
+
+    def _names(self):
+        return model_expression_names(self.model_provider()) if self.model_provider else ()
+
+    def _resolve(self, requested, label='', band=''):
+        name, mapping = self._catalog()
+        if mapping:
+            values = list(mapping.values())
+            if requested in values or requested in self._names():
+                return requested, True, name
+            # An unsupported *temporary* emotion is neutral, not a jump to
+            # the unrelated long-term mood band (e.g. 80-point confusion).
+            candidates = (requested, label) if label and label != '无' else (requested, band)
+            for item in candidates:
+                key = EMOTION_KEYS.get(str(item), str(item).lower())
+                if key in mapping:
+                    return mapping[key], True, name
+            # An unsupported mood category must not stop the panel or an
+            # otherwise valid model. Use its own neutral/first expression.
+            return mapping.get('neutral', values[0]), True, name
+        return requested, requested in self.allowed or requested in self._names(), name
+
+    def expressions(self):
+        name, mapping = self._catalog()
+        return {'model': name, 'expressions': mapping, 'model_expression_names': self._names()}
 
     def begin_visit(self, client_uid):
         """A fresh browser WebSocket starts a fresh visible chat and topic emotion."""
@@ -124,14 +167,16 @@ class HeartBridge:
 
     def manual(self, expression):
         with self.lock, self.store.connect() as db:
-            if expression is not None and expression not in self.allowed:
+            _, mapping = self._catalog()
+            permitted = (expression in mapping.values() if mapping else expression in self.allowed) or expression in self._names()
+            if expression is not None and not permitted:
                 raise ValueError('模型没有这个表情：' + str(expression))
             session, _, view, _ = self._context(db)
             self.ignored_performance = view.get('performance', {}).get('id')
             command = secrets.token_hex(16)
             reason = '用户要求恢复自动表情，不修改真实心情' if expression is None else f'用户手动请求 {expression}；临时展示约{MANUAL_SECONDS}秒，不修改真实心情'
             self._record(command, 'manual', 'server', '已接受手动表情请求', session,
-                         {**view, 'visual_reason':reason}, expression or '恢复自动')
+                         {**view, 'visual_reason':reason}, expression if expression is not None else '恢复自动')
             self.override = None if expression is None else {
                 'expression':expression, 'until':self.clock()+MANUAL_SECONDS, 'id':command, 'reason':reason}
             self.manual_used = True
@@ -154,13 +199,16 @@ class HeartBridge:
             manual = self.override
             if manual:
                 performance = None
-            expression = manual['expression'] if manual else performance['expression'] if performance else view['expression'] if view.get('enabled') else '平静'
-            valid = expression in self.allowed
-            key = ('manual', manual['id']) if manual else ('performance', performance['id']) if performance else (session, view['revision'], expression)
+            requested = manual['expression'] if manual else performance['expression'] if performance else view.get('expression', '平静') if view.get('enabled') else '平静'
+            label = performance.get('label', '') if performance else view.get('label', '')
+            expression, valid, model_name = self._resolve(requested, label, view.get('band', ''))
+            mapping_note = (f'；当前模型 {model_name}：{requested} → {expression}'
+                            if valid and requested != expression else '')
+            key = (model_name, 'manual', manual['id']) if manual else (model_name, 'performance', performance['id']) if performance else (model_name, session, view['revision'], expression)
             if key != self.current_key:
                 command = secrets.token_hex(16)
                 reason = manual['reason'] if manual else '自然语言表演请求：' + performance['reason'] if performance else '自动表情：' + view.get('reason', '恢复当前状态')
-                dispatched = {**view, 'visual_reason':reason}
+                dispatched = {**view, 'visual_reason':reason + mapping_note}
                 if performance:
                     dispatched['message_id'] = performance['message_id']
                 status = '已发出手动展示状态' if manual else '已发出自然语言请求的表演状态' if performance else '已发出自动展示状态（临时表演如有则已结束）'
@@ -174,8 +222,8 @@ class HeartBridge:
                     'performance':bool(performance), 'performance_expression':expression if performance else '',
                     "command_id": self.current_command, "session_name": title,
                     **{k: view.get(k) for k in ("value", "band", "label", "intensity", "topic", "reason", "active", "updated")},
-                    "expression": expression, "valid_expression": valid,
-                    "notice": (notice or "最近已确认状态") if valid else "配置的表情名不存在，请在插件设置中修正"}
+                    "expression": expression, "valid_expression": valid, "model_name": model_name,
+                    "notice": ((notice or "最近已确认状态") + mapping_note) if valid else "当前模型没有可用的表情映射，请检查 model_dict.json"}
 
     def _record(self, command, stage, client, status, session, view, expression):
         emotion = {"active": view.get("active"), "label": view.get("label"),
@@ -192,20 +240,17 @@ class HeartBridge:
                 raise HTTPException(409, "状态已过期，请重新获取")
             session, view, expression = stored
             labels = {"applied": "前端报告：已执行表情设置", "failed": "前端报告：表情设置失败",
-                      "unavailable": "前端报告：模型尚未加载或不是鱼宝模型"}
+                      "unavailable": "前端报告：当前模型尚未加载或没有对应表情"}
             self._record(report.command_id, report.status, report.client_id, labels[report.status], session, view, expression)
         return {"ok": True}
 
 
-def create_router(store=None, allowed_expressions=None):
+def create_router(store=None, allowed_expressions=None, model_provider=None):
     global _active_bridge
     router = APIRouter()
     if store is None and not enabled():
         return router
-    if allowed_expressions is None:
-        model = Path(__file__).parent / "live2d-models/ds-whale-girl/c_0120.model3.json"
-        allowed_expressions = [e["Name"] for e in json.loads(model.read_text(encoding="utf-8"))["FileReferences"]["Expressions"]]
-    bridge = HeartBridge(store or load_store(), allowed_expressions)
+    bridge = HeartBridge(store or load_store(), allowed_expressions, model_provider=model_provider)
     _active_bridge = bridge
 
     def guard(request):
@@ -222,6 +267,11 @@ def create_router(store=None, allowed_expressions=None):
     def state(request: Request):
         guard(request)
         return bridge.state()
+
+    @router.get("/heart/expressions")
+    def expressions(request: Request):
+        guard(request)
+        return bridge.expressions()
 
     @router.post("/heart/avatar-events")
     def receipt(request: Request, report: AvatarReceipt):

@@ -59,6 +59,38 @@ class TopicTests(unittest.TestCase):
         self.assertEqual((display['value'],display['label'],display['expression']),(80,'疑惑','问号'))
         self.assertEqual(bridge.state()['command_id'],display['command_id'])
 
+    def test_current_model_catalog_drives_expression_and_switch(self):
+        self.apply()
+        model = SimpleNamespace(live2d_model_name='mao_pro',
+                                emo_map={'neutral': 0, 'joy': 3, 'anger': 2})
+        bridge = HeartBridge(self.store, model_provider=lambda: model)
+        first = bridge.state()
+        self.assertEqual((first['model_name'], first['expression'], first['label']),
+                         ('mao_pro', 0, '疑惑'))
+        self.assertTrue(first['valid_expression'])
+        self.assertEqual(bridge.expressions()['expressions']['neutral'], 0)
+        bridge.manual(0)
+        self.assertEqual(bridge.state()['expression'], 0)
+        bridge.manual(None)
+        previous_command = bridge.state()['command_id']
+        model.live2d_model_name = 'another-model'
+        model.emo_map = {'neutral': '待机', 'confusion': '歪头'}
+        switched = bridge.state()
+        self.assertEqual(switched['expression'], '歪头')
+        self.assertNotEqual(switched['command_id'], previous_command)
+        with self.assertRaises(ValueError):
+            bridge.manual('问号')
+
+    def test_model_file_expressions_are_listed_beyond_emotion_map(self):
+        self.apply()
+        model = SimpleNamespace(live2d_model_name='ds-whale-girl',
+            model_info={'url':'/live2d-models/ds-whale-girl/c_0120.model3.json'},
+            emo_map={'neutral':'平静'})
+        bridge = HeartBridge(self.store, model_provider=lambda:model)
+        self.assertIn('情绪花花', bridge.expressions()['model_expression_names'])
+        bridge.manual('情绪花花')
+        self.assertEqual(bridge.state()['expression'], '情绪花花')
+
     def test_explicit_end_restores_current_mood_base_and_logs(self):
         self.apply()
         self.apply('m2',self.assessment(action='clear',reason='用户表示已经解决'),text='已经解决啦')

@@ -3,6 +3,7 @@ import os
 from typing import AsyncIterator
 
 from loguru import logger
+from expression_catalog import model_expression_names
 
 from maibot_client import stream_maibot
 from .maibot_expression import classify_reply_expression
@@ -102,14 +103,32 @@ class MaiBotAgent(AgentInterface):
             return
 
         # 本地测试指令直接驱动模型，不交给 MaiBot，也不调用语音或大模型。
-        manual = re.fullmatch(r"/表情(?:\s+(.*))?", user_text)
+        manual = re.fullmatch(r"/表情列表|/表情(?:\s+(.*))?", user_text)
         if manual:
-            requested = (manual.group(1) or "列表").strip()
-            key = EXPRESSION_ALIASES.get(requested, requested)
-            expression = self._live2d_model.emo_map.get(key)
-            if expression is None and requested in self._live2d_model.emo_map.values():
-                expression = requested
+            requested = ('列表' if user_text == '/表情列表' else manual.group(1) or '列表').strip()
+            mapping = self._live2d_model.emo_map
+            model_names = model_expression_names(self._live2d_model)
+            model_name = getattr(self._live2d_model, 'live2d_model_name', '当前形象')
             heart_enabled = bool(os.environ.get('HEART_MAIBOT_ROOT'))
+            if requested == '列表':
+                options = [f'/表情 {alias}' for alias, key in EXPRESSION_ALIASES.items() if key in mapping]
+                options += [f'/表情 {value}' for value in mapping.values() if isinstance(value, str)]
+                options += [f'/表情 {value}' for value in model_names]
+                options = list(dict.fromkeys(options))
+                details = '、'.join(f'{key}→{value}' for key, value in mapping.items()) or '模型没有配置语义映射'
+                message = f'{model_name} 的常用表情：{details}。模型实际表情：' + ('、'.join(model_names) or '未能读取，按映射为准') + '。可发送：' + '、'.join(options or ['/表情 自动'])
+                if heart_enabled:
+                    message += '；/表情 自动 可恢复心情自动控制。'
+                yield SentenceOutput(display_text=DisplayText(text=message, name='Heart'), tts_text='', actions=Actions(expressions=None))
+                return
+            key = EXPRESSION_ALIASES.get(requested, requested)
+            expression = mapping.get(key)
+            if expression is None and requested in mapping.values():
+                expression = requested
+            if expression is None and requested in model_names:
+                expression = requested
+            if expression is None and requested.isdecimal() and int(requested) in mapping.values():
+                expression = int(requested)
             restore = requested in {'自动', '恢复', '恢复自动'}
             if heart_enabled and (expression is not None or restore):
                 try:
@@ -119,16 +138,15 @@ class MaiBotAgent(AgentInterface):
                     message = '已请求恢复自动表情。' if restore else f'已请求展示：{expression}，约{MANUAL_SECONDS}秒后恢复最新心情/话题表情；真实心情不变。'
                 except (RuntimeError, ValueError) as error:
                     message = '表情请求未完成：' + str(error)
-                yield SentenceOutput(display_text=DisplayText(text=message, name='鱼宝'), tts_text='', actions=Actions(expressions=None))
+                yield SentenceOutput(display_text=DisplayText(text=message, name='Heart'), tts_text='', actions=Actions(expressions=None))
                 return
             if expression is None:
-                choices = "、".join(str(x) for x in dict.fromkeys(self._live2d_model.emo_map.values()))
-                message = "可用表情：" + choices + "。例如发送 /表情 开心 或 /表情 疑惑。" + ("发送 /表情 自动 可立即恢复自动表情。" if heart_enabled else '')
+                message = f'当前形象没有“{requested}”这个表情；发送 /表情列表 查看可用指令。'
             else:
                 message = f"表情已切换：{expression}（短暂展示后恢复平静）。"
                 logger.info("Live2D 表情 | 来源=手动测试 | 表情={}", expression)
             yield SentenceOutput(
-                display_text=DisplayText(text=message, name="鱼宝"),
+                display_text=DisplayText(text=message, name="Heart"),
                 tts_text="",
                 actions=Actions(expressions=[expression] if expression is not None else None),
             )

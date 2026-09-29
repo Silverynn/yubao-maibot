@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_NAME = "heart-2026-09-29-dedup"
+PACKAGE_NAME = "heart-2026-09-30-vtuber-compat"
 
 CORE_DIRECTORIES = (
     "extensions/heart_shared",
@@ -44,6 +44,7 @@ CORE_FILES = (
 OPTIONAL_LIVE2D_FILES = (
     "vtuber/README.md",
     "vtuber/heart_bridge.py",
+    "vtuber/expression_catalog.py",
     "vtuber/frontend/heart-avatar.mjs",
     "vtuber/frontend/heart-controller.mjs",
     "vtuber/frontend/yubao-expression-timing.mjs",

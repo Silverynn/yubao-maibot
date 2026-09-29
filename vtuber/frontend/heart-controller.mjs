@@ -6,8 +6,14 @@ export class HeartController {
     this.current = state;
     if (!state.ready) return;
     if (!state.valid_expression) { await this.report(state, 'failed'); return; }
-    const model = adapter?.getModel();
-    if (!model?._modelHomeDir?.includes('ds-whale-girl/') || !model._expressions?.getValue(state.expression)) {
+    const model = adapter?.getModel?.();
+    const expression = typeof state.expression === 'number'
+      ? adapter?.getExpressionName?.(state.expression)
+      : state.expression;
+    // Open-LLM-VTuber models can expose either names or numeric indexes in
+    // emotionMap. Never assume a particular model directory or expression set.
+    if (!model || typeof expression !== 'string' || !expression ||
+        (model._expressions?.getValue && model._expressions.getValue(expression) == null)) {
       await this.report(state, 'unavailable');
       return;
     }
@@ -17,7 +23,7 @@ export class HeartController {
       return;
     }
     try {
-      model.setExpression(state.expression);
+      model.setExpression(expression);
       this.lastModel = model;
       this.lastCommand = state.command_id;
     } catch (error) {

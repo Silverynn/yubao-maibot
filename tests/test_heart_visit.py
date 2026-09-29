@@ -21,11 +21,14 @@ class Live2DVisitTests(unittest.TestCase):
         spec.loader.exec_module(installer)
         stage = ROOT / '.runtime/test-data' / uuid.uuid4().hex
         contents = {
-            'src/open_llm_vtuber/server.py': '        self.app = FastAPI(title="Open-LLM-VTuber Server")  # Added title for clarity\n',
+            'src/open_llm_vtuber/server.py': ('        self.app = FastAPI(title="Open-LLM-VTuber Server")  # Added title for clarity\n'
+                '        self.default_context_cache = ServiceContext()\n'
+                '        # It will be populated during the initialize method call\n'),
             'src/open_llm_vtuber/websocket_handler.py': '            await self._send_initial_messages(\n',
             'src/open_llm_vtuber/conversations/single_conversation.py': '        batch_input = create_batch_input(\n',
             'frontend/index.html': '<body></body>\n',
             'heart_bridge.py':'# test\n',
+            'expression_catalog.py':'# test\n',
             'frontend/heart-avatar.mjs':'// test\n',
             'frontend/heart-controller.mjs':'// test\n',
         }
@@ -35,6 +38,20 @@ class Live2DVisitTests(unittest.TestCase):
             target.write_text(content, encoding='utf-8')
         installer.apply(stage)
         installer.apply(stage)
+        server_source = (stage/'src/open_llm_vtuber/server.py').read_text(encoding='utf-8')
+        self.assertEqual(server_source.count('model_provider=lambda: self.default_context_cache.live2d_model'), 1)
+        # Updating an older installed bridge removes its fish-only router.
+        old_router = ('        from heart_bridge import create_router\n'
+                      '        self.app.include_router(create_router())')
+        new_router = ('        from heart_bridge import create_router\n'
+                      '        self.app.include_router(create_router(\n'
+                      '            model_provider=lambda: self.default_context_cache.live2d_model))')
+        (stage/'src/open_llm_vtuber/server.py').write_text(
+            server_source.replace(new_router, old_router), encoding='utf-8')
+        installer.apply(stage)
+        server_source = (stage/'src/open_llm_vtuber/server.py').read_text(encoding='utf-8')
+        self.assertEqual(server_source.count(new_router), 1)
+        self.assertNotIn(old_router, server_source)
         self.assertEqual((stage/'src/open_llm_vtuber/websocket_handler.py').read_text(encoding='utf-8').count(
             'begin_visit(client_uid)'), 1)
         self.assertEqual((stage/'src/open_llm_vtuber/conversations/single_conversation.py').read_text(encoding='utf-8').count(
