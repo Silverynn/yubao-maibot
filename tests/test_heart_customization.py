@@ -23,7 +23,7 @@ class CustomizationTests(unittest.TestCase):
         self.assertTrue({'auto_candidates', 'conflicts', 'forget', 'group_recall'} <= set(schema['properties']))
         webui = module.MemoryAudit.build_config_schema()
         for section, fields in {'auto_candidates': {'selection_guidance', 'auto_write_verified'},
-                                'conflicts': {'guidance', 'min_confidence'},
+                                'conflicts': {'guidance', 'min_confidence', 'duplicate_min_confidence'},
                                 'forget': {'guidance', 'min_confidence', 'confirmation_minutes'},
                                 'group_recall': {'display_limit', 'include_group_summaries'}}.items():
             model = getattr(module.Config(), section)
@@ -37,6 +37,7 @@ enabled = true
 selection_guidance = "只记长期偏好"
 [conflicts]
 min_confidence = 0.2
+duplicate_min_confidence = 0.1
 guidance = "注意时间先后"
 [forget]
 min_confidence = 0.95
@@ -52,6 +53,7 @@ include_group_summaries = false
             values = backend.settings()
         self.assertEqual(values['selection_guidance'], '只记长期偏好')
         self.assertEqual(values['conflict_min_confidence'], 0.8)
+        self.assertEqual(values['duplicate_min_confidence'], 0.8)
         self.assertEqual(values['conflict_guidance'], '注意时间先后')
         self.assertEqual(values['forget_min_confidence'], 0.95)
         self.assertEqual(values['forget_timeout_seconds'], 8)
@@ -82,6 +84,7 @@ include_group_summaries = false
         self.assertIn(config['conflict_guidance'], prompts[0])
         self.assertIn(config['forget_guidance'], prompts[1])
         self.assertIn('不能放宽', prompts[0])
+        self.assertIn('duplicate_ids', prompts[0])
         self.assertIn('不能放宽', prompts[1])
 
 

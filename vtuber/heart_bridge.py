@@ -67,14 +67,52 @@ class HeartBridge:
         self.manual_used = False
         self.ignored_performance = None
         self.seen_performance = None
+        self.current_user_id = None
+
+    def begin_visit(self, client_uid):
+        """A fresh browser WebSocket starts a fresh visible chat and topic emotion."""
+        new_user_id = 'webui_user_vtuber_visit_' + str(client_uid).replace('-', '').lower()
+        with self.lock, self.store.connect() as db:
+            if self.current_user_id == new_user_id:
+                return
+            # Only Live2D states are touched. QQ and unrelated WebUI users stay intact.
+            previous = db.execute("""SELECT src.session FROM session_sources src
+                JOIN emotions e ON e.session=src.session
+                WHERE src.channel='Live2D' AND src.platform='webui' AND src.user_id!=?
+                AND json_extract(e.detail,'$.active')=1""",
+                (new_user_id,)).fetchall()
+            for row in previous:
+                old_session = row['session']
+                old = self.store.emotion_snapshot(db, old_session)
+                if old.get('active'):
+                    ended = {**old, 'active':False, 'label':'无', 'intensity':0,
+                             'topic':'', 'reason':'Live2D 网页重新进入，结束上一轮临时情绪'}
+                    db.execute("INSERT INTO emotions VALUES(?,?) ON CONFLICT(session) DO UPDATE SET detail=excluded.detail",
+                               (old_session, json.dumps(ended, ensure_ascii=False)))
+                    self.store.append_in(db, '临时情绪结束', old_session, {
+                        'previous_emotion':old, 'emotion':ended,
+                        'reason':'Live2D 网页重新进入，结束上一轮临时情绪'})
+            self.current_user_id = new_user_id
+            self.current_key = self.current_command = None
+            self.override = None
+            self.manual_used = False
+            self.ignored_performance = self.seen_performance = None
+            self.commands.clear()
 
     def _context(self, db):
         # 只能关联原生登记的网页身份，不能把QQ会话或猜测的hash当来源。
-        rows = db.execute("""SELECT s.session,s.title,v.detail FROM session_sources src
+        if not self.current_user_id:
+            # Compatibility with the pre-visit bridge and its offline tests.
+            rows = db.execute("""SELECT s.session,s.title,v.detail FROM session_sources src
+                JOIN sessions s ON s.session=src.session LEFT JOIN avatar_views v ON v.session=s.session
+                WHERE src.channel='Live2D' AND src.platform='webui'
+                AND src.user_id IN ('vtuber_local_user','webui_user_vtuber_local_user')
+                AND s.chat_type='私聊'""").fetchall()
+        else:
+            rows = db.execute("""SELECT s.session,s.title,v.detail FROM session_sources src
             JOIN sessions s ON s.session=src.session LEFT JOIN avatar_views v ON v.session=s.session
             WHERE src.channel='Live2D' AND src.platform='webui'
-            AND src.user_id IN ('vtuber_local_user','webui_user_vtuber_local_user')
-            AND s.chat_type='私聊'""").fetchall()
+            AND src.user_id=? AND s.chat_type='私聊'""", (self.current_user_id,)).fetchall()
         if len(rows) == 1 and rows[0]['detail']:
             return rows[0]['session'], rows[0]['title'], json.loads(rows[0]['detail']), ''
         notice = '等待 MaiBot 处理首次 Live2D 对话' if len(rows) <= 1 else '存在多个Live2D身份，暂不猜测会话归属'
@@ -193,3 +231,9 @@ def create_router(store=None, allowed_expressions=None):
         return bridge.receipt(report)
 
     return router
+
+
+def begin_visit(client_uid):
+    """Called only after VTuber accepts a fresh browser connection."""
+    if _active_bridge is not None:
+        _active_bridge.begin_visit(client_uid)

@@ -147,8 +147,10 @@ class AuditStore:
             clean(fields["text"]), self.clock().isoformat(timespec="milliseconds")))
         platform, user_id = fields["platform"], fields["user"]
         if platform:
-            channel = ("Live2D" if platform == "webui" and user_id in
-                       {"vtuber_local_user", "webui_user_vtuber_local_user"} else "QQ" if platform == "qq" else "其他")
+            channel = ("Live2D" if platform == "webui" and (
+                       user_id in {"vtuber_local_user", "webui_user_vtuber_local_user"}
+                       or user_id.startswith(("vtuber_visit_", "webui_user_vtuber_visit_")))
+                       else "QQ" if platform == "qq" else "其他")
             db.execute("""INSERT INTO session_sources VALUES(?,?,?,?) ON CONFLICT(session)
                 DO UPDATE SET platform=excluded.platform,user_id=excluded.user_id,channel=excluded.channel""",
                        (fields["session"], platform, user_id, channel))

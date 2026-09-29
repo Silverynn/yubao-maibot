@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import re
 from pathlib import Path
 
 from websockets.asyncio.client import connect
@@ -23,7 +24,16 @@ def extract_speech_text(data):
     return content.strip() if isinstance(content, str) else ""
 
 
-async def stream_maibot(text):
+def visit_user_id(visit_id):
+    """A VTuber browser connection gets its own MaiBot chat identity."""
+    if visit_id is None:
+        return "vtuber_local_user"  # Compatibility without the Heart visit hook.
+    if not re.fullmatch(r"[0-9a-fA-F-]{36}", str(visit_id)):
+        raise ValueError("无效的 Live2D 会话标识")
+    return "vtuber_visit_" + str(visit_id).replace("-", "").lower()
+
+
+async def stream_maibot(text, visit_id=None):
     # 这一部分与上一步一样：读取本机登录凭据
     project_dir = Path(__file__).resolve().parent
     token_file = Path(os.environ.get("MAIBOT_WEBUI_JSON") or project_dir.parent / "qq机器人" / ".runtime" / "MaiBot" / "data" / "webui.json")
@@ -51,9 +61,9 @@ async def stream_maibot(text):
             "method": "session.open",
             "session": "vtuber-test",
             "data": {
-                "user_id": "vtuber_local_user",
+                "user_id": visit_user_id(visit_id),
                 "user_name": "Live2D 本地访客",
-                "restore": True,
+                "restore": False,
             },
         }
 

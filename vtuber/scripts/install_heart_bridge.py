@@ -4,12 +4,20 @@ from pathlib import Path
 
 def apply(root):
     server = root / 'src/open_llm_vtuber/server.py'
+    websocket_handler = root / 'src/open_llm_vtuber/websocket_handler.py'
+    single_conversation = root / 'src/open_llm_vtuber/conversations/single_conversation.py'
     index = root / 'frontend/index.html'
     source = server.read_text(encoding='utf-8')
+    websocket_source = websocket_handler.read_text(encoding='utf-8')
+    conversation_source = single_conversation.read_text(encoding='utf-8')
     html = index.read_text(encoding='utf-8')
     anchor = '        self.app = FastAPI(title="Open-LLM-VTuber Server")  # Added title for clarity'
     addition = '\n        from heart_bridge import create_router\n        self.app.include_router(create_router())'
     tag = '<script type="module" src="./heart-avatar.mjs"></script>'
+    visit_anchor = '            await self._send_initial_messages(\n'
+    visit_hook = '            from heart_bridge import begin_visit\n            begin_visit(client_uid)\n\n'
+    metadata_anchor = '        batch_input = create_batch_input(\n'
+    metadata_hook = '        metadata = {**(metadata or {}), "heart_client_uid": client_uid}\n'
     if addition not in source:
         if source.count(anchor) != 1:
             raise RuntimeError('后端版本不匹配，未安装')
@@ -18,12 +26,22 @@ def apply(root):
         if html.count('</body>') != 1:
             raise RuntimeError('前端入口不匹配，未安装')
         html = html.replace('</body>', tag + '\n</body>')
+    if visit_hook not in websocket_source:
+        if websocket_source.count(visit_anchor) != 1:
+            raise RuntimeError('WebSocket 版本不匹配，未安装会话隔离')
+        websocket_source = websocket_source.replace(visit_anchor, visit_hook + visit_anchor)
+    if metadata_hook not in conversation_source:
+        if conversation_source.count(metadata_anchor) != 1:
+            raise RuntimeError('对话流程版本不匹配，未安装会话隔离')
+        conversation_source = conversation_source.replace(metadata_anchor, metadata_hook + metadata_anchor)
     for relative in ('heart_bridge.py','frontend/heart-avatar.mjs','frontend/heart-controller.mjs'):
         if not (root / relative).is_file():
             raise RuntimeError('缺少文件：' + relative)
     server.write_text(source,encoding='utf-8')
+    websocket_handler.write_text(websocket_source,encoding='utf-8')
+    single_conversation.write_text(conversation_source,encoding='utf-8')
     index.write_text(html,encoding='utf-8')
-    print('PASS: Heart bridge and persistent mood panel installed')
+    print('PASS: Heart bridge, per-visit chat isolation and mood panel installed')
 
 
 if __name__ == '__main__':

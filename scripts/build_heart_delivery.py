@@ -37,6 +37,7 @@ CORE_FILES = (
     "docs/Heart同义去重修复与旧记忆整理.md",
     "docs/MaiBot原生记忆与Heart插件说明.md",
     "docs/Heart话题情绪与Live2D接入.md",
+    "docs/Live2D重进会话与模型错误说明.md",
 )
 # 同伴已有 Live2D 项目。下面是可选桥接代码，不包含模型、音频和私人配置；
 # 已修改的上游文件必须由同伴的 GPT 比较后合并，不能直接整目录覆盖。

@@ -137,7 +137,10 @@ class MaiBotAgent(AgentInterface):
         # 一轮最多做一次明显表情；后续段落不抢先重置，由前端计时恢复。
         reaction_shown = False
         # 麦麦每返回一段，就交给界面显示并交给 TTS 朗读
-        async for reply in stream_maibot(user_text):
+        visit_id = (input_data.metadata or {}).get("heart_client_uid")
+        if os.environ.get("HEART_MAIBOT_ROOT") and not visit_id:
+            raise RuntimeError("Live2D 会话尚未绑定，已停止请求以免读到旧网页的聊天记录")
+        async for reply in stream_maibot(user_text, visit_id=visit_id):
             reply = remove_leading_question_echo(reply, user_text)
             reply = add_sentence_final_punctuation(reply)
             if os.environ.get("HEART_MAIBOT_ROOT"):

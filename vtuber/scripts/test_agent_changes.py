@@ -41,7 +41,7 @@ assert agent.remove_leading_question_echo('今天吃什么\n吃面', '今天吃�
 for text in ['我喜欢这个', '今天挺开心的', '明天见']:
     assert agent.infer_reply_emotion(text) == 'neutral', text
 
-async def stream(_):
+async def stream(_, visit_id=None):
     for text in ['晚上这顿我自己掏钱还不行', '哈哈，好耶', '嘿嘿', '好难过']:
         yield text
 
@@ -55,7 +55,7 @@ async def check():
         assert replies[0].tts_text.endswith('？')
         assert all(r.display_text.text == r.tts_text for r in replies)
 
-    async def forbidden(_):
+    async def forbidden(_, visit_id=None):
         raise AssertionError('manual expressions must not call MaiBot')
         yield
     agent.stream_maibot = forbidden
@@ -78,6 +78,15 @@ async def check():
         with patch('heart_bridge.request_manual_expression',side_effect=RuntimeError('bridge not ready')):
             replies=[reply async for reply in bot.chat(inputs)]
             assert '未完成' in replies[0].display_text.text
+
+        ordinary = BatchInput(texts=[TextData(source=TextSource.INPUT,content='你好')])
+        with patch.object(agent, 'stream_maibot', stream):
+            try:
+                [reply async for reply in bot.chat(ordinary)]
+            except RuntimeError as error:
+                assert '尚未绑定' in str(error)
+            else:
+                raise AssertionError('Heart must not fall back to the old shared chat')
 
 asyncio.run(check())
 print('PASS: punctuation, declarative counterexamples, echo preservation, neutral default, one reaction per turn')

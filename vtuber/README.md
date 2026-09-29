@@ -8,6 +8,8 @@
 
 2026-09-27 的文字模式表情修复、测试方法和表情包兼容性说明，见 [表情修复与测试说明](表情修复与测试说明.md)。
 
+2026-09-29 修复重进网页时“聊天框为空但 MaiBot 暗中延续旧对话”：每个新的 Live2D 网页连接使用独立的 MaiBot 身份，旧网页的临时情绪结束并记日志；长久保留的 QQ 私聊/群聊、记忆库均不会被删除。当前策略是新网页不继承旧网页的个人记忆；若需要跨网页保留经确认的长期事实，应另做显式的长期身份映射，不要把旧聊天上下文偷偷带回。详见 [重进会话与模型错误说明](../docs/Live2D重进会话与模型错误说明.md)。
+
 - `conf.example.yaml`：从本地运行配置导出的示例，已把 13 处密钥字段替换为 `SET_LOCALLY`。复制成自己电脑上的 `conf.yaml` 后再填自己的凭据。不要上传填好密钥的文件。
 - `model_dict.json`、`live2d-models/ds-whale-girl/`：鱼宝 Live2D 角色定义和模型。模型目录内的 `LICENSE`、`README.md` 必须随模型保留。
 - `maibot_client.py`、`src/`：连接 MaiBot WebUI、过滤富媒体朗读、表情判断和 Fish Audio 语音等定制。`maibot_client.py` 目前按“Open-LLM-VTuber 与 qq机器人并列”来找本机 `webui.json`；不同电脑应核对这两个文件夹的位置。
