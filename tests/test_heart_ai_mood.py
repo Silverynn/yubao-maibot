@@ -49,7 +49,7 @@ class AIMoodTests(unittest.IsolatedAsyncioTestCase):
         state = self.state()
         self.assertEqual(state["value"], 47)
         self.assertEqual(state["assessment"]["method"], "AI判断")
-        text = next((self.store.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        text = next((self.store.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("反讽而非真实赞扬", text)
         self.assertIn("实际总变化：-3", text)
         self.assertNotIn("隐藏推理", text)

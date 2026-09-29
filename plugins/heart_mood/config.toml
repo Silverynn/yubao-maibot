@@ -1,6 +1,18 @@
 # 修改运行目录的这个文件并重启，或在 MaiBot 的插件配置页修改。
 # 新版 states 默认四档，可在插件编辑界面添加；未写入本文件时使用代码默认值。
 # 新版 ai 默认关闭，在编辑界面开启后使用现有utils模型，不与关键词叠加。
+# 话题情绪与数值独立；开启后由AI判断延续/改变/结束，不按秒数清空。
+[performance]
+reply_first = true
+failure_pause_seconds = 15
+group_batch_seconds = 3
+group_batch_max_messages = 8
+
+[emotions]
+enabled = false
+confidence_threshold = 0.7
+reply_wait_seconds = 4.0
+
 [ai]
 enabled = false
 fallback_keywords = false

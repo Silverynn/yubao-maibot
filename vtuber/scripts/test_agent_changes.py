@@ -1,16 +1,20 @@
 import asyncio
 import importlib.util
 import sys
+import os
+from unittest.mock import patch
 from pathlib import Path
 from types import SimpleNamespace
 
 stage = Path(__file__).resolve().parent
-root = stage.parent if (stage.parent / 'maibot_client.py').is_file() else stage.parents[1] / 'Open-LLM-VTuber'
+root = Path(os.environ['VTUBER_TEST_ROOT']) if os.environ.get('VTUBER_TEST_ROOT') else stage.parent if (stage.parent / 'maibot_client.py').is_file() else stage.parents[1] / 'Open-LLM-VTuber'
 sys.path.insert(0, str(root))
 name = 'src.open_llm_vtuber.agent.agents.maibot_agent'
 source = stage / 'maibot_agent.py'
 if not source.is_file():
-    source = root / 'src/open_llm_vtuber/agent/agents/maibot_agent.py'
+    source = stage.parent / 'src/open_llm_vtuber/agent/agents/maibot_agent.py'
+    if not source.is_file():
+        source = root / 'src/open_llm_vtuber/agent/agents/maibot_agent.py'
 spec = importlib.util.spec_from_file_location(name, source)
 agent = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(agent)
@@ -47,9 +51,33 @@ async def check():
     inputs = BatchInput(texts=[TextData(source=TextSource.INPUT, content='吃什么')])
     for _ in range(2):
         replies = [reply async for reply in bot.chat(inputs)]
-        assert [r.actions.expressions for r in replies] == [[0], ['开心兴奋'], [0], [0]]
+        assert [r.actions.expressions for r in replies] == [[0], ['开心兴奋'], None, None]
         assert replies[0].tts_text.endswith('？')
         assert all(r.display_text.text == r.tts_text for r in replies)
+
+    async def forbidden(_):
+        raise AssertionError('manual expressions must not call MaiBot')
+        yield
+    agent.stream_maibot = forbidden
+    bot = agent.MaiBotAgent(SimpleNamespace(emo_map={'neutral': '平静', 'joy': '开心兴奋', 'confusion': '问号'}))
+    for text, expected in [('/表情 开心', ['开心兴奋']), ('/表情 疑惑', ['问号']),
+                           ('/表情 平静', ['平静']), ('/表情 不存在', None)]:
+        inputs = BatchInput(texts=[TextData(source=TextSource.INPUT, content=text)])
+        replies = [reply async for reply in bot.chat(inputs)]
+        assert len(replies) == 1
+        assert replies[0].actions.expressions == expected
+        assert replies[0].tts_text == ''
+
+    with patch.dict(os.environ,{'HEART_MAIBOT_ROOT':'offline-test'}), patch('heart_bridge.request_manual_expression',create=True) as request:
+        for text,expected in [('/表情 开心','开心兴奋'),('/表情 疑惑','问号'),('/表情 自动',None)]:
+            inputs=BatchInput(texts=[TextData(source=TextSource.INPUT,content=text)])
+            replies=[reply async for reply in bot.chat(inputs)]
+            request.assert_called_with(expected)
+            assert replies[0].actions.expressions is None,'统一控制，不走旧的表情通道'
+            assert '已请求' in replies[0].display_text.text
+        with patch('heart_bridge.request_manual_expression',side_effect=RuntimeError('bridge not ready')):
+            replies=[reply async for reply in bot.chat(inputs)]
+            assert '未完成' in replies[0].display_text.text
 
 asyncio.run(check())
 print('PASS: punctuation, declarative counterexamples, echo preservation, neutral default, one reaction per turn')

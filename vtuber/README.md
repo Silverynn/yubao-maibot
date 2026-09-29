@@ -4,10 +4,14 @@
 
 ## 分享了什么
 
+2026-09-28 新增 Heart 1.4 持久心情面板、按话题结束的临时情绪、表情回执和 QQ/Live2D 分目录日志，见 [Heart话题情绪与Live2D接入](../docs/Heart话题情绪与Live2D接入.md)。启用 `HEART_MAIBOT_ROOT` 后，由 Heart 统一控制表情，下面的旧3秒恢复和独立分类不再接管它。
+
+2026-09-27 的文字模式表情修复、测试方法和表情包兼容性说明，见 [表情修复与测试说明](表情修复与测试说明.md)。
+
 - `conf.example.yaml`：从本地运行配置导出的示例，已把 13 处密钥字段替换为 `SET_LOCALLY`。复制成自己电脑上的 `conf.yaml` 后再填自己的凭据。不要上传填好密钥的文件。
 - `model_dict.json`、`live2d-models/ds-whale-girl/`：鱼宝 Live2D 角色定义和模型。模型目录内的 `LICENSE`、`README.md` 必须随模型保留。
 - `maibot_client.py`、`src/`：连接 MaiBot WebUI、过滤富媒体朗读、表情判断和 Fish Audio 语音等定制。`maibot_client.py` 目前按“Open-LLM-VTuber 与 qq机器人并列”来找本机 `webui.json`；不同电脑应核对这两个文件夹的位置。
-- `frontend/yubao-expression-timing.mjs`、`scripts/apply_yubao_expression_timing.py`：让短暂表情自动回到“平静”。将这些文件放到上游对应路径后，在 Open-LLM-VTuber 根目录运行 `python scripts/apply_yubao_expression_timing.py`。脚本检查当前前端编译文件，版本变化时会停止，不能强行替换。
+- `frontend/yubao-expression-timing.mjs`、`scripts/apply_yubao_expression_timing.py`：修复无声模式的表情和字幕，让短暂表情保留约 3 秒再回到“平静”，避免对话结束时立即清除。将这些文件放到上游对应路径后，在 Open-LLM-VTuber 根目录运行 `python scripts/apply_yubao_expression_timing.py`。脚本检查当前前端编译文件，版本变化时会停止，不能强行替换。
 - `scripts/test_agent_changes.py`、`scripts/test_expression_timing.mjs`：不发送 QQ 消息的离线检查。
 
 ## 在自己的电脑恢复
