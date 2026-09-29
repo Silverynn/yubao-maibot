@@ -78,12 +78,22 @@ class AuditStore:
                     day TEXT NOT NULL, time TEXT NOT NULL, session TEXT NOT NULL,
                     kind TEXT NOT NULL, payload TEXT NOT NULL);
                 CREATE INDEX IF NOT EXISTS events_day ON events(day,seq);
+                CREATE INDEX IF NOT EXISTS events_session_day ON events(day,session,seq);
                 CREATE INDEX IF NOT EXISTS messages_received ON messages(received);
                 CREATE TABLE IF NOT EXISTS sessions(
                     session TEXT PRIMARY KEY, chat_type TEXT NOT NULL, title TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS session_files(
                     day TEXT NOT NULL, session TEXT NOT NULL, filename TEXT NOT NULL,
                     PRIMARY KEY(day,session));
+                CREATE TABLE IF NOT EXISTS session_sources(
+                    session TEXT PRIMARY KEY, platform TEXT NOT NULL, user_id TEXT NOT NULL,
+                    channel TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS log_exports(
+                    day TEXT NOT NULL, session TEXT NOT NULL, filename TEXT NOT NULL,
+                    last_seq INTEGER NOT NULL, byte_size INTEGER NOT NULL,
+                    PRIMARY KEY(day,session));
+                CREATE TABLE IF NOT EXISTS emotions(session TEXT PRIMARY KEY, detail TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS avatar_views(session TEXT PRIMARY KEY, detail TEXT NOT NULL);
             """)
 
     def connect(self):
@@ -122,6 +132,7 @@ class AuditStore:
             "text": str(message.get("processed_plain_text") or "[非文本消息/尚未转写]"),
             "chat_type": "群聊" if is_group else "私聊",
             "title": title,
+            "platform": str(info.get("platform") or user.get("platform") or message.get("platform") or "").lower(),
         }
 
     def save_message(self, db, message):
@@ -134,7 +145,18 @@ class AuditStore:
         db.execute("INSERT OR IGNORE INTO messages VALUES(?,?,?,?,?,?)", (
             fields["session"], fields["message_id"], fields["user"], fields["name"],
             clean(fields["text"]), self.clock().isoformat(timespec="milliseconds")))
+        platform, user_id = fields["platform"], fields["user"]
+        if platform:
+            channel = ("Live2D" if platform == "webui" and user_id in
+                       {"vtuber_local_user", "webui_user_vtuber_local_user"} else "QQ" if platform == "qq" else "其他")
+            db.execute("""INSERT INTO session_sources VALUES(?,?,?,?) ON CONFLICT(session)
+                DO UPDATE SET platform=excluded.platform,user_id=excluded.user_id,channel=excluded.channel""",
+                       (fields["session"], platform, user_id, channel))
         return fields
+
+    def emotion_snapshot(self, db, session):
+        row = db.execute("SELECT detail FROM emotions WHERE session=?", (session,)).fetchone()
+        return json.loads(row[0]) if row else {}
 
     def mood_snapshot(self, db, session):
         row = db.execute("SELECT detail FROM moods WHERE session=?", (session,)).fetchone()
@@ -159,9 +181,9 @@ class AuditStore:
         if ids:
             relation = "证据消息ID关联" if len(rows) == len(ids) else "部分或全部证据未观测到；不猜测原文"
         else:
-            relation = "仅会话关联；下面是最近上下文，不代表该事件由它触发"
-            rows = [dict(r) for r in db.execute(
-                "SELECT * FROM messages WHERE session=? ORDER BY rowid DESC LIMIT 3", (session,)).fetchall()][::-1]
+            relation = "仅会话关联，不代表最近发言者触发；未提供触发消息，不关联最近发言者"
+            # 后台检索/摘要常在另一条聊天后才完成，最近消息不是它的证据。
+            rows = []
         mood = self.mood_snapshot(db, session)
         if len(ids) == 1:
             source_mood = db.execute("SELECT detail FROM mood_processed WHERE session=? AND message_id=?", (session, str(ids[0]))).fetchone()
@@ -170,11 +192,11 @@ class AuditStore:
         # 会话名称只用于辨认聊天流，不把最近发言者误认成此次后台操作的触发者。
         latest = db.execute("SELECT name FROM messages WHERE session=? ORDER BY rowid DESC LIMIT 1", (session,)).fetchone()
         body = {"relation": relation, "dialogue": rows, "session_name": latest[0] if latest else "",
-                "mood": mood, **payload}
+                "mood": mood, "emotion": self.emotion_snapshot(db, session), **payload}
         db.execute("INSERT OR IGNORE INTO events(event_id,day,time,session,kind,payload) VALUES(?,?,?,?,?,?)",
                    (event_id, now.date().isoformat(), now.isoformat(timespec="milliseconds"), session, kind, dumps(body)))
         # 写库和生成文本在同一数据库写锁内，跨插件/跨进程不会互相覆盖。
-        self.export_session_day(db, now.date().isoformat(), session)
+        self.export_session_day(db, now.date().isoformat(), session, incremental=True)
         self.prune_in(db, now.date())
         return event_id
 
@@ -212,18 +234,38 @@ class AuditStore:
         short_id = hashlib.sha256(session.encode("utf-8")).hexdigest()[:10]
         return f"{day}_{chat_type}_{self.safe_title(title)}_{short_id}.txt"
 
-    def export_session_day(self, db, day, session):
-        events = db.execute("SELECT * FROM events WHERE day=? AND session=? ORDER BY seq", (day, session)).fetchall()
+    def export_session_day(self, db, day, session, incremental=False):
+        """常规写入只导出新事件；重建、改名或上次中断时重新生成完整文本。
+
+        写入仍受SQLite跨进程写锁保护。导出游标与事务一起提交：如果文本写完后
+        数据库回滚，下次文件长度与已提交游标不符，就会重建，避免重复或漏记。
+        """
+        logs = self.root / "logs"
+        logs.mkdir(exist_ok=True)
+        origin = db.execute("SELECT channel FROM session_sources WHERE session=?", (session,)).fetchone()
+        folder = origin[0] if origin and origin[0] in {"QQ", "Live2D"} else "其他"
+        filename = folder + "/" + self.session_filename(db, day, session)
+        target = logs / filename
+        target.parent.mkdir(exist_ok=True)
+        cursor = db.execute("SELECT * FROM log_exports WHERE day=? AND session=?", (day, session)).fetchone()
+        append_ok = (incremental and cursor and cursor['filename'] == filename
+                     and target.is_file() and target.stat().st_size == cursor['byte_size'])
+        last_seq = cursor['last_seq'] if append_ok else 0
+        events = db.execute("SELECT * FROM events WHERE day=? AND session=? AND seq>? ORDER BY seq",
+                            (day, session, last_seq)).fetchall()
         if not events:
             return
         blocks = [render_event(event, json.loads(event["payload"])) for event in events]
-        logs = self.root / "logs"
-        logs.mkdir(exist_ok=True)
-        filename = self.session_filename(db, day, session)
-        target = logs / filename
-        temporary = target.with_suffix(".tmp")
-        temporary.write_text("\n\n".join(blocks) + "\n", encoding="utf-8-sig")
-        temporary.replace(target)
+        if append_ok:
+            # 每条记录之间仍空一行；BOM只在完整文件开头写入一次。
+            with target.open('ab') as stream:
+                stream.write(('\n' + '\n\n'.join(blocks) + '\n').encode('utf-8'))
+        else:
+            temporary = target.with_suffix(".tmp")
+            temporary.write_bytes(('\n\n'.join(blocks) + '\n').encode('utf-8-sig'))
+            temporary.replace(target)
+        db.execute("INSERT OR REPLACE INTO log_exports VALUES(?,?,?,?,?)",
+                   (day, session, filename, events[-1]['seq'], target.stat().st_size))
         previous = db.execute("SELECT filename FROM session_files WHERE day=? AND session=?", (day, session)).fetchone()
         db.execute("""INSERT INTO session_files(day,session,filename) VALUES(?,?,?)
             ON CONFLICT(day,session) DO UPDATE SET filename=excluded.filename""", (day, session, filename))
@@ -239,7 +281,10 @@ class AuditStore:
 
     @staticmethod
     def managed_log_name(name):
-        return bool(LOG_NAME.fullmatch(name) or LEGACY_LOG_NAME.fullmatch(name))
+        # 仅允许自己管理的一级目录和文件名，数据库里的路径也不能越界。
+        parts = str(name).replace("\\", "/").split("/")
+        return (len(parts) == 1 or len(parts) == 2 and parts[0] in {"QQ", "Live2D", "其他"}) and bool(
+            LOG_NAME.fullmatch(parts[-1]) or LEGACY_LOG_NAME.fullmatch(parts[-1]))
 
     def prune_in(self, db, today):
         cutoff = (today - timedelta(days=RETENTION_DAYS)).isoformat()
@@ -249,9 +294,15 @@ class AuditStore:
             AND messages.message_id=mood_processed.message_id AND messages.received<?)""", (cutoff + "T",))
         db.execute("DELETE FROM messages WHERE received<?", (cutoff + "T",))
         db.execute("DELETE FROM session_files WHERE day<?", (cutoff,))
+        db.execute("DELETE FROM log_exports WHERE day<?", (cutoff,))
         logs = self.root / "logs"
         if logs.is_dir():
-            for path in logs.iterdir():
+            paths = list(logs.iterdir())
+            for folder in ("QQ", "Live2D", "其他"):
+                directory = logs / folder
+                if directory.is_dir() and not directory.is_symlink():
+                    paths.extend(directory.iterdir())
+            for path in paths:
                 match = ((LOG_NAME.fullmatch(path.name) or LEGACY_LOG_NAME.fullmatch(path.name)
                           or TEMP_LOG_NAME.fullmatch(path.name)) if path.is_file() else None)
                 if match and match[1] < cutoff:

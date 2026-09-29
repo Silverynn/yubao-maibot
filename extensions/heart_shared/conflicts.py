@@ -103,13 +103,18 @@ class ConflictGuard:
         async with self.locks[owner["person_id"]]:
             try:
                 hits = own_hits(await self.backend.search(args, settings["candidate_limit"]), owner["person_id"])
+                self.store.append('记忆冲突候选检索', args['chat_id'],
+                                  evidence_message_ids=(args.get('metadata') or {}).get('evidence_message_ids', []),
+                                  new_memory=args['text'], old_memories=[hit['content'] for hit in hits],
+                                  status='检索到可比较旧事实' if hits else '本会话暂无可比较的旧事实')
                 if not hits:
                     self.event(proposal, "检查完成", "未检索到可比较的本人旧事实，允许原生写入；不保证检索覆盖全部历史")
                     return None
                 judgment = await asyncio.wait_for(self.backend.judge(args, hits, owner), settings["timeout_seconds"])
                 confidence = judgment.get("confidence")
                 if (judgment.get("supported") is not True or not isinstance(confidence, (int, float))
-                        or isinstance(confidence, bool) or not math.isfinite(confidence) or not 0.8 <= confidence <= 1):
+                        or isinstance(confidence, bool) or not math.isfinite(confidence)
+                        or not settings.get("conflict_min_confidence", 0.8) <= confidence <= 1):
                     raise ValueError("新事实来源或判断把握不足，暂不写入")
                 if judgment.get("verdict") == "clear":
                     if judgment.get("conflict_ids"):

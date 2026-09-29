@@ -16,7 +16,7 @@ from heart_shared.candidates import CandidateInbox
 from heart_shared.forget import ForgetManager, NATURAL_FORGET_PATTERN, NATURAL_RESOLVE_PATTERN
 import re
 from heart_shared.storage import AuditStore
-from heart_memory_backend import NativeBackend
+from heart_memory_backend import NativeBackend, candidates_capability, group_person_hits, manage_capability
 
 
 HASH = "a" * 64
@@ -80,7 +80,7 @@ class EntryTests(unittest.TestCase):
         self.assertIn("写入成功", asyncio.run(inbox.resolve("person-1", row["id"], True)))
         self.assertEqual(self.backend.calls[0][1]["metadata"]["fact_claim"]["trust"], "manual_confirmed")
         self.assertEqual(inbox.list_for("person-1"), [])
-        log = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        log = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("候选记忆", log)
         self.assertIn("测试同学喜欢Python", log)
 
@@ -104,10 +104,26 @@ class EntryTests(unittest.TestCase):
         self.assertIn("已从可用的原生长期记忆中删除", outcome)
         self.assertEqual(self.backend.facts, [])
         self.assertIn("已经处理", asyncio.run(manager.handle(self.actor("confirm", "1"))))
-        log = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        log = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("等待本人确认", log)
         self.assertIn("原生长期记忆已删除并复核", log)
         self.assertNotIn(HASH, log)
+
+    def test_forget_custom_threshold_and_confirmation_window(self):
+        config = {"forget_min_confidence": 0.98, "forget_timeout_seconds": 5,
+                  "forget_confirmation_minutes": 3, "forget_list_page_size": 5}
+        manager = ForgetManager(self.store, self.backend, lambda: config)
+        self.backend.natural_result["confidence"] = 0.97
+        refused = asyncio.run(manager.handle(self.actor("natural_forget", "请忘掉我喜欢Python")))
+        self.assertIn("没有改动", refused)
+        self.assertEqual(self.backend.facts[0]["hash"], HASH)
+        self.backend.natural_result["confidence"] = 0.99
+        proposal = asyncio.run(manager.handle(self.actor("natural_forget", "请忘掉我喜欢Python")))
+        self.assertIn("3分钟", proposal)
+        with self.store.connect() as db:
+            row = db.execute("SELECT expires FROM heart_forget_requests ORDER BY id DESC LIMIT 1").fetchone()
+        import time
+        self.assertLess(abs(row[0] - time.time() - 180), 5)
 
     def test_forget_ambiguous_and_wrong_owner_do_not_delete(self):
         self.backend.facts.append({"hash": "b" * 64, "content": "测试同学喜欢Python编程"})
@@ -140,9 +156,14 @@ class EntryTests(unittest.TestCase):
         outcome = asyncio.run(manager.handle(self.actor("natural_confirm")))
         self.assertIn("删除2条", outcome)
         self.assertEqual(self.backend.facts, [])
-        log = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        log = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("自然语言已定位目标", log)
         self.assertIn("原生长期记忆已删除并复核", log)
+
+    def test_group_story_about_someone_else_is_not_a_forget_command(self):
+        story = "我记得某人是不是进入过某处数据库然后给管理员删掉了"
+        self.assertIsNone(re.fullmatch(NATURAL_FORGET_PATTERN, story))
+        self.assertIsNotNone(re.fullmatch(NATURAL_FORGET_PATTERN, "请你忘记我喜欢Python这条记忆"))
 
     def test_natural_forget_uncertain_or_cancelled_never_deletes(self):
         manager = ForgetManager(self.store, self.backend)
@@ -167,7 +188,9 @@ class EntryTests(unittest.TestCase):
             session_id="private-1", processed_plain_text=phrase, platform="qq", message_id="msg-1",
             message_info=types.SimpleNamespace(
                 group_info=None, user_info=types.SimpleNamespace(user_id="user-1")))
-        chat_manager = types.SimpleNamespace(last_messages={"private-1": message})
+        session = types.SimpleNamespace(account_id="bot-1", scope="qq", user_id="user-1", group_id="")
+        chat_manager = types.SimpleNamespace(last_messages={"private-1": message},
+            get_existing_session_by_session_id=lambda _: session)
         fake = {
             name: types.ModuleType(name) for name in (
                 "src", "src.chat", "src.chat.message_receive", "src.chat.message_receive.chat_manager",
@@ -183,12 +206,173 @@ class EntryTests(unittest.TestCase):
             message.processed_plain_text = "取消忘记"
             self.assertEqual(asyncio.run(NativeBackend().manage_actor("private-1"))["action"], "natural_cancel")
             message.message_info.group_info = object()
+            self.assertTrue(asyncio.run(NativeBackend().manage_actor("private-1"))["group"])
+            self.assertIsNone(asyncio.run(NativeBackend().manage_actor("private-1", "older-command-id")))
+            message.processed_plain_text = "我记得某人进数据库后给管理员删掉了"
             self.assertIsNone(asyncio.run(NativeBackend().manage_actor("private-1")))
+
+    def test_group_memory_management_is_privately_delivered_and_group_confirmation_blocked(self):
+        class GroupBackend:
+            def __init__(self):
+                self.sent = []
+
+            async def manage_actor(self, session_id, expected_message_id=""):
+                return {"action": "list", "value": "1", "group": True, "session_id": session_id,
+                        "message_id": "msg-1", "person_id": "person-1"}
+
+            async def private_session(self, actor):
+                return "private-1"
+
+            async def send(self, session, text):
+                self.sent.append((session, text))
+                return True
+
+        backend = GroupBackend()
+        class Manager:
+            async def handle(self, actor):
+                self_actor = actor
+                assert self_actor["session_id"] == "private-1"
+                return "本人私密事实：喜欢Python"
+        with patch("heart_memory_backend.settings", return_value={"plugin_enabled": True}), \
+             patch("heart_memory_backend.NativeBackend", return_value=backend), \
+             patch("heart_memory_backend.forget_manager", return_value=Manager()):
+            result = asyncio.run(manage_capability("heart.memory-audit", "", {"session_id": "group-1", "message_id": "msg-1"}))
+            self.assertNotIn("喜欢Python", result["message"])
+            self.assertIn("喜欢Python", backend.sent[0][1])
+            self.assertEqual(backend.sent[0][0], "private-1")
+            backend.manage_actor = lambda session_id, expected_message_id="": asyncio.sleep(0, result={
+                "action": "confirm", "group": True, "session_id": session_id,
+                "message_id": "msg-2", "person_id": "person-1"})
+            blocked = asyncio.run(manage_capability("heart.memory-audit", "", {"session_id": "group-1", "message_id": "msg-2"}))
+            self.assertIn("私聊中确认", blocked["message"])
+            self.assertEqual(len(backend.sent), 1)
+
+    def test_group_candidate_list_is_private_and_resolution_blocked(self):
+        class GroupBackend:
+            async def candidate_actor(self, session_id, expected_message_id=""):
+                return {"action": "确认候选记忆", "id": 1, "group": True,
+                        "session_id": session_id, "person_id": "person-1"}
+        with patch("heart_memory_backend.settings", return_value={"plugin_enabled": True}), \
+             patch("heart_memory_backend.NativeBackend", return_value=GroupBackend()):
+            blocked = asyncio.run(candidates_capability("heart.memory-audit", "", {"session_id": "group-1", "message_id": "msg-1"}))
+            self.assertIn("只能由本人在私聊", blocked["message"])
+
+    def test_group_recall_queries_only_group_session_and_logs_hit_content(self):
+        class GroupBackend:
+            async def manage_actor(self, session_id, expected_message_id=""):
+                return {"action": "group_recall", "value": "Python", "group": True,
+                        "session_id": session_id, "message_id": "msg-1", "user_id": "user-1"}
+
+            async def invoke(self, component, args):
+                assert component == "search_memory"
+                assert args["chat_id"] == "group-1" and args["group_id"] == "group-qq-1"
+                assert args["user_id"] == "user-1" and args["person_id"] == ""
+                assert args["respect_filter"] is True
+                return {"success": True, "hits": [{"content": "本群曾讨论Python学习", "metadata": {"chat_id": "group-1"}}]}
+
+        session = types.SimpleNamespace(group_id="group-qq-1")
+        chat_module = types.ModuleType("src.chat.message_receive.chat_manager")
+        chat_module.chat_manager = types.SimpleNamespace(get_existing_session_by_session_id=lambda _: session)
+        modules = {name: types.ModuleType(name) for name in ("src", "src.chat", "src.chat.message_receive")}
+        modules["src.chat.message_receive.chat_manager"] = chat_module
+        with patch.dict(sys.modules, modules), \
+             patch("heart_memory_backend.settings", return_value={"plugin_enabled": True}), \
+             patch("heart_memory_backend.NativeBackend", return_value=GroupBackend()), \
+             patch("heart_memory_backend.AuditStore", return_value=self.store):
+            result = asyncio.run(manage_capability("heart.memory-audit", "", {"session_id": "group-1", "message_id": "msg-1"}))
+        self.assertIn("本群曾讨论Python学习", result["message"])
+        log = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
+        self.assertIn("本群曾讨论Python学习", log)
+        self.assertNotIn("group-qq-1", log)
+
+    def test_group_person_hits_never_falls_back_to_other_people_or_private_chats(self):
+        hits = [
+            {"content": "小甲在本群学习Python", "metadata": {"person_ids": ["person-a"], "chat_id": "group-1"}},
+            {"content": "小甲在私聊学习C++", "metadata": {"person_ids": ["person-a"], "chat_id": "private-a"}},
+            {"content": "小乙在本群学习Go", "metadata": {"person_ids": ["person-b"], "chat_id": "group-1"}},
+            {"content": "文本写着小甲，但缺少归属证据", "metadata": {}},
+        ]
+        self.assertEqual([hit["content"] for hit in group_person_hits(hits, "person-a", "group-1")],
+                         ["小甲在本群学习Python"])
+        self.assertEqual(group_person_hits(hits, "person-c", "group-1"), [])
+
+    def test_group_recall_uses_real_qq_at_component_not_typed_name(self):
+        class AtComponent:
+            def __init__(self, user_id, name):
+                self.target_user_id, self.target_user_cardname = user_id, name
+                self.target_user_nickname = name
+
+        class TextComponent:
+            def __init__(self, text):
+                self.text = text
+
+        message = types.SimpleNamespace(
+            session_id="group-1", processed_plain_text="/群回忆 @小甲 Python", platform="qq", message_id="msg-1",
+            raw_message=types.SimpleNamespace(components=[TextComponent("/群回忆 "), AtComponent("10001", "小甲"),
+                                                          TextComponent(" Python")]),
+            message_info=types.SimpleNamespace(group_info=object(), user_info=types.SimpleNamespace(user_id="writer")))
+        session = types.SimpleNamespace(account_id="bot-1", scope="qq")
+        chat_module = types.ModuleType("src.chat.message_receive.chat_manager")
+        chat_module.chat_manager = types.SimpleNamespace(last_messages={"group-1": message},
+            get_existing_session_by_session_id=lambda _: session)
+        component_module = types.ModuleType("src.common.data_models.message_component_data_model")
+        component_module.AtComponent, component_module.TextComponent = AtComponent, TextComponent
+        modules = {name: types.ModuleType(name) for name in (
+            "src", "src.chat", "src.chat.message_receive", "src.chat.utils", "src.chat.utils.utils",
+            "src.person_info", "src.person_info.person_info", "src.common", "src.common.data_models")}
+        modules["src.chat.message_receive.chat_manager"] = chat_module
+        modules["src.common.data_models.message_component_data_model"] = component_module
+        modules["src.chat.utils.utils"].is_bot_self = lambda platform, user_id: False
+        modules["src.person_info.person_info"].get_person_id = lambda platform, user_id: f"person-{user_id}"
+        with patch.dict(sys.modules, modules):
+            actor = asyncio.run(NativeBackend().manage_actor("group-1", "msg-1"))
+            self.assertEqual((actor["target_person_id"], actor["target_name"], actor["value"]),
+                             ("person-10001", "小甲", "Python"))
+            message.processed_plain_text = "/群回忆 @小甲"
+            message.raw_message.components = [TextComponent("/群回忆 "), AtComponent("10001", "小甲")]
+            self.assertEqual(asyncio.run(NativeBackend().manage_actor("group-1", "msg-1"))["value"], "小甲")
+            message.processed_plain_text = "/群回忆 @小甲 @小乙"
+            message.raw_message.components.append(AtComponent("10002", "小乙"))
+            self.assertIn("一次只能@一位", asyncio.run(NativeBackend().manage_actor("group-1", "msg-1"))["target_error"])
+            message.processed_plain_text = "/群回忆 @小甲"
+            message.raw_message.components = [TextComponent("/群回忆 @小甲")]
+            self.assertIn("真正的@", asyncio.run(NativeBackend().manage_actor("group-1", "msg-1"))["target_error"])
+
+    def test_group_person_recall_filters_original_search_fallback_and_logs_person(self):
+        class GroupBackend:
+            async def manage_actor(self, session_id, expected_message_id=""):
+                return {"action": "group_recall", "value": "Python", "group": True,
+                        "session_id": session_id, "message_id": "msg-1", "user_id": "writer",
+                        "target_person_id": "person-a", "target_name": "小甲"}
+
+            async def invoke(self, component, args):
+                assert args["person_id"] == "person-a" and args["mode"] == "aggregate"
+                return {"success": True, "hits": [
+                    {"content": "小乙在本群学习Go", "metadata": {"person_ids": ["person-b"], "chat_id": "group-1"}},
+                    {"content": "小甲在私聊学习C++", "metadata": {"person_ids": ["person-a"], "chat_id": "private-a"}},
+                    {"content": "小甲在本群学习Python", "metadata": {"person_ids": ["person-a"], "chat_id": "group-1"}},
+                ]}
+
+        session = types.SimpleNamespace(group_id="group-qq-1")
+        chat_module = types.ModuleType("src.chat.message_receive.chat_manager")
+        chat_module.chat_manager = types.SimpleNamespace(get_existing_session_by_session_id=lambda _: session)
+        modules = {name: types.ModuleType(name) for name in ("src", "src.chat", "src.chat.message_receive")}
+        modules["src.chat.message_receive.chat_manager"] = chat_module
+        with patch.dict(sys.modules, modules), \
+             patch("heart_memory_backend.settings", return_value={"plugin_enabled": True}), \
+             patch("heart_memory_backend.NativeBackend", return_value=GroupBackend()), \
+             patch("heart_memory_backend.AuditStore", return_value=self.store):
+            result = asyncio.run(manage_capability("heart.memory-audit", "", {"session_id": "group-1", "message_id": "msg-1"}))
+        self.assertIn("小甲在本群学习Python", result["message"])
+        self.assertNotIn("私聊学习", result["message"])
+        self.assertNotIn("小乙", result["message"])
+        log = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
+        self.assertNotIn("小甲在私聊学习C++", log)
 
     def test_auto_decision_log_distinguishes_extraction_from_storage(self):
         self.store.append("自动记忆判断", "private-1", status="提取到候选",
                           memories=["测试同学喜欢Python"], evidence_message_ids=["msg-1"])
-        text = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        text = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("原生AI记忆筛选", text)
         self.assertIn("尚不等于写入长期记忆", text)
 

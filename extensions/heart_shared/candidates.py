@@ -28,7 +28,7 @@ class CandidateInbox:
                               new_memory=args.get("text", ""))
             return {"success": False, "detail": "无法核实原发言者，未进入候选记忆"}
         signature = hashlib.sha256(json.dumps([
-            owner["person_id"], args["text"], (args.get("metadata") or {}).get("evidence_message_ids") or []
+            args['chat_id'], owner["person_id"], args["text"], (args.get("metadata") or {}).get("evidence_message_ids") or []
         ], ensure_ascii=False, sort_keys=True).encode()).hexdigest()
         with self.store.transaction() as db:
             existing = db.execute("SELECT id,status FROM heart_candidates WHERE signature=?", (signature,)).fetchone()

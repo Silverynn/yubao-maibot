@@ -45,13 +45,13 @@ class MemoryTests(unittest.TestCase):
         self.store.record_message(self.message())
         self.assertEqual(len(self.events()), 1)
         self.store.append("test", "s1", message_id="m1", value="中文")
-        content = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        content = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("\n\n#", content)
         self.assertIn("我在学Python", content)
         next_day = self.store.clock() + timedelta(days=1)
         self.store.clock = lambda: next_day
         self.store.append("test", "s1")
-        self.assertEqual(len(list((self.root / "logs").glob("*.txt"))), 2)
+        self.assertEqual(len(list((self.root / "logs").rglob("*.txt"))), 2)
 
     def test_no_cross_session_and_no_false_association(self):
         self.store.record_message(self.message())
@@ -68,7 +68,7 @@ class MemoryTests(unittest.TestCase):
         self.store.append("模型请求中的记忆参考", "personal-session", references=[])
         self.store.append("记忆操作结果", "personal-session", evidence_message_ids=["unknown"],
                           operation="get_person_profile", outcome={"result": {}})
-        files = sorted((self.root / "logs").glob("*.txt"))
+        files = sorted((self.root / "logs").rglob("*.txt"))
         self.assertEqual(len(files), 2)
         group_log = next(path.read_text(encoding="utf-8-sig") for path in files if "_群聊_测试群_" in path.name)
         private_log = next(path.read_text(encoding="utf-8-sig") for path in files if "_私聊_测试同学_" in path.name)
@@ -88,7 +88,7 @@ class MemoryTests(unittest.TestCase):
         second["message_info"]["user_info"]["user_nickname"] = "小明:/\\?*"
         self.store.record_message(first)
         self.store.record_message(second)
-        files = sorted((self.root / "logs").glob("*.txt"))
+        files = sorted((self.root / "logs").rglob("*.txt"))
         self.assertEqual(len(files), 2)
         self.assertNotEqual(files[0].name, files[1].name)
         for path in files:
@@ -114,7 +114,7 @@ class MemoryTests(unittest.TestCase):
         self.store.record_message(self.message(message_id="now", text="今天的对话"))
         self.assertTrue(untouched.exists())
         self.assertFalse(old_temp.exists())
-        files = list((self.root / "logs").glob("2026-*.txt"))
+        files = list((self.root / "logs").rglob("2026-*.txt"))
         self.assertEqual({path.name[:10] for path in files}, {"2026-09-22", "2026-09-25"})
         self.assertNotIn("超过三天的对话", json.dumps(self.events(), ensure_ascii=False))
         with self.store.connect() as db:
@@ -123,7 +123,7 @@ class MemoryTests(unittest.TestCase):
         self.store.clock = lambda: day[3]
         self.store.prune()
         AuditStore(self.root, clock=lambda: day[3]).rebuild()
-        files = list((self.root / "logs").glob("2026-*.txt"))
+        files = list((self.root / "logs").rglob("2026-*.txt"))
         self.assertEqual({path.name[:10] for path in files}, {"2026-09-25"})
         self.assertNotIn("三天前的对话", json.dumps(self.events(), ensure_ascii=False))
         self.assertEqual(untouched.read_text(encoding="utf-8"), "用户自己的文件")
@@ -136,7 +136,7 @@ class MemoryTests(unittest.TestCase):
         legacy.write_text("旧版混合日志", encoding="utf-8")
         self.store.rebuild()
         self.assertFalse(legacy.exists())
-        self.assertEqual(len(list((self.root / "logs").glob("*.txt"))), 2)
+        self.assertEqual(len(list((self.root / "logs").rglob("*.txt"))), 2)
 
     def test_rebuild_names_legacy_group_session_from_old_message_row(self):
         now = self.store.clock()
@@ -148,7 +148,7 @@ class MemoryTests(unittest.TestCase):
                        ("legacy-event", day, now.isoformat(), "legacy-group", "收到对话",
                         json.dumps({"text": "旧对话", "session_name": "旧群 / 老用户"}, ensure_ascii=False)))
         self.store.rebuild()
-        files = list((self.root / "logs").glob(f"{day}_群聊_旧群_*.txt"))
+        files = list((self.root / "logs").rglob(f"{day}_群聊_旧群_*.txt"))
         self.assertEqual(len(files), 1)
         self.assertIn("旧对话", files[0].read_text(encoding="utf-8-sig"))
 
@@ -157,7 +157,7 @@ class MemoryTests(unittest.TestCase):
             list(pool.map(lambda i: self.store.append("test", "s1", number=i), range(20)))
         AuditStore(self.root).rebuild()
         self.assertEqual(len(self.events()), 20)
-        text = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        text = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("#20", text)
 
     def test_result_status_and_redaction(self):
@@ -170,7 +170,7 @@ class MemoryTests(unittest.TestCase):
         self.store.append("记忆操作结果", "s1", operation="ingest_text", outcome=plugin.memory_summary(
             "ingest_text", {"text": "测试同学在学Python"}, {"success": False,
                 "detail": "已进入候选记忆 #3；尚未写入长期记忆"}, ""))
-        readable = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        readable = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("结果：候选待确认，尚未写入长期记忆", readable)
         self.assertEqual(plugin.memory_summary("search_memory", {}, {}, "TimeoutError")["status"], "调用失败")
         self.store.append("test", "s1", api_key="no-leak", text="Bearer xyz123")
@@ -183,7 +183,7 @@ class MemoryTests(unittest.TestCase):
         self.store.append("记忆操作结果", long_id, operation="search_memory", duration_ms=123,
             outcome={"status": "检索完成", "query": "学习", "hits": [{"hash": long_id, "score": 1.1,
                 "content": "测试同学喜欢学习Python", "metadata": {"person_id": long_id}}]})
-        text = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        text = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         for hidden in (long_id, "incoming:", "metadata", "person_id", "score", "search_memory"):
             self.assertNotIn(hidden, text)
         self.assertIn("测试同学喜欢学习Python", text)
@@ -194,7 +194,7 @@ class MemoryTests(unittest.TestCase):
     def test_readable_failed_write_not_success(self):
         self.store.append("记忆操作结果", "s1", operation="ingest_text",
             outcome={"status": "调用失败", "error": "TimeoutError: " + "b" * 64})
-        text = next((self.root / "logs").glob("*.txt")).read_text(encoding="utf-8-sig")
+        text = next((self.root / "logs").rglob("*.txt")).read_text(encoding="utf-8-sig")
         self.assertIn("结果：未成功 · 等待超时", text)
         self.assertNotIn("b" * 64, text)
         self.assertNotIn("已存储", text)
@@ -224,6 +224,10 @@ class MemoryTests(unittest.TestCase):
             seen.append(event)
         original = bridge.notify
         bridge.notify = notify
+        original_read_stored = bridge.read_stored
+        async def no_store(*args):
+            return []
+        bridge.read_stored = no_store
         obj = {"stored_ids": ["x"]}
         class Fake:
             @bridge.observed_memory_call
@@ -239,6 +243,7 @@ class MemoryTests(unittest.TestCase):
             asyncio.run(run())
         finally:
             bridge.notify = original
+            bridge.read_stored = original_read_stored
         self.assertEqual(len(seen), 2)
         self.assertIn("ValueError", seen[1]["error"])
 

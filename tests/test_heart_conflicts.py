@@ -153,6 +153,15 @@ class ConflictTests(unittest.IsolatedAsyncioTestCase):
         await self.finish()
         self.assertEqual(self.backend.calls, [])
 
+    async def test_custom_confidence_rejects_low_score_without_writing(self):
+        self.config['conflict_min_confidence'] = 0.96
+        self.backend.judgment = {"supported": True, "confidence": 0.95,
+                                 "verdict": "clear", "conflict_ids": []}
+        result = await self.guard.check(self.args, self.config)
+        self.assertFalse(result['success'])
+        self.assertEqual(self.backend.calls, [])
+        self.assertEqual(self.backend.sent, [])
+
     async def test_uncertain_and_invalid_ids_do_not_pass(self):
         for patch in ({"verdict": "uncertain"}, {"confidence": float("nan")}, {"conflict_ids": ["other"]}):
             original = dict(self.backend.judgment)
