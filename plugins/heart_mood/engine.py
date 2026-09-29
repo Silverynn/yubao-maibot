@@ -5,6 +5,7 @@ import re
 
 from heart_shared.readable import render_status
 from heart_shared.storage import dumps
+from .emotions import apply_emotion, publish_view
 
 
 def appraise(text, rules):
@@ -45,7 +46,7 @@ class MoodEngine:
     def __init__(self, store):
         self.store = store
 
-    def update(self, message, settings, rules, assessment=None):
+    def update(self, message, settings, rules, assessment=None, config=None):
         with self.store.transaction() as db:
             f = self.store.save_message(db, message)
             session, message_id = f["session"], f["message_id"]
@@ -55,6 +56,19 @@ class MoodEngine:
                                   (session, message_id)).fetchone()
             if previous:
                 return json.loads(previous[0])  # 重试、重复投递不会再扣分/加分。
+            batch_ids = list(dict.fromkeys((assessment or {}).get('batch_message_ids') or []))
+            batch_rows = []
+            if batch_ids:
+                # 成员来自插件缓冲区，不由模型返回；只关联本会话真实观测的消息。
+                for mid in batch_ids:
+                    row = db.execute('SELECT * FROM messages WHERE session=? AND message_id=?', (session,mid)).fetchone()
+                    if row is None:
+                        raise ValueError('群聊批次含未观测到的消息，拒绝猜测归属')
+                    if db.execute('SELECT 1 FROM mood_processed WHERE session=? AND message_id=?',(session,mid)).fetchone():
+                        self.store.append_in(db, 'AI心情评估跳过', session, {'evidence_message_ids':batch_ids,
+                            'reason':'合并批次包含已经处理的消息，未重复计分'})
+                        return {'status':'重复批次未应用'}
+                    batch_rows.append(dict(row))
             now = self.store.clock().timestamp()
             state = db.execute("SELECT * FROM moods WHERE session=?", (session,)).fetchone()
             before = float(state["value"]) if state else settings.baseline
@@ -71,12 +85,16 @@ class MoodEngine:
             if message.get("is_notify") or message.get("is_command"):
                 delta, reason, evidence = 0.0, "通知/命令不计分", []
             if delta:
-                recent = db.execute("""SELECT detail FROM mood_processed
+                if batch_ids:
+                    recent = db.execute("""SELECT detail FROM mood_processed WHERE session=?
+                        AND json_extract(detail,'$.stimulus_delta') != 0 ORDER BY rowid DESC LIMIT 1""", (session,)).fetchone()
+                else:
+                    recent = db.execute("""SELECT detail FROM mood_processed
                     WHERE session=? AND json_extract(detail,'$.trigger.user')=?
                     AND json_extract(detail,'$.stimulus_delta') != 0
                     ORDER BY rowid DESC LIMIT 1""", (session, f["user"])).fetchone()
                 if recent and now - json.loads(recent[0])["timestamp"] < settings.cooldown_seconds:
-                    delta, reason = 0.0, "同一用户仍在心情刺激冷却期，避免刷屏反复改变数值"
+                    delta, reason = 0.0, ('会话合并评分仍在心情刺激冷却期，避免刷屏反复改变数值' if batch_ids else "同一用户仍在心情刺激冷却期，避免刷屏反复改变数值")
             delta = max(-settings.max_delta, min(settings.max_delta, delta))
             value = round(max(0, min(100, before + decay + delta)), 4)
             detail = {"status": "持久化心情", "before": before, "recovery": round(decay, 4),
@@ -89,10 +107,20 @@ class MoodEngine:
                       "assessment": assessment or {"method": "关键词", "reason": reason},
                       "proposed_delta": proposed_delta,
                       "trigger": {"message_id": message_id, "user": f["user"], "name": f["name"], "text": f["text"]}}
+            if batch_ids:
+                detail['batch_count'] = len(batch_ids)
+                detail['trigger'] = {'message_id':message_id, 'user':'', 'name':f['title']+' / 会话合并评估',
+                                     'text':'；'.join(row['name']+'：'+row['text'][:500] for row in batch_rows)}
             db.execute("INSERT INTO moods VALUES(?,?,?,?) ON CONFLICT(session) DO UPDATE SET value=excluded.value,updated=excluded.updated,detail=excluded.detail",
                        (session, value, now, dumps(detail)))
-            db.execute("INSERT INTO mood_processed VALUES(?,?,?)", (session, message_id, dumps(detail)))
-            self.store.append_in(db, "心情变化", session, {"message_id": message_id, "mood": detail})
+            for mid in batch_ids or [message_id]:
+                db.execute("INSERT INTO mood_processed VALUES(?,?,?)", (session, mid, dumps(detail)))
+            source = {'evidence_message_ids':batch_ids} if batch_ids else {'message_id':message_id}
+            self.store.append_in(db, "心情变化", session, {**source, "mood": detail})
+            if config is not None:
+                if config.emotions.enabled or self.store.emotion_snapshot(db, session).get("active"):
+                    apply_emotion(self.store, db, session, message_id, assessment, config.emotions)
+                publish_view(self.store, db, session, config, assessment, message_id)
             self.export_status(db)
             return detail
 

@@ -1,3 +1,4 @@
+import os
 from typing import Type, Literal
 from loguru import logger
 
@@ -130,6 +131,9 @@ class AgentFactory:
             )
 
         elif conversation_agent_choice == "maibot_agent":
+            if os.environ.get("HEART_MAIBOT_ROOT"):
+                logger.info("Live2D 表情由 Heart 心情插件统一控制，不启用独立表情分类模型")
+                return MaiBotAgent(live2d_model=live2d_model)
             provider = agent_settings.get("basic_memory_agent", {}).get("llm_provider")
             llm_config = llm_configs.get(provider) if provider else None
             if not llm_config:

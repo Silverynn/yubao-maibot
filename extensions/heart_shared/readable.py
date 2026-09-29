@@ -71,8 +71,15 @@ def render_event(event, data):
         lines.append(f"心情：{number(mood.get('before'))} → {number(mood['value'])} / 100")
     else:
         lines.append(f"心情：{number(mood['value'])} / 100")
+    emotion = data.get("emotion") or {}
+    if emotion.get("active"):
+        lines.append(f"临时情绪：{plain(emotion.get('label', ''))}（强度{number(emotion.get('intensity', 0) * 100)}%）；话题：{plain(emotion.get('topic', ''))}")
     if kind == "心情变化":
-        lines += ["调用：心情插件 · 已更新状态", "触发对话：" + plain(mood.get("trigger", {}).get("text", ""))]
+        lines += ["调用：心情插件 · 已更新状态", "触发对话：" + ('本批合并评估，逐条见下方' if mood.get('batch_count') else plain(mood.get("trigger", {}).get("text", "")))]
+        if mood.get('batch_count'):
+            lines.append(f"会话合并评估：{mood['batch_count']}条发言共同判断一次；不是最后一个人的单独评分。")
+            for item in dialogue:
+                lines.append('本批发言：'+plain(item.get('name',''),80)+'：'+plain(item.get('text',''),500))
         recovery = mood.get("recovery", 0)
         target = mood.get("recovery_target")
         elapsed = mood.get("recovery_elapsed_seconds")
@@ -96,8 +103,37 @@ def render_event(event, data):
         if "multiplier" in assessment:
             lines.append(f"强度设置：倍率{number(assessment['multiplier'])}；倍率后建议{number(assessment.get('scaled_delta'))}；AI上限加{number(assessment.get('positive_limit'))}/减{number(assessment.get('negative_limit'))}")
         diagnostics = assessment.get("diagnostics") or {}
+        if 'queue_ms' in assessment:
+            lines.append(f"评估耗时：排队{number(assessment['queue_ms'] / 1000)}秒；本轮处理{number(assessment.get('duration_ms', 0) / 1000)}秒（超时或暂停不代表AI已判断）")
         if "response_chars" in diagnostics:
             lines.append(f"AI返回：正文{number(diagnostics['response_chars'])}字符；输出用量{number(diagnostics.get('output_units_used'))} / 预算{number(diagnostics.get('output_budget'))}（不是心情分数）")
+    elif kind == "心情初始化":
+        lines.append("调用：心情插件 · " + plain(data.get("reason", "")))
+    elif kind in ("临时情绪产生", "临时情绪变化", "临时情绪结束", "临时情绪判断"):
+        previous = data.get("previous_emotion") or {}
+        if previous.get("active"):
+            lines.append("原情绪：" + plain(previous.get("label", "")) + "；原话题：" + plain(previous.get("topic", "")))
+        lines.append("调用：话题情绪 · " + ("已结束，恢复当前心情对应的常态" if kind == "临时情绪结束" else plain(data.get("status", "已保存"))))
+        lines.append("原因：" + plain(data.get("reason", emotion.get("reason", ""))))
+        if dialogue and relation == "证据消息ID关联":
+            lines.append("触发对话：" + "；".join(plain(m.get("text", "")) for m in dialogue))
+        lines.append("说明：临时情绪分类不会直接加减心情分数；不按秒数自动消失。")
+    elif kind in ('表情表演请求', '表情请求判断'):
+        lines.append('调用：自然语言表情判断 · ' + plain(data.get('status', '')))
+        if data.get('expression'):
+            lines.append('目标表情：' + plain(data['expression']))
+        lines.append('原因：' + plain(data.get('reason', '')))
+        if dialogue and relation == '证据消息ID关联':
+            lines.append('触发对话：' + '；'.join(plain(m.get('text', '')) for m in dialogue))
+        lines.append('说明：这是外观表演请求，不代表真实情绪改变；动作是否执行看前端回执。')
+    elif kind == "Live2D动作":
+        lines.append("调用：Live2D表情接口 · " + plain(data.get("status", "")))
+        lines.append("目标表情：" + plain(data.get("expression", "")))
+        lines.append("原因：" + plain(data.get("reason", "")))
+        if data.get("status") == "前端报告：已执行表情设置":
+            lines.append("说明：表情设置代码已执行；这不等于人眼或截图确认。")
+        else:
+            lines.append("说明：此条不表示表情已成功执行，请查看后续执行回执；首次加载模型时可能暂不可用。")
     elif kind == "AI心情评估跳过":
         lines.append("调用：AI心情判断 · " + plain(data.get("reason", "未完成")))
     elif kind == "心情影响回复风格":
@@ -105,6 +141,10 @@ def render_event(event, data):
         if data.get("style_name"):
             band = plain(data["style_name"], 30)
         lines.append(f"调用：心情插件 · 已使用“{band}”风格要求（实际效果看回复）")
+        if data.get("assessment_pending"):
+            lines.append("状态说明：本轮AI评估尚未完成，回复使用最近已确认的情绪，不假装已经更新。")
+        if 'emotion_wait_ms' in data:
+            lines.append(f"回复等待心情评估：{number(data['emotion_wait_ms'] / 1000)}秒；" + ('回复优先已开启' if data.get('reply_first') else '按配置等待'))
     elif kind == "收到对话":
         lines += ["对话：" + plain(data.get("text", "")), "调用：对话记录 · 已记录，记忆结果如有产生会另记"]
     elif kind == "记忆操作结果":
@@ -116,6 +156,14 @@ def render_event(event, data):
         lines.append("新内容：" + plain(data.get("new_memory", "")))
         if data.get("reason"):
             lines.append("说明：" + plain(data["reason"]))
+    elif kind == "记忆去重":
+        lines.append("调用：长期记忆去重 · " + plain(data.get("status", "")))
+        lines.append("准备写入：" + plain(data.get("new_memory", "")))
+        for text in data.get("old_memories", []):
+            lines.append("已有记忆：" + plain(text))
+        if data.get("reason"):
+            lines.append("判断依据：" + plain(data["reason"]))
+        lines.append("结果：旧记忆保留；本次没有新增长期记忆。")
     elif kind == "候选记忆":
         lines.append(f"调用：候选记忆 · #{data.get('candidate_id', '?')} · " + plain(data.get("status", "")))
         lines.append("候选内容：" + plain(data.get("new_memory", "")))
@@ -139,6 +187,32 @@ def render_event(event, data):
             lines.append("目标记忆：" + plain(data["memory"]))
         if data.get("reason"):
             lines.append("说明：" + plain(data["reason"]))
+    elif kind == "群聊记忆管理":
+        actions = {"list": "查看本人长期记忆", "forget": "申请忘记本人记忆",
+                   "natural_forget": "自然语言申请忘记", "查看候选记忆": "查看本人候选记忆"}
+        lines.append("调用：群聊记忆管理 · " + actions.get(data.get("action"), "本人记忆操作"))
+        lines.append("结果：" + plain(data.get("status", "")))
+        lines.append("隐私：群里只显示回执；记忆正文及删除确认留在本人私聊。")
+    elif kind == '记忆冲突候选检索':
+        lines.append('调用：新事实写入前的旧记忆检索 · '+plain(data.get('status', '')))
+        lines.append('准备写入：'+plain(data.get('new_memory', '')))
+        for old in (data.get('old_memories') or [])[:5]:
+            lines.append('比较旧记忆：'+plain(old))
+        lines.append('说明：只比较同一会话、同一人物的有效事实；检索到不代表发生冲突。')
+    elif kind == "群聊记忆检索":
+        hits = data.get("hits") or []
+        lines.append("调用：当前群聊的长期记忆检索 · " + plain(data.get("status", "")))
+        if data.get("target_name"):
+            lines.append("查看对象：@" + plain(data["target_name"], 40))
+        lines.append("查询：" + plain(data.get("query", "")))
+        if data.get("target_name") and isinstance(data.get("candidate_count"), int):
+            lines.append(f"结果核对：原生返回{data['candidate_count']}条候选，确认同时属于该成员和本群的有{len(hits)}条。")
+        types = data.get('hit_types') or []
+        for index, hit in enumerate(hits, 1):
+            label = ('['+types[index-1]+'] ') if index-1 < len(types) else ''
+            lines.append(f"群聊命中 {index}：" + label + plain(hit))
+        lines.append("说明：仅展示本群可见且归属可核实的内容；未读取成员私聊记忆。" if data.get("target_name")
+                     else "说明：只检索当前群聊可见范围；未读取成员私聊记忆。")
     elif kind == "模型请求中的记忆参考":
         refs = data.get("references") or []
         stage = "思考阶段" if data.get("stage") == "planner" else "回复阶段"
@@ -183,22 +257,36 @@ def render_memory(data):
         if outcome.get("detail"):
             lines.append("说明：" + plain(outcome["detail"]))
         return lines
-    if operation == "search_memory":
+    if operation in {"search_memory", "heart_scoped_list"}:
         hits = outcome.get("hits") or []
         lines += ["查询：" + plain(outcome.get("query", "")), f"记忆：检索返回 {len(hits)} 条候选（不代表最终采用）"]
+        if outcome.get('scope_note'):
+            lines.append('可见范围：'+plain(outcome['scope_note'])+f"；排除 {outcome.get('scope_removed_count', 0)} 条非本会话/来源不明内容")
         for index, hit in enumerate(hits[:5], 1):
-            lines.append(f"  {index}. {plain(hit.get('content', ''))}")
+            metadata = hit.get("metadata") or {}
+            source = str(metadata.get("source_type") or hit.get("type") or "") if isinstance(metadata, dict) else ""
+            source_name = {"person_fact": "人物事实", "paragraph": "文字记忆", "episode": "经历",
+                           "relation": "关系", "chat_summary": "聊天摘要"}.get(source, "记忆")
+            lines.append(f"  {index}. [{source_name}] {plain(hit.get('content', ''))}")
         if len(hits) > 5:
             lines.append(f"  另有 {len(hits) - 5} 条候选，完整内容保留后台。")
     elif operation in {"ingest_text", "ingest_summary"}:
         stored, skipped = outcome.get("stored_ids") or [], outcome.get("skipped_ids") or []
-        if stored:
+        saved = outcome.get('stored_contents') or []
+        if saved:
+            lines.append(f'结果：已在原生记忆库核对到 {len(saved)} 条正文')
+            for text in saved:
+                lines.append('实际存储：'+plain(text))
+        elif stored:
             lines.append(f"结果：服务报告已存储 {len(stored)} 条（可能包含更新，不保证都是新增）")
         elif skipped:
             lines.append(f"结果：跳过 {len(skipped)} 条，本次未报告新存储")
         else:
             lines.append("结果：未确认存储成功")
-        lines.append("记忆内容：" + plain(outcome.get("submitted_text", "")))
+        if outcome.get('submitted_text'):
+            lines.append("提交内容：" + plain(outcome['submitted_text']))
+        if outcome.get('detail'):
+            lines.append('原生结果：'+plain(outcome['detail']))
     else:
         lines.append("结果：服务已返回；具体效果以原生记忆系统为准")
         for text in contents(result)[:5]:

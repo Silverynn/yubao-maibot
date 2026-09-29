@@ -7,16 +7,18 @@ import re
 import time
 from collections import defaultdict
 
-NATURAL_FORGET_PATTERN = (r"^(?!/)(?=.{3,300}$)(?:(?=.*(?:忘记|忘掉|忘了|删掉|删除|清除|抹掉))"
-                          r"(?=.*(?:记忆|记住|记得|关于|以前|我的|我认为|这件事|这条))|"
-                          r"(?=.*(?:别再记|不要再记|不再记|别记|不想让你记))).+$")
+# 先识别“对机器人下达的本人记忆管理请求”，再交给模型定位；不能把叙事中的“记得/删掉”当作命令。
+NATURAL_FORGET_PATTERN = (r"^(?!/)(?=.{3,300}$)(?:(?=.*(?:请你|请忘|请删|请清|请帮我|麻烦你|帮我|给我|把我|让你|你能|你可以|鱼宝))"
+                          r"(?=.*(?:忘记|忘掉|删掉|删除|清除|抹掉))(?=.*(?:我|本人|记忆))|"
+                          r"(?=.*(?:我|我的|本人))(?=.*(?:别再记|不要再记|不再记|别记|不想让你记))).+$")
 NATURAL_RESOLVE_PATTERN = (r"^(?:确认忘记|取消忘记|(?:对|是的|我确认)[，, ]*忘掉吧|"
                            r"(?:不|不用)[，, ]*还是保留吧)$")
 
 
 class ForgetManager:
-    def __init__(self, store, backend):
+    def __init__(self, store, backend, config_getter=None):
         self.store, self.backend = store, backend
+        self.config_getter = config_getter or (lambda: {})
         self.locks = defaultdict(asyncio.Lock)
         with store.connect() as db:
             db.execute("""CREATE TABLE IF NOT EXISTS heart_forget_requests(
@@ -24,7 +26,7 @@ class ForgetManager:
                 status TEXT NOT NULL, expires REAL NOT NULL, payload TEXT NOT NULL)""")
 
     def event(self, actor, status, content="", reason="", request_id=None):
-        self.store.append("忘记记忆", actor["session_id"], message_id=actor["message_id"],
+        self.store.append("忘记记忆", actor.get("origin_session_id", actor["session_id"]), message_id=actor["message_id"],
                           request_id=request_id, status=status, memory=content, reason=reason)
 
     async def handle(self, actor):
@@ -32,11 +34,12 @@ class ForgetManager:
         if action == "list":
             page = max(1, min(50, int(actor["value"])))
             facts = await self.backend.person_facts(actor["person_id"])
-            selected = facts[(page - 1) * 20:page * 20]
+            page_size = self.config_getter().get("forget_list_page_size", 20)
+            selected = facts[(page - 1) * page_size:page * page_size]
             self.event(actor, "已查看本人长期记忆", reason=f"第{page}页；本次原生列表返回{len(facts)}条")
             if not selected:
                 return "这一页没有可查看的长期人物事实。候选记忆请用 /候选记忆 查看。"
-            lines = [f"{(page - 1) * 20 + index}. {item['content']}"
+            lines = [f"{(page - 1) * page_size + index}. {item['content']}"
                      + ("（原生标记有争议）" if item.get("status") == "conflicted" else "")
                      for index, item in enumerate(selected, 1)]
             return "你的长期人物事实（第%d页）：\n%s\n需要删除时发送 /忘记 记忆中的关键词。" % (page, "\n".join(lines))
@@ -58,15 +61,17 @@ class ForgetManager:
             self.event(actor, "自然语言请求未匹配", reason="本人事实超过80条，拒绝截断后猜测目标")
             return "你的记忆较多，我不想猜错要删哪条。请先用 /我的记忆 查看，再用 /忘记 关键词。"
         try:
+            config = self.config_getter()
             judgment = await asyncio.wait_for(
-                self.backend.match_natural_forget(actor, facts), timeout=25)
+                self.backend.match_natural_forget(actor, facts), timeout=config.get("forget_timeout_seconds", 25))
         except Exception as exc:
             self.event(actor, "自然语言识别失败，未删除", reason=type(exc).__name__)
             return "这次没能可靠判断你要忘记哪条；长期记忆没有改动。请用 /忘记 关键词。"
         confidence = judgment.get("confidence")
         ids = judgment.get("target_ids")
         if (judgment.get("intent") is not True or not isinstance(confidence, (int, float))
-                or isinstance(confidence, bool) or not math.isfinite(confidence) or confidence < 0.85
+                or isinstance(confidence, bool) or not math.isfinite(confidence)
+                or confidence < config.get("forget_min_confidence", 0.85)
                 or not isinstance(ids, list) or not 1 <= len(ids) <= 3
                 or any(not isinstance(i, int) or isinstance(i, bool) or not 1 <= i <= len(facts) for i in ids)):
             self.event(actor, "自然语言识别不确定，未删除", reason="意图、把握程度或目标编号未通过检查")
@@ -107,19 +112,20 @@ class ForgetManager:
         if not items or len(items) > 5 or len({item["hash"] for item in items}) != len(items):
             raise ValueError("删除目标数量或编号无效")
         async with self.locks[actor["person_id"]]:
+            confirmation_minutes = self.config_getter().get("forget_confirmation_minutes", 10)
             preview = await self.backend.invoke("memory_delete_admin", {
                 "action": "preview", "mode": "paragraph", "selector": {"hashes": [item["hash"] for item in items]}})
             self.validate_preview(preview, items, actor["person_id"])
             with self.store.transaction() as db:
                 cursor = db.execute("INSERT INTO heart_forget_requests(owner,session,status,expires,payload) VALUES(?,?,?,?,?)",
-                    (actor["person_id"], actor["session_id"], "pending", time.time() + 600,
+                    (actor["person_id"], actor["session_id"], "pending", time.time() + confirmation_minutes * 60,
                      json.dumps(items, ensure_ascii=False)))
                 request_id = cursor.lastrowid
         contents = "\n".join(f"{index}. {item['content']}" for index, item in enumerate(items, 1))
         self.event(actor, "等待本人确认；原生记忆尚未删除", "；".join(item["content"] for item in items),
                    request_id=request_id)
         return (f"找到以下{len(items)}条长期记忆，当前都还没有删除：\n{contents}\n"
-                f"核对后，请在10分钟内回复“确认忘记”或 /确认忘记 {request_id}。\n"
+                f"核对后，请在{confirmation_minutes}分钟内回复“确认忘记”或 /确认忘记 {request_id}。\n"
                 f"保留请回复“取消忘记”或 /取消忘记 {request_id}。")
 
     @staticmethod

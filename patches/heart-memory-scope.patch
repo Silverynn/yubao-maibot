@@ -1,0 +1,98 @@
+--- a/src/maisaka/builtin_tool/query_memory.py
++++ b/src/maisaka/builtin_tool/query_memory.py
+@@ -176,6 +176,8 @@
+ 
+     lines.append(f"命中：{len(hit_lines)} 条")
+     lines.extend(hit_lines)
++    lines.append('摘要描述讨论经过，不代表每一句都是已确认人物事实；不可用它覆盖待确认的冲突事实。')
++    lines.append('【记忆参考结束】')
+     return "\n".join(lines)
+ 
+ 
+--- a/src/maisaka/builtin_tool/query_person_profile.py
++++ b/src/maisaka/builtin_tool/query_person_profile.py
+@@ -107,12 +107,14 @@
+         if person_id:
+             payload = await memory_service.profile_admin(
+                 action="query",
++                chat_id=tool_ctx.runtime.session_id,
+                 person_id=person_id,
+                 limit=limit,
+             )
+         else:
+             payload = await memory_service.profile_admin(
+                 action="query",
++                chat_id=tool_ctx.runtime.session_id,
+                 person_keyword=person_name,
+                 limit=limit,
+             )
+--- a/src/maisaka/memory/heuristic_injector.py
++++ b/src/maisaka/memory/heuristic_injector.py
+@@ -194,7 +194,8 @@
+             impression,
+             limit=min(20, search_limit),
+             mode="search",
+-            chat_id="" if cross_chat_enabled else context.session.session_id,
++            # 聊天检索始终附带真实会话，不允许“跨聊天”开关绕过隐私边界。
++            chat_id=context.session.session_id,
+             person_id="",
+             respect_filter=not cross_chat_enabled,
+             user_id=str(context.session.user_id or ""),
+--- a/src/maisaka/memory/person_profile.py
++++ b/src/maisaka/memory/person_profile.py
+@@ -211,7 +211,7 @@
+         "【人物画像-内部参考】\n"
+         "以下内容仅供内部推理，不要向用户逐字复述。\n\n"
+         f"{joined_blocks}\n\n"
+-        "使用时把它当作对当前人物的背景理解；若与当前对话冲突，以当前对话为准。"
++        "使用时把它当作对当前人物的背景理解；若与当前对话冲突，以当前对话为准。\n【记忆参考结束】"
+     )
+ 
+ 
+@@ -247,6 +247,8 @@
+         try:
+             payload = await memory_service.profile_admin(
+                 action="query",
++                chat_id=anchor_message.session_id,
++                _heart_source_message_ids=[anchor_message.message_id],
+                 person_id=candidate.person_id,
+                 limit=PROFILE_QUERY_LIMIT,
+             )
+--- a/src/services/memory_flow_service.py
++++ b/src/services/memory_flow_service.py
+@@ -139,6 +139,9 @@
+         session_platform = str(getattr(session, "platform", "") or getattr(message, "platform", "") or "").strip()
+         session_user_id = str(getattr(session, "user_id", "") or "").strip()
+         group_id = str(getattr(session, "group_id", "") or "").strip()
++        session_id = str(getattr(message, 'session_id', '') or getattr(session, 'session_id', '') or '')
++        if not session_id:
++            return None
+ 
+         if session_platform and session_user_id and not group_id:
+             if is_bot_self(session_platform, session_user_id):
+@@ -150,7 +153,7 @@
+         reply_to = str(getattr(message, "reply_to", "") or "").strip()
+         if reply_to:
+             try:
+-                replies = find_messages(message_id=reply_to, limit=1)
++                replies = find_messages(session_id=session_id, message_id=reply_to, limit=1)
+             except Exception as exc:
+                 logger.debug(f"查询 reply_to 目标失败: {exc}")
+                 replies = []
+@@ -213,7 +216,7 @@
+         reply_to = str(getattr(message, "reply_to", "") or "").strip()
+         if reply_to:
+             try:
+-                replies = find_messages(message_id=reply_to, limit=1)
++                replies = find_messages(session_id=session_id, message_id=reply_to, limit=1)
+             except Exception as exc:
+                 logger.debug("查询人物事实 reply_to 证据失败: %s", exc)
+                 replies = []
+@@ -537,6 +540,7 @@
+                 "pending_message_count": pending_message_count,
+                 "trigger_message_count": total_message_count,
+                 "summary_review_count": 2,
++                "evidence_message_ids": [str(getattr(message, 'message_id', '') or '')],
+             },
+             respect_filter=True,
+             user_id=self._extract_session_user_id(message),

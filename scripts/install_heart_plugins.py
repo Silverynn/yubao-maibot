@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import uuid
@@ -17,7 +18,11 @@ def digest(path):
 
 
 def git(target, *args):
-    return subprocess.run(["git", "-C", str(target), *args], capture_output=True, text=True, encoding="utf-8", check=False)
+    # 暂存目录位于交付仓库内部。禁止git向父目录寻找仓库，否则git apply会
+    # 把补丁当成作用于父仓库的路径并跳过，正反向检查都“成功”却没有安装。
+    env = dict(os.environ, GIT_CEILING_DIRECTORIES=str(Path(target).resolve().parent))
+    return subprocess.run(["git", "-C", str(target), *args], capture_output=True, text=True,
+                          encoding="utf-8", check=False, env=env)
 
 
 @contextmanager
@@ -47,13 +52,18 @@ def main():
     # 在临时副本按顺序预演，支持第三份补丁依赖前两份已应用后的上下文。
     with preflight_directory() as staging:
         for relative in ("src/services/memory_service.py", "src/plugin_runtime/hook_catalog.py",
-                         "src/plugin_runtime/capabilities/registry.py", "src/services/memory_flow_service.py"):
+                         "src/plugin_runtime/capabilities/registry.py", "src/services/memory_flow_service.py",
+                         "src/plugin_runtime/capabilities/core.py",
+                         "src/maisaka/memory/person_profile.py", "src/maisaka/builtin_tool/query_person_profile.py",
+                         "src/maisaka/builtin_tool/query_memory.py", "src/maisaka/memory/heuristic_injector.py"):
             file = staging / relative
             file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(target / relative, file)
         for name in ("heart-memory-observer.patch", "heart-memory-confirmation.patch",
                      "heart-memory-entry.patch", "heart-memory-prompt.patch",
-                     "heart-memory-decision-log.patch"):
+                     "heart-memory-decision-log.patch", "heart-llm-budget.patch", "heart-memory-scope.patch"):
+            if args.memory_only and name == "heart-llm-budget.patch":
+                continue
             patch = ROOT / "patches" / name
             applicable = git(staging, "apply", "--check", str(patch))
             applied = git(staging, "apply", "--reverse", "--check", str(patch))
@@ -65,14 +75,17 @@ def main():
                         and '_register("heart.memory.resolve", resolve_capability)' in registry):
                     continue
             if applicable.returncode and applied.returncode:
-                raise SystemExit("接口与此版本冲突，未修改任何文件：\n" + applicable.stderr)
+                raise SystemExit(f"接口与此版本冲突，未修改任何文件。补丁：{name}\n"
+                                 "请核对目标 MaiBot 版本与已有改动，不能强行覆盖。\n" + applicable.stderr)
             if applied.returncode:
                 result = git(staging, "apply", str(patch))
                 if result.returncode:
-                    raise SystemExit("接口补丁预演失败，未修改目标：\n" + result.stderr)
+                    raise SystemExit(f"接口补丁预演失败，未修改目标。补丁：{name}\n" + result.stderr)
                 pending_patches.append(patch)
     source_pairs = [(ROOT / "extensions" / name, target / "src/services" / name)
-                    for name in ("heart_host_observer.py", "heart_memory_backend.py")]
+                    for name in ("heart_host_observer.py", "heart_memory_backend.py", "heart_memory_scope.py")]
+    if not args.memory_only:
+        source_pairs.append((ROOT / 'extensions/heart_llm_budget.py', target / 'src/services/heart_llm_budget.py'))
     directories = [(ROOT / "extensions/heart_shared", target / "heart_shared"),
                    (ROOT / "plugins/heart_memory_audit", target / "plugins/heart_memory_audit")]
     if not args.memory_only:
