@@ -1,0 +1,22 @@
+--- a/vtuber/scripts/install_heart_bridge.py
++++ b/vtuber/scripts/install_heart_bridge.py
+@@ -19,7 +19,9 @@
+                 '            model_provider=lambda: self.default_context_cache.live2d_model))')
+     tag = '<script type="module" src="./heart-avatar.mjs"></script>'
+     visit_anchor = '            await self._send_initial_messages(\n'
+-    visit_hook = '            from heart_bridge import begin_visit\n            begin_visit(client_uid)\n\n'
++    old_visit_hook = '            from heart_bridge import begin_visit\n            begin_visit(client_uid)\n\n'
++    visit_hook = ('            from heart_bridge import begin_visit\n'
++                  '            begin_visit(client_uid, model_provider=lambda: session_service_context.live2d_model)\n\n')
+     metadata_anchor = '        batch_input = create_batch_input(\n'
+     metadata_hook = '        metadata = {**(metadata or {}), "heart_client_uid": client_uid}\n'
+     if old_addition in source:
+@@ -32,6 +34,8 @@
+         if html.count('</body>') != 1:
+             raise RuntimeError('前端入口不匹配，未安装')
+         html = html.replace('</body>', tag + '\n</body>')
++    if old_visit_hook in websocket_source:
++        websocket_source = websocket_source.replace(old_visit_hook, visit_hook)
+     if visit_hook not in websocket_source:
+         if websocket_source.count(visit_anchor) != 1:
+             raise RuntimeError('WebSocket 版本不匹配，未安装会话隔离')

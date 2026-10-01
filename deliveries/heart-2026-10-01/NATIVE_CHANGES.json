@@ -1,0 +1,194 @@
+[
+  {
+    "target": "src/services/memory_service.py",
+    "patch": "patches/maibot/src__services__memory_service.py.patch",
+    "reference": "reference-maibot/src/services/memory_service.py",
+    "component": "native",
+    "base_sha256": "bdcde22ee49814e8d2d5b63d78eb81f52c5ca7855c0fc41d1ba5044596827cb8",
+    "after_sha256": "ecf079d8307afbca80287b8231417f950e64d7c83d20b88de528a6ac661d4da4"
+  },
+  {
+    "target": "src/services/memory_flow_service.py",
+    "patch": "patches/maibot/src__services__memory_flow_service.py.patch",
+    "reference": "reference-maibot/src/services/memory_flow_service.py",
+    "component": "native",
+    "base_sha256": "05119d5e4e8ea3a0c19c98cda616cfe5ff44f182b418c324ef46bb00d49c9e27",
+    "after_sha256": "1305f745bedad496d0f1ee0007da83881d67509c044fd670bae4ea6a7b7f45c1"
+  },
+  {
+    "target": "src/plugin_runtime/hook_catalog.py",
+    "patch": "patches/maibot/src__plugin_runtime__hook_catalog.py.patch",
+    "reference": "reference-maibot/src/plugin_runtime/hook_catalog.py",
+    "component": "native",
+    "base_sha256": "422d1cc4689f27fed7198169a63da35c45780b56d88192f39df6c8105fb0dfc6",
+    "after_sha256": "b84b912f488bd746a5a94f7dde17ea4caca59232b0b08689e122976baeb3a2aa"
+  },
+  {
+    "target": "src/plugin_runtime/capabilities/registry.py",
+    "patch": "patches/maibot/src__plugin_runtime__capabilities__registry.py.patch",
+    "reference": "reference-maibot/src/plugin_runtime/capabilities/registry.py",
+    "component": "native",
+    "base_sha256": "2017bc1604dcfdf5c7818cc97ea90ffbe2a8d66e110ce7caf32c8244ef38c24f",
+    "after_sha256": "af028f4633ea840ba5f2f445778c7a7225978bc6179e7f9e8a87ab58bb4915c8"
+  },
+  {
+    "target": "src/plugin_runtime/capabilities/core.py",
+    "patch": "patches/maibot/src__plugin_runtime__capabilities__core.py.patch",
+    "reference": "reference-maibot/src/plugin_runtime/capabilities/core.py",
+    "component": "native",
+    "base_sha256": "84132ff9365ca13d66aa47c5eb5a2dead66d862b1d2a1f4d15d188235e27ad84",
+    "after_sha256": "058763ba4ae4e94b333814cc66ea22e6384900b32185029e54357540d6cb2cbf"
+  },
+  {
+    "target": "src/maisaka/memory/person_profile.py",
+    "patch": "patches/maibot/src__maisaka__memory__person_profile.py.patch",
+    "reference": "reference-maibot/src/maisaka/memory/person_profile.py",
+    "component": "native",
+    "base_sha256": "192c08e587f64044fe4cfd32676956f56380cb8f273f47f03526cc4af887e329",
+    "after_sha256": "597f0f59e33383df9f64f7972adcf00319818391673c11c5895adb4abec62db5"
+  },
+  {
+    "target": "src/maisaka/memory/heuristic_injector.py",
+    "patch": "patches/maibot/src__maisaka__memory__heuristic_injector.py.patch",
+    "reference": "reference-maibot/src/maisaka/memory/heuristic_injector.py",
+    "component": "native",
+    "base_sha256": "b77d62404b34e67558514d4f96dc4813453abf2e68766f6fc109d1b6c8b723b2",
+    "after_sha256": "ede6cbc262695ec58ae230400289ca2be834431f20b6589f3d63d544a11b9c32"
+  },
+  {
+    "target": "src/maisaka/builtin_tool/query_memory.py",
+    "patch": "patches/maibot/src__maisaka__builtin_tool__query_memory.py.patch",
+    "reference": "reference-maibot/src/maisaka/builtin_tool/query_memory.py",
+    "component": "native",
+    "base_sha256": "4e2a2dfe9310060280369c898d7e7744f3b9707bb62c3c69d49123dfb300c8a5",
+    "after_sha256": "5ecb977fe5f893b85b01627d223672547cd7e559c3d9471610b756d649396c31"
+  },
+  {
+    "target": "src/maisaka/builtin_tool/query_person_profile.py",
+    "patch": "patches/maibot/src__maisaka__builtin_tool__query_person_profile.py.patch",
+    "reference": "reference-maibot/src/maisaka/builtin_tool/query_person_profile.py",
+    "component": "native",
+    "base_sha256": "77f70a4546986b8776db17900b9198225ab18a1802f6a40ae3a0b3c67d638a06",
+    "after_sha256": "ba428ed6705fd3d36f1d11f0c869284b2de654409502fa4c79246779e26fdf9b"
+  },
+  {
+    "target": "src/webui/app.py",
+    "patch": "patches/maibot/src__webui__app.py.patch",
+    "reference": "reference-maibot/src/webui/app.py",
+    "component": "native",
+    "base_sha256": "6feda0ac0ca889eef2947fdfc8af9b6dcf02ec22128af72d672cc1ac361e8ef7",
+    "after_sha256": "d9f1af531ab76d7004f301991e3c41ccd6bd4d8bd910846c746ac979b3d34cb0"
+  },
+  {
+    "target": "src/webui/routers/memory.py",
+    "patch": "patches/maibot/src__webui__routers__memory.py.patch",
+    "reference": "reference-maibot/src/webui/routers/memory.py",
+    "component": "native",
+    "base_sha256": "acf4b360d2e3c23719c947fa79f79e1eef7a1c0ee2190bc50cecd68dd3f1000d",
+    "after_sha256": "0b68a8762ab4a219c84c3d645e9a3998696d2d062dee8a6de8955fde9c390156"
+  },
+  {
+    "target": "src/webui/routers/plugin/management.py",
+    "patch": "patches/maibot/src__webui__routers__plugin__management.py.patch",
+    "reference": "reference-maibot/src/webui/routers/plugin/management.py",
+    "component": "native",
+    "base_sha256": "4a819c66da2e59aa1ce5a119e1c8890ac9ce2e85421b9bbd490e290d636ec063",
+    "after_sha256": "5724a5c0571873e1786cd68298ab00d0eda772641dbe4dfbce4ffd1fff96f7f4"
+  },
+  {
+    "target": "src/A_memorix/core/runtime/runtime_facade.py",
+    "patch": "patches/maibot/src__A_memorix__core__runtime__runtime_facade.py.patch",
+    "reference": "reference-maibot/src/A_memorix/core/runtime/runtime_facade.py",
+    "component": "native",
+    "base_sha256": "c54970573bfb2dc66129d5d577f3a2726dc00226dff402b071c766184fba52b4",
+    "after_sha256": "16ab4fc287495957c989f4fc2ae00ac68309c111a6d374e544e664ec8bef1f22"
+  },
+  {
+    "target": "src/A_memorix/core/runtime/services/background_task_service.py",
+    "patch": "patches/maibot/src__A_memorix__core__runtime__services__background_task_service.py.patch",
+    "reference": "reference-maibot/src/A_memorix/core/runtime/services/background_task_service.py",
+    "component": "native",
+    "base_sha256": "7a28c4b0d742ebabd6ade981b302f6bbac0ebbce23a8de5b4f0fe6d5f0c50063",
+    "after_sha256": "1964a60c8e5e2c89d9955b777c98709b6745e25c7712416afe45139b41c6c03d"
+  },
+  {
+    "target": "src/A_memorix/core/runtime/services/embedding_state_service.py",
+    "patch": "patches/maibot/src__A_memorix__core__runtime__services__embedding_state_service.py.patch",
+    "reference": "reference-maibot/src/A_memorix/core/runtime/services/embedding_state_service.py",
+    "component": "native",
+    "base_sha256": "d31cb962f85c1fa17cecfd97af134cf200726a5d3faf93202ee8eb4edb35c73e",
+    "after_sha256": "07755ed727c31555b2337a19eba183a717a033995bb3930333d7647849037c3a"
+  },
+  {
+    "target": "src/A_memorix/core/runtime/services/summary_service.py",
+    "patch": "patches/maibot/src__A_memorix__core__runtime__services__summary_service.py.patch",
+    "reference": "reference-maibot/src/A_memorix/core/runtime/services/summary_service.py",
+    "component": "native",
+    "base_sha256": "ecc5b52edaf35a551a1da8d481f1054acfbf7ad1f49e03568f112226d9b5e192",
+    "after_sha256": "38cbf066ca0f87ffd827d06b90b511318333fa39e99f6955a3b0417d3e6ba48e"
+  },
+  {
+    "target": "src/A_memorix/core/utils/episode_service.py",
+    "patch": "patches/maibot/src__A_memorix__core__utils__episode_service.py.patch",
+    "reference": "reference-maibot/src/A_memorix/core/utils/episode_service.py",
+    "component": "native",
+    "base_sha256": "98bfa5f78030f26702885d77c4416f8011a0c1fe17374d72ea411672c99fdcee",
+    "after_sha256": "45f1d8c40f797da7baf6761fd48e80f851cc4dce1bab5e2311a543aa3e2559e6"
+  },
+  {
+    "target": "src/A_memorix/core/utils/summary_importer.py",
+    "patch": "patches/maibot/src__A_memorix__core__utils__summary_importer.py.patch",
+    "reference": "reference-maibot/src/A_memorix/core/utils/summary_importer.py",
+    "component": "native",
+    "base_sha256": "a6422ff9b4bdf451198c1b8ca4cc2c489b3b17ebe93a32aeb57cf07566ec8958",
+    "after_sha256": "c33d455a0f852be253189fb5a6d2fef1146afc410e2f578424132de47a71710d"
+  },
+  {
+    "target": "dashboard/src/lib/memory-api.ts",
+    "patch": "patches/maibot/dashboard__src__lib__memory-api.ts.patch",
+    "reference": "reference-maibot/dashboard/src/lib/memory-api.ts",
+    "component": "dashboard",
+    "base_sha256": "f65fa57ed0fb9086bd343d3faf31ca434b6eb5e8f714b0e41397ab9bea4aaefd",
+    "after_sha256": "782e434e10bc421406506cef3a4c702bcbab86d1a2ae5d4def1a82654b8f9b16"
+  },
+  {
+    "target": "dashboard/src/lib/plugin-api/types.ts",
+    "patch": "patches/maibot/dashboard__src__lib__plugin-api__types.ts.patch",
+    "reference": "reference-maibot/dashboard/src/lib/plugin-api/types.ts",
+    "component": "dashboard",
+    "base_sha256": "6b69239903042ff277bcb072d22a8331cd25c9559726b1226a4a9cbc7c57b824",
+    "after_sha256": "a701bbf1a520b57a2a6218b4db048e72f6102533d2a3a4e430acd826ca331208"
+  },
+  {
+    "target": "dashboard/src/routes/plugin-config/hooks/usePluginList.ts",
+    "patch": "patches/maibot/dashboard__src__routes__plugin-config__hooks__usePluginList.ts.patch",
+    "reference": "reference-maibot/dashboard/src/routes/plugin-config/hooks/usePluginList.ts",
+    "component": "dashboard",
+    "base_sha256": "cb17fa8690228993f6dfc258a134a96fbd142b15bf45795b8c6e5ce7fc679800",
+    "after_sha256": "a3cc9217c8fd3d6a0531e07a4dec7ce6215858fc044847317aeb97e3e9372ad3"
+  },
+  {
+    "target": "dashboard/src/routes/resource/knowledge-base.tsx",
+    "patch": "patches/maibot/dashboard__src__routes__resource__knowledge-base.tsx.patch",
+    "reference": "reference-maibot/dashboard/src/routes/resource/knowledge-base.tsx",
+    "component": "dashboard",
+    "base_sha256": "6a850b04444cb377b48f93fa6715fc0a858a12fc8ad8496a8cba912b82d3221c",
+    "after_sha256": "cb0a890a78ad2db6844cf27a57ac86cb3f2bae0b9d8e56c5c12a0a4460d6716f"
+  },
+  {
+    "target": "dashboard/src/routes/resource/knowledge-base/tabs/DeleteTab.tsx",
+    "patch": "patches/maibot/dashboard__src__routes__resource__knowledge-base__tabs__DeleteTab.tsx.patch",
+    "reference": "reference-maibot/dashboard/src/routes/resource/knowledge-base/tabs/DeleteTab.tsx",
+    "component": "dashboard",
+    "base_sha256": "f2a3b8f45e29b7870e0286965efcddde33e3509679b350a35a9bb6dba24da22a",
+    "after_sha256": "2f558c673b0bef1d7f46626e7d2d832f0fd4535c16970fc0652baf3fefc626d3"
+  },
+  {
+    "target": "dashboard/src/components/memory/HeartMemoryManager.tsx",
+    "patch": "patches/maibot/dashboard__src__components__memory__HeartMemoryManager.tsx.patch",
+    "reference": "reference-maibot/dashboard/src/components/memory/HeartMemoryManager.tsx",
+    "component": "dashboard",
+    "base_sha256": null,
+    "after_sha256": "bacb758cd7c06c8c5f3029f367369ce9cc79ad970517f32384e2a97bf86ec2db"
+  }
+]

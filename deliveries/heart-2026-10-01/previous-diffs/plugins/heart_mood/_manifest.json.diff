@@ -1,0 +1,33 @@
+--- a/plugins/heart_mood/_manifest.json
++++ b/plugins/heart_mood/_manifest.json
+@@ -1,15 +1,15 @@
+-{
+-  "manifest_version": 2,
+-  "id": "heart.mood",
+-  "name": "Heart 持久化心情状态",
+-  "version": "1.5.0",
+-  "description": "会话隔离的长期心情与话题临时情绪，影响QQ/Live2D回复，记录产生、变化、结束及形象回执。",
+-  "author": {"name": "Heart project contributors", "url": "https://github.com/Silverynn/yubao-maibot"},
+-  "urls": {"repository": "https://github.com/Silverynn/yubao-maibot"},
+-  "i18n": {"default_locale": "zh-CN", "locales_path": "_locales", "supported_locales": ["zh-CN"]},
+-  "license": "GPL-3.0-or-later",
+-  "host_application": {"min_version": "1.2.4", "max_version": "1.2.99"},
+-  "sdk": {"min_version": "2.8.0", "max_version": "2.99.99"},
+-  "dependencies": [{"type": "plugin", "id": "heart.memory-audit", "version_spec": ">=1.0.0,<2.0.0"}],
+-  "capabilities": ["llm.generate"]
+-}
++{
++  "manifest_version": 2,
++  "id": "heart.mood",
++  "name": "Heart 持久化心情状态",
++  "version": "1.5.1",
++  "description": "会话隔离的长期心情与话题临时情绪，影响QQ/Live2D回复，记录产生、变化、结束及形象回执。",
++  "author": {"name": "Heart project contributors", "url": "https://github.com/Silverynn/yubao-maibot"},
++  "urls": {"repository": "https://github.com/Silverynn/yubao-maibot"},
++  "i18n": {"default_locale": "zh-CN", "locales_path": "_locales", "supported_locales": ["zh-CN"]},
++  "license": "GPL-3.0-or-later",
++  "host_application": {"min_version": "1.2.4", "max_version": "1.2.99"},
++  "sdk": {"min_version": "2.8.0", "max_version": "2.99.99"},
++  "dependencies": [{"type": "plugin", "id": "heart.memory-audit", "version_spec": ">=1.0.0,<2.0.0"}],
++  "capabilities": ["llm.generate"]
++}

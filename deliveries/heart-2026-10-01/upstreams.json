@@ -1,0 +1,50 @@
+[
+  {
+    "name": "maibot",
+    "url": "https://github.com/Mai-with-u/MaiBot.git",
+    "commit": "21cd74d81d47b6f77ba5ab7116a88916e957d15b",
+    "directory": ".runtime/MaiBot",
+    "patch": "patches/maibot.patch",
+    "licenses": [
+      "licenses/maibot-LICENSE"
+    ]
+  },
+  {
+    "name": "napcat-adapter",
+    "url": "https://github.com/Mai-with-u/MaiBot-Napcat-Adapter.git",
+    "commit": "443d6132f543e51c45adc89a2875c5d7744d65fa",
+    "directory": ".runtime/MaiBot/plugins/MaiBot-Napcat-Adapter",
+    "patch": "patches/napcat-adapter.patch",
+    "licenses": []
+  },
+  {
+    "name": "smart-poke",
+    "url": "https://github.com/TAIY2020/smart_poke_plugin.git",
+    "commit": "9ad69435ec6e539510d2d59c5ea6de22302aca4e",
+    "directory": ".runtime/MaiBot/plugins/TAIY2020_smart_poke_plugin",
+    "patch": "patches/smart-poke.patch",
+    "licenses": [
+      "licenses/smart-poke-LICENSE"
+    ]
+  },
+  {
+    "name": "reminder",
+    "url": "https://github.com/DCY501/maibot-reminder-plugin.git",
+    "commit": "b493444fbbb7feb90d186b29f0cda252ef332422",
+    "directory": ".runtime/MaiBot/plugins/dcy501_reminder",
+    "patch": null,
+    "licenses": [
+      "licenses/reminder-LICENSE"
+    ]
+  },
+  {
+    "name": "voice",
+    "url": "https://github.com/Emilia-awa/maibot-mimotts-voice.git",
+    "commit": "8ccfa7ec92ea6cdc73ce82a14f18daeaade3b7fa",
+    "directory": ".runtime/MaiBot/plugins/Emilia-awa_maibot-mimotts-voice",
+    "patch": null,
+    "licenses": [
+      "licenses/voice-LICENSE"
+    ]
+  }
+]
