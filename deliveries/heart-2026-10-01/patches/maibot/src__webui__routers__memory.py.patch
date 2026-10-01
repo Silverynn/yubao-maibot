@@ -1,0 +1,124 @@
+--- a/src/webui/routers/memory.py
++++ b/src/webui/routers/memory.py
+@@ -26,6 +26,89 @@
+ router = APIRouter(prefix="/memory", tags=["memory"], dependencies=[Depends(require_auth)])
+ compat_router = APIRouter(prefix="/api", tags=["memory-compat"], dependencies=[Depends(require_auth)])
+ STAGING_ROOT: Optional[Path] = None
++
++
++class HeartCandidateReviewRequest(BaseModel):
++    approve: bool
++    expected_text: str = Field(..., min_length=1, max_length=2000)
++    edited_text: Optional[str] = Field(None, min_length=1, max_length=2000)
++
++
++class HeartCandidateDeleteRequest(BaseModel):
++    expected_text: str = Field(..., min_length=1, max_length=12000)
++    confirmed: bool = False
++
++
++class HeartGroupEditRequest(BaseModel):
++    chat_id: str = Field(..., min_length=1, max_length=128)
++    paragraph_hash: str = Field(..., min_length=1, max_length=128)
++    expected_text: str = Field(..., min_length=1, max_length=12000)
++    new_text: str = Field(..., min_length=1, max_length=2000)
++    reason: str = Field(..., min_length=1, max_length=500)
++
++
++class HeartGroupExecuteRequest(BaseModel):
++    plan_id: str = Field(..., min_length=1, max_length=128)
++    confirmed: bool = False
++
++
++@router.get("/heart/candidates")
++async def heart_candidate_list(chat_id: str = "", status: str = "pending", limit: int = Query(50, ge=1, le=100)):
++    import asyncio
++    from src.services.heart_memory_admin import candidate_list
++    return await asyncio.to_thread(candidate_list, chat_id, status, limit)
++
++
++@router.post("/heart/candidates/{candidate_id}/review")
++async def heart_candidate_review(candidate_id: int, payload: HeartCandidateReviewRequest):
++    from src.services.heart_memory_admin import review_candidate
++    try:
++        return await review_candidate(candidate_id, payload.approve, payload.expected_text, payload.edited_text)
++    except ValueError as exc:
++        raise HTTPException(status_code=409, detail=str(exc)) from exc
++
++
++@router.post("/heart/candidates/{candidate_id}/delete")
++async def heart_candidate_delete(candidate_id: int, payload: HeartCandidateDeleteRequest):
++    from src.services.heart_memory_admin import ensure_enabled
++    from src.services.heart_memory_backend import candidate_inbox
++    if not payload.confirmed:
++        raise HTTPException(status_code=400, detail="请明确确认删除审核记录；这不删除长期记忆")
++    try:
++        ensure_enabled()
++        return await candidate_inbox().delete_review_record(candidate_id, payload.expected_text)
++    except ValueError as exc:
++        raise HTTPException(status_code=409, detail=str(exc)) from exc
++
++
++@router.get("/heart/group-memories")
++async def heart_group_memories(chat_id: str, limit: int = Query(50, ge=1, le=100)):
++    from src.services.heart_memory_admin import group_memories
++    try:
++        return await group_memories(chat_id, limit)
++    except ValueError as exc:
++        raise HTTPException(status_code=400, detail=str(exc)) from exc
++
++
++@router.post("/heart/group-edit/preview")
++async def heart_group_edit_preview(payload: HeartGroupEditRequest):
++    from src.services.heart_memory_admin import preview_group_edit
++    try:
++        return await preview_group_edit(payload.chat_id, payload.paragraph_hash, payload.expected_text,
++                                        payload.new_text, payload.reason)
++    except ValueError as exc:
++        raise HTTPException(status_code=409, detail=str(exc)) from exc
++
++
++@router.post("/heart/group-edit/execute")
++async def heart_group_edit_execute(payload: HeartGroupExecuteRequest):
++    from src.services.heart_memory_admin import execute_group_edit
++    if not payload.confirmed:
++        raise HTTPException(status_code=400, detail="请先阅读新旧内容，再明确确认修正")
++    try:
++        return await execute_group_edit(payload.plan_id)
++    except ValueError as exc:
++        raise HTTPException(status_code=409, detail=str(exc)) from exc
+ 
+ 
+ def _upload_staging_root() -> Path:
+@@ -2349,7 +2432,30 @@
+ 
+ 
+ async def _source_list() -> dict:
+-    return await memory_service.source_admin(action="list")
++    result = await memory_service.source_admin(action="list")
++    if not result.get("success") or not result.get("items"):
++        return result
++
++    # 原生 count 表示未删除的段落数；关系按来源去重统计，不能把未知数量显示成 0。
++    # 一次只读查询即可覆盖所有来源，不逐个执行删除预览，也不修改原生存储逻辑。
++    rows = _query_memory_records("""
++        SELECT p.source, COUNT(DISTINCT r.hash) AS relation_count
++        FROM paragraphs p
++        LEFT JOIN paragraph_relations pr ON pr.paragraph_hash = p.hash
++        LEFT JOIN relations r ON r.hash = pr.relation_hash
++        WHERE p.source IS NOT NULL AND p.source != ''
++          AND (p.is_deleted IS NULL OR p.is_deleted = 0)
++        GROUP BY p.source
++    """)
++    relation_counts = {row["source"]: int(row["relation_count"]) for row in rows}
++    return {
++        **result,
++        "items": [
++            {**item, "paragraph_count": int(item["count"]),
++             "relation_count": relation_counts.get(item["source"], 0)}
++            for item in result["items"]
++        ],
++    }
+ 
+ 
+ async def _source_delete(payload: SourceDeleteRequest) -> dict:

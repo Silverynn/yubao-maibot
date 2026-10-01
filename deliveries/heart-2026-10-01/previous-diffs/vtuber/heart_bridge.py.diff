@@ -1,0 +1,28 @@
+--- a/vtuber/heart_bridge.py
++++ b/vtuber/heart_bridge.py
+@@ -112,10 +112,14 @@
+         name, mapping = self._catalog()
+         return {'model': name, 'expressions': mapping, 'model_expression_names': self._names()}
+ 
+-    def begin_visit(self, client_uid):
++    def begin_visit(self, client_uid, model_provider=None):
+         """A fresh browser WebSocket starts a fresh visible chat and topic emotion."""
+         new_user_id = 'webui_user_vtuber_visit_' + str(client_uid).replace('-', '').lower()
+         with self.lock, self.store.connect() as db:
++            # 网页切换形象时更新的是该连接的context，而不是默认缓存。
++            # 保留读取函数，下一次轮询会取得此连接最新的模型。
++            if model_provider is not None:
++                self.model_provider = model_provider
+             if self.current_user_id == new_user_id:
+                 return
+             # Only Live2D states are touched. QQ and unrelated WebUI users stay intact.
+@@ -283,7 +287,7 @@
+     return router
+ 
+ 
+-def begin_visit(client_uid):
++def begin_visit(client_uid, model_provider=None):
+     """Called only after VTuber accepts a fresh browser connection."""
+     if _active_bridge is not None:
+-        _active_bridge.begin_visit(client_uid)
++        _active_bridge.begin_visit(client_uid, model_provider=model_provider)

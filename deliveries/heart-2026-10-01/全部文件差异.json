@@ -1,0 +1,1291 @@
+{
+  "previous_archive": "heart-2026-09-30-vtuber-compat.zip",
+  "previous_commit": "6d21b8eea3729779c589661b919ceb7e06b0b5ea",
+  "previous_archive_sha256": "1204dabdb92ed9b7b37f736bc0510eb71baf2eb8cf7ffc5ee4b26fb2cea0b8b7",
+  "files": [
+    {
+      "path": "INSTALL_MANIFEST.json",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "251c455cf0b988128296d87e0801c5a4e7e68ff73d67d540e75d60884e7e5167"
+    },
+    {
+      "path": "LICENSE",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809"
+    },
+    {
+      "path": "NATIVE_CHANGES.json",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "9b86189ef18dea7edba79c8ed6519927f9f647342d26d1c261b04b5f87dbeadc"
+    },
+    {
+      "path": "README.md",
+      "status": "修改",
+      "old_sha256": "bcd5fa98bb3d079207277a95162004c441f890355197b79ccef87d058d88c413",
+      "new_sha256": "762484e37d5b31c39eeb1388f1d6258477c9d8d8178fc77a0053dac7846cf169"
+    },
+    {
+      "path": "SHA256.json",
+      "status": "本包不再提供",
+      "old_sha256": "e5aa51da267c044d2ebf576524d067156bb0ae7ae07a2233d3e8ea6485e221d7",
+      "new_sha256": null
+    },
+    {
+      "path": "baseline-maibot/dashboard/src/lib/memory-api.ts",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "f65fa57ed0fb9086bd343d3faf31ca434b6eb5e8f714b0e41397ab9bea4aaefd"
+    },
+    {
+      "path": "baseline-maibot/dashboard/src/lib/plugin-api/types.ts",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "6b69239903042ff277bcb072d22a8331cd25c9559726b1226a4a9cbc7c57b824"
+    },
+    {
+      "path": "baseline-maibot/dashboard/src/routes/plugin-config/hooks/usePluginList.ts",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "cb17fa8690228993f6dfc258a134a96fbd142b15bf45795b8c6e5ce7fc679800"
+    },
+    {
+      "path": "baseline-maibot/dashboard/src/routes/resource/knowledge-base.tsx",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "6a850b04444cb377b48f93fa6715fc0a858a12fc8ad8496a8cba912b82d3221c"
+    },
+    {
+      "path": "baseline-maibot/dashboard/src/routes/resource/knowledge-base/tabs/DeleteTab.tsx",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "f2a3b8f45e29b7870e0286965efcddde33e3509679b350a35a9bb6dba24da22a"
+    },
+    {
+      "path": "baseline-maibot/src/A_memorix/core/runtime/runtime_facade.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "c54970573bfb2dc66129d5d577f3a2726dc00226dff402b071c766184fba52b4"
+    },
+    {
+      "path": "baseline-maibot/src/A_memorix/core/runtime/services/background_task_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "7a28c4b0d742ebabd6ade981b302f6bbac0ebbce23a8de5b4f0fe6d5f0c50063"
+    },
+    {
+      "path": "baseline-maibot/src/A_memorix/core/runtime/services/embedding_state_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "d31cb962f85c1fa17cecfd97af134cf200726a5d3faf93202ee8eb4edb35c73e"
+    },
+    {
+      "path": "baseline-maibot/src/A_memorix/core/runtime/services/summary_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "ecc5b52edaf35a551a1da8d481f1054acfbf7ad1f49e03568f112226d9b5e192"
+    },
+    {
+      "path": "baseline-maibot/src/A_memorix/core/utils/episode_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "98bfa5f78030f26702885d77c4416f8011a0c1fe17374d72ea411672c99fdcee"
+    },
+    {
+      "path": "baseline-maibot/src/A_memorix/core/utils/summary_importer.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a6422ff9b4bdf451198c1b8ca4cc2c489b3b17ebe93a32aeb57cf07566ec8958"
+    },
+    {
+      "path": "baseline-maibot/src/maisaka/builtin_tool/query_memory.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "4e2a2dfe9310060280369c898d7e7744f3b9707bb62c3c69d49123dfb300c8a5"
+    },
+    {
+      "path": "baseline-maibot/src/maisaka/builtin_tool/query_person_profile.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "77f70a4546986b8776db17900b9198225ab18a1802f6a40ae3a0b3c67d638a06"
+    },
+    {
+      "path": "baseline-maibot/src/maisaka/memory/heuristic_injector.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "b77d62404b34e67558514d4f96dc4813453abf2e68766f6fc109d1b6c8b723b2"
+    },
+    {
+      "path": "baseline-maibot/src/maisaka/memory/person_profile.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "192c08e587f64044fe4cfd32676956f56380cb8f273f47f03526cc4af887e329"
+    },
+    {
+      "path": "baseline-maibot/src/plugin_runtime/capabilities/core.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "84132ff9365ca13d66aa47c5eb5a2dead66d862b1d2a1f4d15d188235e27ad84"
+    },
+    {
+      "path": "baseline-maibot/src/plugin_runtime/capabilities/registry.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2017bc1604dcfdf5c7818cc97ea90ffbe2a8d66e110ce7caf32c8244ef38c24f"
+    },
+    {
+      "path": "baseline-maibot/src/plugin_runtime/hook_catalog.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "422d1cc4689f27fed7198169a63da35c45780b56d88192f39df6c8105fb0dfc6"
+    },
+    {
+      "path": "baseline-maibot/src/services/memory_flow_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "05119d5e4e8ea3a0c19c98cda616cfe5ff44f182b418c324ef46bb00d49c9e27"
+    },
+    {
+      "path": "baseline-maibot/src/services/memory_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "bdcde22ee49814e8d2d5b63d78eb81f52c5ca7855c0fc41d1ba5044596827cb8"
+    },
+    {
+      "path": "baseline-maibot/src/webui/app.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "6feda0ac0ca889eef2947fdfc8af9b6dcf02ec22128af72d672cc1ac361e8ef7"
+    },
+    {
+      "path": "baseline-maibot/src/webui/routers/memory.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "acf4b360d2e3c23719c947fa79f79e1eef7a1c0ee2190bc50cecd68dd3f1000d"
+    },
+    {
+      "path": "baseline-maibot/src/webui/routers/plugin/management.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "4a819c66da2e59aa1ce5a119e1c8890ac9ce2e85421b9bbd490e290d636ec063"
+    },
+    {
+      "path": "docs/Heart交付说明-2026-09-29.md",
+      "status": "相同",
+      "old_sha256": "bcd5fa98bb3d079207277a95162004c441f890355197b79ccef87d058d88c413",
+      "new_sha256": "bcd5fa98bb3d079207277a95162004c441f890355197b79ccef87d058d88c413"
+    },
+    {
+      "path": "docs/Heart功能覆盖与验收-2026-09-29.md",
+      "status": "相同",
+      "old_sha256": "f3d8f31954c70831e8ea5cc131ac2fee810d449e7aa34ede9c33c0f233daef10",
+      "new_sha256": "f3d8f31954c70831e8ea5cc131ac2fee810d449e7aa34ede9c33c0f233daef10"
+    },
+    {
+      "path": "docs/Heart同义去重修复与旧记忆整理.md",
+      "status": "相同",
+      "old_sha256": "265f47da2ec51821a6c97cda366f99a30ad0a4cc308ebc536e13ee60135bf57c",
+      "new_sha256": "265f47da2ec51821a6c97cda366f99a30ad0a4cc308ebc536e13ee60135bf57c"
+    },
+    {
+      "path": "docs/Heart给同伴GPT安装-2026-09-29.md",
+      "status": "相同",
+      "old_sha256": "3fca64c420d70331af214dcf1df7e88e62fefd52a1d6229e77de999914251db5",
+      "new_sha256": "3fca64c420d70331af214dcf1df7e88e62fefd52a1d6229e77de999914251db5"
+    },
+    {
+      "path": "docs/Heart话题情绪与Live2D接入.md",
+      "status": "相同",
+      "old_sha256": "0acbe7624d85524718e0ed4477e522f8d83d940dd963a20f595759a5d10f17a5",
+      "new_sha256": "0acbe7624d85524718e0ed4477e522f8d83d940dd963a20f595759a5d10f17a5"
+    },
+    {
+      "path": "docs/Live2D日志分文件与跳号核查-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "95f8bfd33eeb15032db01f9d21efaf38bf6f535ddfff8f39afeec0a1e0ade681"
+    },
+    {
+      "path": "docs/Live2D重进会话与模型错误说明.md",
+      "status": "相同",
+      "old_sha256": "614c3b11ac417088ec0e09338c012ac26e145a9eced7dfe5d40f3aa65d4987f0",
+      "new_sha256": "614c3b11ac417088ec0e09338c012ac26e145a9eced7dfe5d40f3aa65d4987f0"
+    },
+    {
+      "path": "docs/MaiBot原生记忆与Heart插件说明.md",
+      "status": "相同",
+      "old_sha256": "7c989345469721f427b0eb4341e119b23d3953a7afce8a995d2255c816ecd8f4",
+      "new_sha256": "7c989345469721f427b0eb4341e119b23d3953a7afce8a995d2255c816ecd8f4"
+    },
+    {
+      "path": "docs/WebUI数量与插件状态修复-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "16b010948fac3c0fa3e7655c5da476b7d909ba4429a673ffde782d3f8e39e55a"
+    },
+    {
+      "path": "docs/WebUI记忆管理与群内确认-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "8026dfef03c5335a74868883c2da4f563406ed3284192f178fc8c0d02598e2f7"
+    },
+    {
+      "path": "docs/摘要语义去重升级-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2950457183cb54832328c91e0d9a2b729a051a670fd2b38fcb48f7e555e45146"
+    },
+    {
+      "path": "docs/本机扩展变更记录-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "e2d360aad3ef87fa4a2e38e5c1c0dd38d47ee00dfbd835b476c2804fefc12896"
+    },
+    {
+      "path": "docs/消息卡片日志与每日概览使用说明-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2d7983e942a4a3ebdbfdfbed37eaa98d18e6ae973f87272ffec0e8b60b8caae3"
+    },
+    {
+      "path": "docs/群回忆验证与使用-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "9464c44f6ed64940f1f29d5bd5f014c56930ffd6de2dda8208266dbf2bbb6980"
+    },
+    {
+      "path": "docs/群摘要去重修复-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "9edf1578067f2ac388881260feb15dc1a93061ce8aa19d0f71bf7823e6262eaf"
+    },
+    {
+      "path": "docs/记忆删除与页面兼容检查-2026-10-01.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "9e0c9572b4c404d2188ad66371fc1c7e451ec0a5a75e238042f9175c81444a37"
+    },
+    {
+      "path": "extensions/heart_host_observer.py",
+      "status": "相同",
+      "old_sha256": "5875c1b2a0be252e8f23278c8f798e05af8365a6f0a1ea7515090d84346e609a",
+      "new_sha256": "e29100499e2f3407ef036863a9cc76b2bdaec96ab61071bc3ed367033d6eb8b0"
+    },
+    {
+      "path": "extensions/heart_llm_budget.py",
+      "status": "相同",
+      "old_sha256": "063d71e78459c723b74225fe41f7f9ae00f9c5d7abb519ccd42560928e188f15",
+      "new_sha256": "7b6cc775d7fac8d1cb6b8f35fc856ab088a4a69464d65df7188b1393b4fcb2e2"
+    },
+    {
+      "path": "extensions/heart_memory_admin.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "e268314573ba6a5ad10aa0eba36a9216ec58c3400a3c49e5f5435448b69b125b"
+    },
+    {
+      "path": "extensions/heart_memory_backend.py",
+      "status": "修改",
+      "old_sha256": "eac26f22d36adedef804a8ecf2d24839bd64b7d17e544ac57a6d7c950c35accd",
+      "new_sha256": "3c50b5fefb82df01cdaabb252333652fa5ea737bfc51a0fa88306405483e7ec1"
+    },
+    {
+      "path": "extensions/heart_memory_scope.py",
+      "status": "修改",
+      "old_sha256": "e696d126e397dacfc21ab10509e1b076edecccf00bf1651ee54d1e21c5e5b216",
+      "new_sha256": "b764f4fd8f429bcd5eb74c960b87c77a66c9f7cad9b4143cdc0f6ecb8810e4df"
+    },
+    {
+      "path": "extensions/heart_shared/__init__.py",
+      "status": "相同",
+      "old_sha256": "8ac677eaa7209f742cf22e8f7d3914c92a1f1536f957b5d13421a946627e2a86",
+      "new_sha256": "5e9638efbdbe828fa089e3cf619ac15586eed3482ce6e156eb6d5b18813c9b6a"
+    },
+    {
+      "path": "extensions/heart_shared/candidates.py",
+      "status": "修改",
+      "old_sha256": "ed640e5a49e3f026e447cd00e68a261324ba68d442635c9ac9260a03b325653f",
+      "new_sha256": "5f6d7c336995f034a3d890820f761a5158a10fcdc3327fc61d2658343cf6cced"
+    },
+    {
+      "path": "extensions/heart_shared/card_writer.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "f23fb31ea0f11a284f70c01326947ed93e40003a92d404ec3da285e59c964cbc"
+    },
+    {
+      "path": "extensions/heart_shared/cards.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "6c2896ad05d7029bed2113583c21acfcc1e34ae9a0234b483e9ded5c2988732d"
+    },
+    {
+      "path": "extensions/heart_shared/conflicts.py",
+      "status": "修改",
+      "old_sha256": "1cc85b3efa88591c69e5cabb62d36ac1f757fade55db6b1b39ffe2dce2e3cf89",
+      "new_sha256": "c1037c14f1b519a62e6ef748e87af5d91c41f563db649f6437f9c489bf343587"
+    },
+    {
+      "path": "extensions/heart_shared/forget.py",
+      "status": "相同",
+      "old_sha256": "51d03b2e327b0002af2ac0d896fe0580b90d010e9a2a835c5a6dc8053dfef4b2",
+      "new_sha256": "359e3d2f494329d47c0c03489c6b5e23eb7be395284ec3eb5bf3ace781f72a2d"
+    },
+    {
+      "path": "extensions/heart_shared/memory_events.py",
+      "status": "相同",
+      "old_sha256": "f9c77c535347d36f33e9ddce1674ae8bd8777a1e73cfdb9aa2c95219ce9f03ae",
+      "new_sha256": "1910cce98aed8c51047af43f645cd636dddfe3e6e1b362951c355df6391c8b8c"
+    },
+    {
+      "path": "extensions/heart_shared/memory_scope.py",
+      "status": "相同",
+      "old_sha256": "8de8726cecb278eeed96e3fb9d21d6c126b71e79d196e2863205f2f0fc0ada65",
+      "new_sha256": "36abb0c030e9b6edc7ab5c89ffc356cee549bd8cdad52181923e8532311ce082"
+    },
+    {
+      "path": "extensions/heart_shared/readable.py",
+      "status": "修改",
+      "old_sha256": "cee140d63156b333a3b85240059d874e4db722dc31f7f7719e4d62f698aa0c2c",
+      "new_sha256": "d2bb90a36950695c8ade49e933600639d92289b03fc5483123c460e75ace847d"
+    },
+    {
+      "path": "extensions/heart_shared/recall_snapshot.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "5e0c313d5c38de7f047cde5e762893c9e72a39eca8cf4972bdf2e033d1bcc0a3"
+    },
+    {
+      "path": "extensions/heart_shared/storage.py",
+      "status": "修改",
+      "old_sha256": "b4f4f0649668818d7e8ac6c564664dee19e09e5ee649275a0507000d17b4f44c",
+      "new_sha256": "fef8487e9c5fbb32034dfe58a569a5c47c403be1212df61942fe9506c988b284"
+    },
+    {
+      "path": "extensions/heart_shared/summary_novelty.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "9127ab947b4cd4761b6e4e2d85b4939dacab1ef99c09638ad90e38984f222286"
+    },
+    {
+      "path": "extensions/heart_shared/summary_semantic.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2359a6db8dd3b174ca44395d5c2485ad06d837ae235f63147e6fbef80411dd25"
+    },
+    {
+      "path": "extensions/heart_shared/webui_labels.py",
+      "status": "相同",
+      "old_sha256": "61e80b264d7c8e24e8d701eafe5fc0af3dc8d8f7f58592fc54535d28f6610bc6",
+      "new_sha256": "9d04d02cb2cf9012448a803714554c278851ad34e489088e90c8b52d24286424"
+    },
+    {
+      "path": "install_delivery.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "58d2a64bdedcfa49e7d82d168be30371baf000b9255889546a7a21cc61211924"
+    },
+    {
+      "path": "licenses/maibot-LICENSE",
+      "status": "本包不再提供",
+      "old_sha256": "230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/heart-llm-budget.patch",
+      "status": "本包不再提供",
+      "old_sha256": "6b8d74cf4a2088a7a2e639aa9b9207a6a03b9ba8aa0f3f601734f05644df17ba",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/heart-memory-confirmation.patch",
+      "status": "本包不再提供",
+      "old_sha256": "1cede913b66391bf53e18e40a269b37ba404f8a610d66aa74213514862a62314",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/heart-memory-decision-log.patch",
+      "status": "本包不再提供",
+      "old_sha256": "912193f364a02d7cef18e8ff62e2f3d700a47e51024df33d0a9edb978491e69d",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/heart-memory-entry.patch",
+      "status": "本包不再提供",
+      "old_sha256": "dcd9ed56fa341c2bb318de30c693230542a03d005cfd44e9bd4e7074cc4f1f3f",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/heart-memory-observer.patch",
+      "status": "本包不再提供",
+      "old_sha256": "097d3d484394f061868fa86ce9113cdf6d60ad7b1a8e1f03870b6ee41444a15a",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/heart-memory-prompt.patch",
+      "status": "本包不再提供",
+      "old_sha256": "941c4442744a5c684c48b8542c755609223c82a52f0c63493aa9da47bb84e6b2",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/heart-memory-scope.patch",
+      "status": "本包不再提供",
+      "old_sha256": "b8626d56bacc76c72b8812df98f5871cc12f05f1c2b45a46b9bb93ff0e2abf4f",
+      "new_sha256": null
+    },
+    {
+      "path": "patches/maibot/dashboard__src__components__memory__HeartMemoryManager.tsx.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "5ba550702ffba16b95b824fb0897dc7ec073039bc3014a1259aab3b0ec012857"
+    },
+    {
+      "path": "patches/maibot/dashboard__src__lib__memory-api.ts.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "19258338e46133493a4178fa47071fa0b87975ef6d3010726697898823e0daac"
+    },
+    {
+      "path": "patches/maibot/dashboard__src__lib__plugin-api__types.ts.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "f5c7899dc3a0c59504b3535e58c5332b272bb4eaf044f07e0c8d47286dfc88a7"
+    },
+    {
+      "path": "patches/maibot/dashboard__src__routes__plugin-config__hooks__usePluginList.ts.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "74beecb47e55babc57bb14a5646778cc43ad5b872ccac2b3fd6a8b34a930f553"
+    },
+    {
+      "path": "patches/maibot/dashboard__src__routes__resource__knowledge-base.tsx.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2f678527af341b87bc4d6529df7b8d5bec71f335dcba31805d9308a08a0fdb6e"
+    },
+    {
+      "path": "patches/maibot/dashboard__src__routes__resource__knowledge-base__tabs__DeleteTab.tsx.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "e1175a3841035d9d348a2794ce6183399829b9a293d12c9af6a9c655035f76e6"
+    },
+    {
+      "path": "patches/maibot/src__A_memorix__core__runtime__runtime_facade.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "7f6f622efdc97172f16e6dd7e05c3e77700aeee58ce19b0e28bcf241f6486034"
+    },
+    {
+      "path": "patches/maibot/src__A_memorix__core__runtime__services__background_task_service.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "eb836a5cf54a071aa90a83c845355fe0ceb0ea3c5402baa432e9505b8c43bec4"
+    },
+    {
+      "path": "patches/maibot/src__A_memorix__core__runtime__services__embedding_state_service.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "be272c59534cbc425121c4d3733ad3175d6d6b742be3dee664957b64a13550fe"
+    },
+    {
+      "path": "patches/maibot/src__A_memorix__core__runtime__services__summary_service.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "8cef97ba452d5f6463aed6ea92c2bc0f6b8985369cfe20433274ab05e8f30c23"
+    },
+    {
+      "path": "patches/maibot/src__A_memorix__core__utils__episode_service.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "52d05a8f706e09c4c4643f092bbf34702ae424eec0cbe4b6783bd20b88f9497a"
+    },
+    {
+      "path": "patches/maibot/src__A_memorix__core__utils__summary_importer.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "f392217f9249d6e63d9d7adb0dc986b61b9bb48a2eeae0f9831bc4c5e53137ce"
+    },
+    {
+      "path": "patches/maibot/src__maisaka__builtin_tool__query_memory.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2b23adb40c1137ef8b98b6a35a1c47bb368d3da594e2cb91b927d1a6a887b6b0"
+    },
+    {
+      "path": "patches/maibot/src__maisaka__builtin_tool__query_person_profile.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "55f9ec19bb594d150645c83118d52b0728ca947f807b3c7e6d851db3087fc279"
+    },
+    {
+      "path": "patches/maibot/src__maisaka__memory__heuristic_injector.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2d159010da6876b80509125f015d63ab799722e7c6f9e5b48c51c75cce1f1c43"
+    },
+    {
+      "path": "patches/maibot/src__maisaka__memory__person_profile.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "34f6708096e52de99c529284dd74a30bcf8483d2cca62915eee3b96a56527614"
+    },
+    {
+      "path": "patches/maibot/src__plugin_runtime__capabilities__core.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "b5f83f4b51cdd5f9bae2227294e1748dfb3ebf72f37a6403a3ddb0a74d545e4c"
+    },
+    {
+      "path": "patches/maibot/src__plugin_runtime__capabilities__registry.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "b442fdb766f5df55acd5f99ac6dec98a4370d0e0902b21abc9029ddf70f488ac"
+    },
+    {
+      "path": "patches/maibot/src__plugin_runtime__hook_catalog.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2d94e865aab38d5b2caf726d350b14b56f78532ffb9f5f4089e470a23301e28e"
+    },
+    {
+      "path": "patches/maibot/src__services__memory_flow_service.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a8890919476920f84a51d2b653e2da98e085fa82f428739d06d3402ef1b8c95e"
+    },
+    {
+      "path": "patches/maibot/src__services__memory_service.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "87048d0204d130956d14585880ae8709b6225382d26f3883a68e25fd603d6868"
+    },
+    {
+      "path": "patches/maibot/src__webui__app.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "eb2682482a47e54a133a45b73f83954aa106170e42e16cf4b2fa7d5035c6d581"
+    },
+    {
+      "path": "patches/maibot/src__webui__routers__memory.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2911b7ff680993a573f9cced3e28c76ef1d8c2016c30d82ee50b58c724c28161"
+    },
+    {
+      "path": "patches/maibot/src__webui__routers__plugin__management.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "408d9edcc1a92287cb5e2ac41960c971ebda69be4a2f14a88106739549c67b20"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__agent__agent_factory.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "dd30b40b425fe30c8084af6ca7f926773674317d89280ed916b9563a6657c4ad"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__asr__asr_factory.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "db786453ccfa19dd4067437e219e0022e5766687dbbae2346b894cb187656f80"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__config_manager__agent.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "b339d924a19fc5e6d33d5fab89e5721f8519e0f7e8a2762b0fde294c06504f14"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__config_manager__asr.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "f7bb5fcebb634e884ff8bb0fd014a60f24f6555d686ede37c487f9c60b389391"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__config_manager__tts.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a250ac7fa99ecdcfee495eaf9b29fa4f1d7ee3001e77265007dabceddd2d17d8"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__conversations__single_conversation.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "cf2bf8ac8fecf219d78966f077d7a193352c23c3714a58f285965907fa75ee73"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__conversations__tts_manager.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "1b052fa7cf4464bd761c14635ddad8a5ecb781819e6a3eeea56cf6e44a56f95d"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__server.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "38e06b8dc4b8d2173cb119c746ecfe5e3141f4f2a691601e1fee610122382200"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__service_context.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "5ff39c81400904f8f6bd84461181532e383df9ba3fadf771dd048f79589c0044"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__tts__tts_factory.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "34ebb05bdc11dcfc6f48c4aad31530e824d34ed9c8a70ca2db3593c1d4f3ee27"
+    },
+    {
+      "path": "patches/vtuber/src__open_llm_vtuber__websocket_handler.py.patch",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "29858b76d0d1a2e1dc2946b635e109eb975704e83611634bff4f430d64b62f5c"
+    },
+    {
+      "path": "plugins/heart_memory_audit/_manifest.json",
+      "status": "修改",
+      "old_sha256": "64508039ddaa69276a0fa62d064a1dcaed16f1d92e321e33ee9cde50a400e143",
+      "new_sha256": "d227feb557d78d6e28f331ebc97be95af40c3e5fae6df56a67bea91c99150665"
+    },
+    {
+      "path": "plugins/heart_memory_audit/config.toml",
+      "status": "本包不再提供",
+      "old_sha256": "278bbd3db5cfab0be8bc340a72a5065e2fd7facc9d4f13488da60d0ef567a7ea",
+      "new_sha256": null
+    },
+    {
+      "path": "plugins/heart_memory_audit/plugin.py",
+      "status": "修改",
+      "old_sha256": "0a79c55a22138555b97e65a80da53169723f6893f312f885c45419487031bf35",
+      "new_sha256": "84567d66c2d84ac538d51956161a1298db716cb18af28ac86ec8e4369a2fa552"
+    },
+    {
+      "path": "plugins/heart_mood/_manifest.json",
+      "status": "修改",
+      "old_sha256": "8557d134b4677a19a7b19566a25d8d28ccde3995fd18e0d74dfec5b76047eca1",
+      "new_sha256": "bbf917c2333352ee8cc1599262a9f9333aa0b79fad7e236bf0b1276d49f1a8fd"
+    },
+    {
+      "path": "plugins/heart_mood/appraiser.py",
+      "status": "修改",
+      "old_sha256": "d3ad8db786528c10e94dc202bb940d782c34e1de413d47afdea6bde08b68ec82",
+      "new_sha256": "706d9a9fdb00f317ac2b4ee4a21d81ff2e30a0a2a8fe434fd0b84443872a8916"
+    },
+    {
+      "path": "plugins/heart_mood/config.toml",
+      "status": "本包不再提供",
+      "old_sha256": "d8a4864bbd16df1cf0eb9ee9bf3ae7e63ef4bde817794ae73aa095646b1d2ac1",
+      "new_sha256": null
+    },
+    {
+      "path": "plugins/heart_mood/emotions.py",
+      "status": "相同",
+      "old_sha256": "58903bb892f94c1da6fc2d7fb979f4dcbf35c7323b80afa739320b2137aa5b5b",
+      "new_sha256": "64e279641a25d7fb98f41395d5460a39d941dceea1dbd019336f8f7c48ac53b1"
+    },
+    {
+      "path": "plugins/heart_mood/engine.py",
+      "status": "相同",
+      "old_sha256": "6e4b643e29b23b8eca9993de7719c8ce7e733228b11c80ce1ec7e81adaae7882",
+      "new_sha256": "f8397d75cf1b49d3c272b491b31c702d33dfd22ab69ef49014d237b66ce985c7"
+    },
+    {
+      "path": "plugins/heart_mood/plugin.py",
+      "status": "修改",
+      "old_sha256": "aa84c7b887734940e77510d8bd99dd64cddb3b60390a6888ae04a82e8ab707ac",
+      "new_sha256": "42af6b5fc6f60778b92c63b87ddb9ceab7bb526c515555ffb2266ad0de01fe66"
+    },
+    {
+      "path": "pytests/A_memorix_test/test_empty_vector_recovery_regression.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "18b6b4932435b7a6aca451b68f822c456f441421b7bab99c6b7fba023a84fc0e"
+    },
+    {
+      "path": "pytests/A_memorix_test/test_storage_cleanup_startup_wait.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "ef44b11b359a97d260c42bdceb8dd6072e24f3f24c1137f3e8be25dd536bbf56"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_all_memory_organization.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "412a9bcc7010dc94d23928a022806f14c8588d524e8e5812d91d0f048b3e0413"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_heart_group_memory_roundtrip.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "6e350b1615e6c29af5487d9b73a8202490121252d7cbb536996203761c1811d5"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_heart_group_recall_scope.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2fd5746c66e38f6529d30ad13f0ec07d4cc25a35f9ea9c827363299681d40f95"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_heart_log_cards.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "1f1ac551042d38fad8bacf0e64e6842f30753c34eb93e90d050de461fc493157"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_heart_memory_webui.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "c17fc59af14ac204173c5bcfb71860370e0188b8fbd4f2ba2ab724a35c8a8078"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_heart_mood_model_selection.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "92ef8768502ef76a56778f2ed3922cfd8ba4542c5010393e69c4a1a607674085"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_heart_recall_snapshot.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "4cb1a19f7cf3a5b2f201356ee445f665a606ffb271a5445c586ca17d9c39beb6"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_summary_novelty.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a34618774f8f337ada2c96c493b29da153638f2d7f52b05e70221c77e7f8299f"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_summary_semantic.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "f0ed3ac0a697571b4831faf7826b7757b0ae1b4d694021cba5f831ba5fce6591"
+    },
+    {
+      "path": "pytests/plugin_runtime/test_webui_display_contracts.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "083278be25220f541334dda7dafe44c10e5825c8b9063b9efea8ba2101eb8fd2"
+    },
+    {
+      "path": "reference-maibot/dashboard/scripts/test-heart-memory-ui.mjs",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "0b9653d43882c1b52d1f22c6c3b2b2a8eb8e5522f996e74cad5d42f8ff2faf75"
+    },
+    {
+      "path": "reference-maibot/dashboard/scripts/test-heart-webui-display.mjs",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "eeaf67c23c8dcdc45e2cf56e09649b57b642f8e5eda68a0c6fba38427ebc612d"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/components/memory/HeartMemoryManager.tsx",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "bacb758cd7c06c8c5f3029f367369ce9cc79ad970517f32384e2a97bf86ec2db"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/lib/memory-api.ts",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "782e434e10bc421406506cef3a4c702bcbab86d1a2ae5d4def1a82654b8f9b16"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/lib/plugin-api/types.ts",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a701bbf1a520b57a2a6218b4db048e72f6102533d2a3a4e430acd826ca331208"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/plugin-config/hooks/__tests__/plugin-hooks.test.ts",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "73a5c39ed6eaba6255cfd7a86da133b6d6ff0061b60a0bb954ed06581e431497"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/plugin-config/hooks/usePluginList.ts",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a3cc9217c8fd3d6a0531e07a4dec7ce6215858fc044847317aeb97e3e9372ad3"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/resource/knowledge-base.tsx",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "cb0a890a78ad2db6844cf27a57ac86cb3f2bae0b9d8e56c5c12a0a4460d6716f"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/resource/knowledge-base/tabs/DeleteTab.tsx",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2f558c673b0bef1d7f46626e7d2d832f0fd4535c16970fc0652baf3fefc626d3"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/resource/knowledge-base/tabs/__tests__/DeleteTab.test.tsx",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "2dfa706eaddf3e68a9ec874bee140931f27255af41dc6af9a8378566362f0b20"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/runtime_facade.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "16ab4fc287495957c989f4fc2ae00ac68309c111a6d374e544e664ec8bef1f22"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/services/background_task_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "1964a60c8e5e2c89d9955b777c98709b6745e25c7712416afe45139b41c6c03d"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/services/embedding_state_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "07755ed727c31555b2337a19eba183a717a033995bb3930333d7647849037c3a"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/services/summary_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "38cbf066ca0f87ffd827d06b90b511318333fa39e99f6955a3b0417d3e6ba48e"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/utils/episode_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "45f1d8c40f797da7baf6761fd48e80f851cc4dce1bab5e2311a543aa3e2559e6"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/utils/summary_importer.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "c33d455a0f852be253189fb5a6d2fef1146afc410e2f578424132de47a71710d"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/builtin_tool/query_memory.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "5ecb977fe5f893b85b01627d223672547cd7e559c3d9471610b756d649396c31"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/builtin_tool/query_person_profile.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "ba428ed6705fd3d36f1d11f0c869284b2de654409502fa4c79246779e26fdf9b"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/memory/heuristic_injector.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "ede6cbc262695ec58ae230400289ca2be834431f20b6589f3d63d544a11b9c32"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/memory/person_profile.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "597f0f59e33383df9f64f7972adcf00319818391673c11c5895adb4abec62db5"
+    },
+    {
+      "path": "reference-maibot/src/plugin_runtime/capabilities/core.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "058763ba4ae4e94b333814cc66ea22e6384900b32185029e54357540d6cb2cbf"
+    },
+    {
+      "path": "reference-maibot/src/plugin_runtime/capabilities/registry.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "af028f4633ea840ba5f2f445778c7a7225978bc6179e7f9e8a87ab58bb4915c8"
+    },
+    {
+      "path": "reference-maibot/src/plugin_runtime/hook_catalog.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "b84b912f488bd746a5a94f7dde17ea4caca59232b0b08689e122976baeb3a2aa"
+    },
+    {
+      "path": "reference-maibot/src/services/memory_flow_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "1305f745bedad496d0f1ee0007da83881d67509c044fd670bae4ea6a7b7f45c1"
+    },
+    {
+      "path": "reference-maibot/src/services/memory_service.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "ecf079d8307afbca80287b8231417f950e64d7c83d20b88de528a6ac661d4da4"
+    },
+    {
+      "path": "reference-maibot/src/webui/app.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "d9f1af531ab76d7004f301991e3c41ccd6bd4d8bd910846c746ac979b3d34cb0"
+    },
+    {
+      "path": "reference-maibot/src/webui/routers/memory.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "0b68a8762ab4a219c84c3d645e9a3998696d2d062dee8a6de8955fde9c390156"
+    },
+    {
+      "path": "reference-maibot/src/webui/routers/plugin/management.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "5724a5c0571873e1786cd68298ab00d0eda772641dbe4dfbce4ffd1fff96f7f4"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/agent/agent_factory.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "e1d18dbe5637d8716521a3f98e41d621e4493ee64ca4e650404999e1338c6021"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/asr/asr_factory.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a5fd02142e491db8adf4e38c3dc40369941739a82dfbb486268661e7c56719a8"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/config_manager/agent.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "b0d0f55c8928ef629e0e70e5b2ce2a1ad62f725de87ba4aa74bd5afe86edbfd4"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/config_manager/asr.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "ec3314653e4d09a20fade0fe38f24c522f5de26c84da948b026782f4a9cec535"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/config_manager/tts.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "1bdcb5e3db7c6ce249e6ec201c505dd99cf26e36777de36d3ce0dc77b61f59fe"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/conversations/single_conversation.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "01a7a969b018e9dd49faab4fc029b2ac10082612a5751a21609c5203a3f1da8f"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/conversations/tts_manager.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "9bf615b3e5ce3d1d87b394f08b73ce5224b68fd27bdd97d664c6cde0b2370e47"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/server.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "c1c0938ffbf2d4854340acc43e715d8858fbd309362da9bfe1f89dcec91a93be"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/service_context.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "a86bcbc6394920e17ac4db62d7d0539c157cf51220de0888133128acad7ec7ff"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/tts/tts_factory.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "863a2d75f1c3c95f7c22a128ef0c1cbf065e877ff74893ebc5666d3e815eab04"
+    },
+    {
+      "path": "reference-vtuber/src/open_llm_vtuber/websocket_handler.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "5420ef7ccc2b57a178b15e90e846ddef548303b2733b3d34793e69bbe965bdf9"
+    },
+    {
+      "path": "scripts/audit_all_memories.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "d179f411a92274b5c0e165e35531047e3a16698f9ff36e1f008886c2782e7784"
+    },
+    {
+      "path": "scripts/build_heart_delivery.py",
+      "status": "本包不再提供",
+      "old_sha256": "1cd1ec35927cd4b713eb4ebcac4896f1017dbc205a66a5ec32085d90da239f78",
+      "new_sha256": null
+    },
+    {
+      "path": "scripts/check_heart_cards.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "3f5acd07ea61b73ea33631312b3ebb118648d0ce9074be036d0599f694f358f9"
+    },
+    {
+      "path": "scripts/check_heart_log_integrity.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "b0838d33a598becdc1541f23f09a3b01cf3c0231e974882b87d30f64e76b07be"
+    },
+    {
+      "path": "scripts/install_heart_plugins.py",
+      "status": "本包不再提供",
+      "old_sha256": "d2e58c279aabf421b3e38d67353ea2b88245755c6a914394af556148af9c41c8",
+      "new_sha256": null
+    },
+    {
+      "path": "scripts/organize_all_memories.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "01f0e6d40eb8af15870e74dc204e34e3a06f7b78297cd29e4f30b755fed76698"
+    },
+    {
+      "path": "test_delivery_safety.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "0adff1df27281776fd607b6586354296d0a40a76a648c964f4377fd03fb226a1"
+    },
+    {
+      "path": "test_native_storage_contract.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "31707f60e6acb7c4f5a79305200f6ed08c07764ff57617da700efea0b782f806"
+    },
+    {
+      "path": "tests/test_heart_ai_mood.py",
+      "status": "相同",
+      "old_sha256": "38e85e7b32ca128438a861aff6fd5af8f1f70002abc1f80f8b9989c9906e6fa5",
+      "new_sha256": "df9bcf6dfae79573772b5384022c443c9b2a32d37e7a98750058db61d5c95a1e"
+    },
+    {
+      "path": "tests/test_heart_conflicts.py",
+      "status": "相同",
+      "old_sha256": "8cdd1993b2b23d95634f46af26bb0a4df801a3460ba8c32f3a68d135eeadfd54",
+      "new_sha256": "247b5ea377db104d283f2f32568a2a4a90e4bf9b2a3f6f503fa01fac645fcd20"
+    },
+    {
+      "path": "tests/test_heart_customization.py",
+      "status": "相同",
+      "old_sha256": "174380f686cff58c56e84fee270914ba97c09e78788dc575ddf5ce731ed36331",
+      "new_sha256": "abe57f8d1d0df86581b67e5541d6e145deda5ab5ac10576fc3c15d5898f8dfd8"
+    },
+    {
+      "path": "tests/test_heart_delivery.py",
+      "status": "本包不再提供",
+      "old_sha256": "449a21ebc59ad35d78ba79e86bb854a21c774b3a8d13157668ccc97aa5efb760",
+      "new_sha256": null
+    },
+    {
+      "path": "tests/test_heart_entry.py",
+      "status": "相同",
+      "old_sha256": "28cd72089ac162baecb6a6fee06110ed1e1f90b78223e89fd9c841344cc3734c",
+      "new_sha256": "97236c025a583bae1539ca44feaaa108650572b014d8cfaed2d152de74f9d3ea"
+    },
+    {
+      "path": "tests/test_heart_latency.py",
+      "status": "修改",
+      "old_sha256": "bd546f153f97ca3cd74705cff5a29511f283a8ee55e6c69fecc9d5749e4127d8",
+      "new_sha256": "092d564e3df83e331635268800d7fee3faa73b2a7e02061424dab04c784759f3"
+    },
+    {
+      "path": "tests/test_heart_memory.py",
+      "status": "相同",
+      "old_sha256": "281cc434fb65b348897916c58c0da2e978a7f9a30e2bdf5af923235e3bd3d956",
+      "new_sha256": "51cb52147ad4b8d1da2d0d7e82ee23cea72267bdc59b37b5aa36e4888860ba4b"
+    },
+    {
+      "path": "tests/test_heart_mood.py",
+      "status": "相同",
+      "old_sha256": "3474af17f9b988f65460a698a1dee523e52664e624b091300880a03ab282ea81",
+      "new_sha256": "c480aac9b8570ac82a224dba0b98bf6c090e22fbfa77250b2fbcdc13fc781850"
+    },
+    {
+      "path": "tests/test_heart_scope.py",
+      "status": "相同",
+      "old_sha256": "e915e878985e1c5ff43c1c425882c1f3bb07cec0e60fe387c0dff1b226d1d8ef",
+      "new_sha256": "0c9bbfd7564bfed86b725999bfd67fb6b9035d7d435bab968e36c91ca35f2937"
+    },
+    {
+      "path": "tests/test_heart_topic_emotions.py",
+      "status": "修改",
+      "old_sha256": "353d850b022d19b30a802c482e9b38b9890a012245b1824860f18c33ee031799",
+      "new_sha256": "a3e6dba3138541fa2137476f7c8148092783c468c1f4855b9eedabba47352493"
+    },
+    {
+      "path": "tests/test_heart_visit.py",
+      "status": "修改",
+      "old_sha256": "0ccb75f97d1c84b0edc17b2ca499be6b10b77af54d360a960b8623907f91600c",
+      "new_sha256": "841b9f672e9f40f064c5c59c3143caaecddcc7c0ff2fbcf0e804cee93f98fc40"
+    },
+    {
+      "path": "tests/test_heart_webui_chinese.py",
+      "status": "相同",
+      "old_sha256": "b20d9b1066d730827dad8f1724dc3c42a68d21c03abd8532eda38736313da84d",
+      "new_sha256": "ced18bf20a1ce1ebada3caa15b22b2c1b905283d8c86d81f9de61c7f456201f0"
+    },
+    {
+      "path": "upstreams.json",
+      "status": "相同",
+      "old_sha256": "3c04f609610604c429a3155287e1803473f9cc18d53c1027c5c8d22eaf5f2b93",
+      "new_sha256": "3c04f609610604c429a3155287e1803473f9cc18d53c1027c5c8d22eaf5f2b93"
+    },
+    {
+      "path": "verify_delivery.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "9c97d29319ac6dc54b1b4bfc282212589c8e4edd9acfd055a1088a1229ebd0a6"
+    },
+    {
+      "path": "vtuber/README.md",
+      "status": "本包不再提供",
+      "old_sha256": "ccaff6f0067722a96a67edff267e1d84a6455600beac037ef8e88b46a678a65a",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/expression_catalog.py",
+      "status": "相同",
+      "old_sha256": "3f72edb3569b4f398898727065e93611e387a2c6a14347c30e406b50f358c738",
+      "new_sha256": "3f72edb3569b4f398898727065e93611e387a2c6a14347c30e406b50f358c738"
+    },
+    {
+      "path": "vtuber/frontend/heart-avatar.mjs",
+      "status": "相同",
+      "old_sha256": "87e1dc70c03489314fe33d1c7e9eb9d826db1339a8da179d114801ee403acb9e",
+      "new_sha256": "87e1dc70c03489314fe33d1c7e9eb9d826db1339a8da179d114801ee403acb9e"
+    },
+    {
+      "path": "vtuber/frontend/heart-controller.mjs",
+      "status": "相同",
+      "old_sha256": "03dfe4043a868f4ed82cc7171aad37e3d13a5d2f9e40a0abec861cea708a3c8f",
+      "new_sha256": "03dfe4043a868f4ed82cc7171aad37e3d13a5d2f9e40a0abec861cea708a3c8f"
+    },
+    {
+      "path": "vtuber/frontend/yubao-expression-timing.mjs",
+      "status": "本包不再提供",
+      "old_sha256": "25d2ef185203bd7358e3a3cd7aa204b84236ce18fe0007990ff5cfb2c7ea9510",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/heart_bridge.py",
+      "status": "修改",
+      "old_sha256": "5e44f2622b3b20ee9a65f801040a668507d77ee6ecbbadf70da9cc3bf39ea3ea",
+      "new_sha256": "660b6449348931592b3d36e0b567d7ca6c7fe931bd85fa4cca732d195855472f"
+    },
+    {
+      "path": "vtuber/maibot_client.py",
+      "status": "相同",
+      "old_sha256": "db9d8a4d8a585eb179d47607a2d51cd65c44ce15ea0d0ab4c9862f4e0bdda1d7",
+      "new_sha256": "e3cf477d6fb8b1d31fd6b5d3c3051e77fd681b61b26f26ad79c0361c009a6c97"
+    },
+    {
+      "path": "vtuber/model_dict.json",
+      "status": "本包不再提供",
+      "old_sha256": "5f535a692300dab7adb3356f4f4c1aafb1258497d06d45be153a3315f03afefb",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/scripts/apply_yubao_expression_timing.py",
+      "status": "本包不再提供",
+      "old_sha256": "87246b4bbe51c9d2dcf5bd78f7fd7972bfdfb96937840e39c14f993032f92d5d",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/scripts/install_heart_bridge.py",
+      "status": "修改",
+      "old_sha256": "0e5c4958466bb5b16648126b23b3e22afdea3922a6ae72ecd885ddf5b4fe4532",
+      "new_sha256": "c0deb2f51cdd1d4ba5523e80fb76e324a591f7b6243f771a9649792426244b02"
+    },
+    {
+      "path": "vtuber/scripts/test_agent_changes.py",
+      "status": "相同",
+      "old_sha256": "42a8493bd6b255993bdeae3938943ed8c0b819228e5dba35b4ebb68d704e03cf",
+      "new_sha256": "42a8493bd6b255993bdeae3938943ed8c0b819228e5dba35b4ebb68d704e03cf"
+    },
+    {
+      "path": "vtuber/scripts/test_expression_timing.mjs",
+      "status": "本包不再提供",
+      "old_sha256": "3a9f9f32af422a168a8804c621c7fea480264bacdf88ed7a6c6108d6f6af66fc",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/scripts/test_heart_controller.mjs",
+      "status": "相同",
+      "old_sha256": "5700721bf6feadc4e2587c8713f4fd8812c2d97b7b8b711888f6d55b39ba5362",
+      "new_sha256": "5700721bf6feadc4e2587c8713f4fd8812c2d97b7b8b711888f6d55b39ba5362"
+    },
+    {
+      "path": "vtuber/scripts/test_silent_delivery.py",
+      "status": "相同",
+      "old_sha256": "4f404ad2fae8701c0a73a008c2851f57daaa238183c2c6b6e6757aefc4fba186",
+      "new_sha256": "c9e12948eceba88d4f0413d09ebc537d15fe456355da048aadb4f40960486919"
+    },
+    {
+      "path": "vtuber/scripts/test_silent_expression.mjs",
+      "status": "本包不再提供",
+      "old_sha256": "6c068f00d166be788627e81670a396f6d5ed7c10d2c666e798e90c8ac904b6d8",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/src/open_llm_vtuber/agent/agent_factory.py",
+      "status": "本包不再提供",
+      "old_sha256": "e1d18dbe5637d8716521a3f98e41d621e4493ee64ca4e650404999e1338c6021",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/src/open_llm_vtuber/agent/agents/maibot_agent.py",
+      "status": "相同",
+      "old_sha256": "2cf669365fd3108aaa32897033fa386e7f3b3796b1e7d5f85b6ee011767808a4",
+      "new_sha256": "2cf669365fd3108aaa32897033fa386e7f3b3796b1e7d5f85b6ee011767808a4"
+    },
+    {
+      "path": "vtuber/src/open_llm_vtuber/agent/agents/maibot_expression.py",
+      "status": "相同",
+      "old_sha256": "cfa4174243155dd5ad369d7cd8702a2795146b98bb5f8a89918b1ec729c4e3cb",
+      "new_sha256": "cfa4174243155dd5ad369d7cd8702a2795146b98bb5f8a89918b1ec729c4e3cb"
+    },
+    {
+      "path": "vtuber/src/open_llm_vtuber/asr/disabled_asr.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "99e13c2b8ca124a5d33019acc65017814edb1092ff99e4497e177c6654f8094f"
+    },
+    {
+      "path": "vtuber/src/open_llm_vtuber/conversations/tts_manager.py",
+      "status": "本包不再提供",
+      "old_sha256": "9bf615b3e5ce3d1d87b394f08b73ce5224b68fd27bdd97d664c6cde0b2370e47",
+      "new_sha256": null
+    },
+    {
+      "path": "vtuber/src/open_llm_vtuber/tts/silent_tts.py",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "d13ca1e34b5c86ba21891c52ce4c0e2f2cd8b95cfdb5ffa75b2a74fe3ef4e709"
+    },
+    {
+      "path": "vtuber/表情修复与测试说明.md",
+      "status": "本包不再提供",
+      "old_sha256": "d895c91eada3cb86ac1b3bff344482142a76aade052cf0a0c737789ff88c01c3",
+      "new_sha256": null
+    },
+    {
+      "path": "原生代码修改说明.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "393a9c6c001b39bb68729f214b749f683dc2f4b5b6bd3ee7d2dc9993bebe3fdb"
+    },
+    {
+      "path": "测试报告.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "15327050db64a42c8bd66c88dcbc56cb871dd859c1e3da157635b47935732a77"
+    },
+    {
+      "path": "给同伴GPT的安装提示词.md",
+      "status": "新增",
+      "old_sha256": null,
+      "new_sha256": "ee42944fe8bec1df3f2170bb6968f648c82347b4993ace2684a210bd112fe4b0"
+    }
+  ]
+}

@@ -1,0 +1,431 @@
+{
+  "baseline_delivery_commit": "6d21b8eea3729779c589661b919ceb7e06b0b5ea",
+  "maibot_upstream_commit": "dc4cf98ad6fe75096c8b3c73187fd75ad6b02d53",
+  "vtuber_upstream_commit": "992309c0aa19845960228f880013d4685fde93b5",
+  "entries": [
+    {
+      "path": "extensions/heart_shared/__init__.py",
+      "target": "heart_shared/__init__.py",
+      "component": "shared",
+      "sha256": "5e9638efbdbe828fa089e3cf619ac15586eed3482ce6e156eb6d5b18813c9b6a",
+      "normalized_sha256": "5e9638efbdbe828fa089e3cf619ac15586eed3482ce6e156eb6d5b18813c9b6a",
+      "previous_normalized_sha256": "5e9638efbdbe828fa089e3cf619ac15586eed3482ce6e156eb6d5b18813c9b6a"
+    },
+    {
+      "path": "extensions/heart_shared/candidates.py",
+      "target": "heart_shared/candidates.py",
+      "component": "shared",
+      "sha256": "5f6d7c336995f034a3d890820f761a5158a10fcdc3327fc61d2658343cf6cced",
+      "normalized_sha256": "5f6d7c336995f034a3d890820f761a5158a10fcdc3327fc61d2658343cf6cced",
+      "previous_normalized_sha256": "bfa2123cbe41d012b8fa7f0915a4cd884cfb08dcede22da156555a6efe709fd1"
+    },
+    {
+      "path": "extensions/heart_shared/card_writer.py",
+      "target": "heart_shared/card_writer.py",
+      "component": "shared",
+      "sha256": "f23fb31ea0f11a284f70c01326947ed93e40003a92d404ec3da285e59c964cbc",
+      "normalized_sha256": "f23fb31ea0f11a284f70c01326947ed93e40003a92d404ec3da285e59c964cbc",
+      "previous_normalized_sha256": null
+    },
+    {
+      "path": "extensions/heart_shared/cards.py",
+      "target": "heart_shared/cards.py",
+      "component": "shared",
+      "sha256": "6c2896ad05d7029bed2113583c21acfcc1e34ae9a0234b483e9ded5c2988732d",
+      "normalized_sha256": "6c2896ad05d7029bed2113583c21acfcc1e34ae9a0234b483e9ded5c2988732d",
+      "previous_normalized_sha256": null
+    },
+    {
+      "path": "extensions/heart_shared/conflicts.py",
+      "target": "heart_shared/conflicts.py",
+      "component": "shared",
+      "sha256": "c1037c14f1b519a62e6ef748e87af5d91c41f563db649f6437f9c489bf343587",
+      "normalized_sha256": "c1037c14f1b519a62e6ef748e87af5d91c41f563db649f6437f9c489bf343587",
+      "previous_normalized_sha256": "b0c1e2315975f3ae2248f1ec20fa564b403a9fcd08c9d6b43ff5de1e5f5a3b9f"
+    },
+    {
+      "path": "extensions/heart_shared/forget.py",
+      "target": "heart_shared/forget.py",
+      "component": "shared",
+      "sha256": "359e3d2f494329d47c0c03489c6b5e23eb7be395284ec3eb5bf3ace781f72a2d",
+      "normalized_sha256": "359e3d2f494329d47c0c03489c6b5e23eb7be395284ec3eb5bf3ace781f72a2d",
+      "previous_normalized_sha256": "359e3d2f494329d47c0c03489c6b5e23eb7be395284ec3eb5bf3ace781f72a2d"
+    },
+    {
+      "path": "extensions/heart_shared/memory_events.py",
+      "target": "heart_shared/memory_events.py",
+      "component": "shared",
+      "sha256": "1910cce98aed8c51047af43f645cd636dddfe3e6e1b362951c355df6391c8b8c",
+      "normalized_sha256": "1910cce98aed8c51047af43f645cd636dddfe3e6e1b362951c355df6391c8b8c",
+      "previous_normalized_sha256": "1910cce98aed8c51047af43f645cd636dddfe3e6e1b362951c355df6391c8b8c"
+    },
+    {
+      "path": "extensions/heart_shared/memory_scope.py",
+      "target": "heart_shared/memory_scope.py",
+      "component": "shared",
+      "sha256": "36abb0c030e9b6edc7ab5c89ffc356cee549bd8cdad52181923e8532311ce082",
+      "normalized_sha256": "36abb0c030e9b6edc7ab5c89ffc356cee549bd8cdad52181923e8532311ce082",
+      "previous_normalized_sha256": "36abb0c030e9b6edc7ab5c89ffc356cee549bd8cdad52181923e8532311ce082"
+    },
+    {
+      "path": "extensions/heart_shared/readable.py",
+      "target": "heart_shared/readable.py",
+      "component": "shared",
+      "sha256": "d2bb90a36950695c8ade49e933600639d92289b03fc5483123c460e75ace847d",
+      "normalized_sha256": "d2bb90a36950695c8ade49e933600639d92289b03fc5483123c460e75ace847d",
+      "previous_normalized_sha256": "41ab9230947545972b9be5af1dff25b726db1b0693f89b03b0ee8b2afb79c5e1"
+    },
+    {
+      "path": "extensions/heart_shared/recall_snapshot.py",
+      "target": "heart_shared/recall_snapshot.py",
+      "component": "shared",
+      "sha256": "5e0c313d5c38de7f047cde5e762893c9e72a39eca8cf4972bdf2e033d1bcc0a3",
+      "normalized_sha256": "5e0c313d5c38de7f047cde5e762893c9e72a39eca8cf4972bdf2e033d1bcc0a3",
+      "previous_normalized_sha256": null
+    },
+    {
+      "path": "extensions/heart_shared/storage.py",
+      "target": "heart_shared/storage.py",
+      "component": "shared",
+      "sha256": "fef8487e9c5fbb32034dfe58a569a5c47c403be1212df61942fe9506c988b284",
+      "normalized_sha256": "fef8487e9c5fbb32034dfe58a569a5c47c403be1212df61942fe9506c988b284",
+      "previous_normalized_sha256": "f52ca758453800f67ee22902cc4cf589427c7f23355aae498f493d23b1b34d3f"
+    },
+    {
+      "path": "extensions/heart_shared/summary_novelty.py",
+      "target": "heart_shared/summary_novelty.py",
+      "component": "shared",
+      "sha256": "9127ab947b4cd4761b6e4e2d85b4939dacab1ef99c09638ad90e38984f222286",
+      "normalized_sha256": "9127ab947b4cd4761b6e4e2d85b4939dacab1ef99c09638ad90e38984f222286",
+      "previous_normalized_sha256": null
+    },
+    {
+      "path": "extensions/heart_shared/summary_semantic.py",
+      "target": "heart_shared/summary_semantic.py",
+      "component": "shared",
+      "sha256": "2359a6db8dd3b174ca44395d5c2485ad06d837ae235f63147e6fbef80411dd25",
+      "normalized_sha256": "2359a6db8dd3b174ca44395d5c2485ad06d837ae235f63147e6fbef80411dd25",
+      "previous_normalized_sha256": null
+    },
+    {
+      "path": "extensions/heart_shared/webui_labels.py",
+      "target": "heart_shared/webui_labels.py",
+      "component": "shared",
+      "sha256": "9d04d02cb2cf9012448a803714554c278851ad34e489088e90c8b52d24286424",
+      "normalized_sha256": "9d04d02cb2cf9012448a803714554c278851ad34e489088e90c8b52d24286424",
+      "previous_normalized_sha256": "9d04d02cb2cf9012448a803714554c278851ad34e489088e90c8b52d24286424"
+    },
+    {
+      "path": "plugins/heart_memory_audit/_manifest.json",
+      "target": "plugins/heart_memory_audit/_manifest.json",
+      "component": "memory",
+      "sha256": "d227feb557d78d6e28f331ebc97be95af40c3e5fae6df56a67bea91c99150665",
+      "normalized_sha256": "d227feb557d78d6e28f331ebc97be95af40c3e5fae6df56a67bea91c99150665",
+      "previous_normalized_sha256": "9428a38f68a96681aec704653ba8b1c5718ed8aa696afc64f54482b881521602"
+    },
+    {
+      "path": "plugins/heart_memory_audit/plugin.py",
+      "target": "plugins/heart_memory_audit/plugin.py",
+      "component": "memory",
+      "sha256": "84567d66c2d84ac538d51956161a1298db716cb18af28ac86ec8e4369a2fa552",
+      "normalized_sha256": "84567d66c2d84ac538d51956161a1298db716cb18af28ac86ec8e4369a2fa552",
+      "previous_normalized_sha256": "9bf4dbb6a38a54fa4020b03a5312e31144b7466ef9eb299266111a38759f4499"
+    },
+    {
+      "path": "plugins/heart_mood/_manifest.json",
+      "target": "plugins/heart_mood/_manifest.json",
+      "component": "mood",
+      "sha256": "bbf917c2333352ee8cc1599262a9f9333aa0b79fad7e236bf0b1276d49f1a8fd",
+      "normalized_sha256": "bbf917c2333352ee8cc1599262a9f9333aa0b79fad7e236bf0b1276d49f1a8fd",
+      "previous_normalized_sha256": "360814894706534fd68675d473a90369fb1aab8edcc172b65ae6d3bd30af0d79"
+    },
+    {
+      "path": "plugins/heart_mood/appraiser.py",
+      "target": "plugins/heart_mood/appraiser.py",
+      "component": "mood",
+      "sha256": "706d9a9fdb00f317ac2b4ee4a21d81ff2e30a0a2a8fe434fd0b84443872a8916",
+      "normalized_sha256": "706d9a9fdb00f317ac2b4ee4a21d81ff2e30a0a2a8fe434fd0b84443872a8916",
+      "previous_normalized_sha256": "29a8ae0ecd5097b192fb3e41acb463e29c94ccaaabfa83cc1a0c66c4e3907d79"
+    },
+    {
+      "path": "plugins/heart_mood/emotions.py",
+      "target": "plugins/heart_mood/emotions.py",
+      "component": "mood",
+      "sha256": "64e279641a25d7fb98f41395d5460a39d941dceea1dbd019336f8f7c48ac53b1",
+      "normalized_sha256": "64e279641a25d7fb98f41395d5460a39d941dceea1dbd019336f8f7c48ac53b1",
+      "previous_normalized_sha256": "64e279641a25d7fb98f41395d5460a39d941dceea1dbd019336f8f7c48ac53b1"
+    },
+    {
+      "path": "plugins/heart_mood/engine.py",
+      "target": "plugins/heart_mood/engine.py",
+      "component": "mood",
+      "sha256": "f8397d75cf1b49d3c272b491b31c702d33dfd22ab69ef49014d237b66ce985c7",
+      "normalized_sha256": "f8397d75cf1b49d3c272b491b31c702d33dfd22ab69ef49014d237b66ce985c7",
+      "previous_normalized_sha256": "f8397d75cf1b49d3c272b491b31c702d33dfd22ab69ef49014d237b66ce985c7"
+    },
+    {
+      "path": "plugins/heart_mood/plugin.py",
+      "target": "plugins/heart_mood/plugin.py",
+      "component": "mood",
+      "sha256": "42af6b5fc6f60778b92c63b87ddb9ceab7bb526c515555ffb2266ad0de01fe66",
+      "normalized_sha256": "42af6b5fc6f60778b92c63b87ddb9ceab7bb526c515555ffb2266ad0de01fe66",
+      "previous_normalized_sha256": "03ff546af63cfadc8cacf57fdd3d4d9aa81e263d6d3cd7115447951c993609b7"
+    },
+    {
+      "path": "extensions/heart_host_observer.py",
+      "target": "src/services/heart_host_observer.py",
+      "component": "adapter",
+      "sha256": "e29100499e2f3407ef036863a9cc76b2bdaec96ab61071bc3ed367033d6eb8b0",
+      "normalized_sha256": "e29100499e2f3407ef036863a9cc76b2bdaec96ab61071bc3ed367033d6eb8b0",
+      "previous_normalized_sha256": "e29100499e2f3407ef036863a9cc76b2bdaec96ab61071bc3ed367033d6eb8b0"
+    },
+    {
+      "path": "extensions/heart_llm_budget.py",
+      "target": "src/services/heart_llm_budget.py",
+      "component": "adapter",
+      "sha256": "7b6cc775d7fac8d1cb6b8f35fc856ab088a4a69464d65df7188b1393b4fcb2e2",
+      "normalized_sha256": "7b6cc775d7fac8d1cb6b8f35fc856ab088a4a69464d65df7188b1393b4fcb2e2",
+      "previous_normalized_sha256": "7b6cc775d7fac8d1cb6b8f35fc856ab088a4a69464d65df7188b1393b4fcb2e2"
+    },
+    {
+      "path": "extensions/heart_memory_admin.py",
+      "target": "src/services/heart_memory_admin.py",
+      "component": "adapter",
+      "sha256": "e268314573ba6a5ad10aa0eba36a9216ec58c3400a3c49e5f5435448b69b125b",
+      "normalized_sha256": "e268314573ba6a5ad10aa0eba36a9216ec58c3400a3c49e5f5435448b69b125b",
+      "previous_normalized_sha256": null
+    },
+    {
+      "path": "extensions/heart_memory_backend.py",
+      "target": "src/services/heart_memory_backend.py",
+      "component": "adapter",
+      "sha256": "3c50b5fefb82df01cdaabb252333652fa5ea737bfc51a0fa88306405483e7ec1",
+      "normalized_sha256": "3c50b5fefb82df01cdaabb252333652fa5ea737bfc51a0fa88306405483e7ec1",
+      "previous_normalized_sha256": "eb713c67e23553caaad75b2377445787ed5abe5a123c984b8c623f2277ce8e70"
+    },
+    {
+      "path": "extensions/heart_memory_scope.py",
+      "target": "src/services/heart_memory_scope.py",
+      "component": "adapter",
+      "sha256": "b764f4fd8f429bcd5eb74c960b87c77a66c9f7cad9b4143cdc0f6ecb8810e4df",
+      "normalized_sha256": "b764f4fd8f429bcd5eb74c960b87c77a66c9f7cad9b4143cdc0f6ecb8810e4df",
+      "previous_normalized_sha256": "88dfb73879e73a2e4f0299094b0aa8992b22cb8678f6c73ba249e9af4c88d759"
+    },
+    {
+      "path": "reference-maibot/src/services/memory_service.py",
+      "target": "src/services/memory_service.py",
+      "component": "native",
+      "sha256": "ecf079d8307afbca80287b8231417f950e64d7c83d20b88de528a6ac661d4da4",
+      "normalized_sha256": "5bcf466b44dfd009a2db3834ebff2c08128dd46a269bc8825c09459509c616f3",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "bdcde22ee49814e8d2d5b63d78eb81f52c5ca7855c0fc41d1ba5044596827cb8"
+    },
+    {
+      "path": "reference-maibot/src/services/memory_flow_service.py",
+      "target": "src/services/memory_flow_service.py",
+      "component": "native",
+      "sha256": "1305f745bedad496d0f1ee0007da83881d67509c044fd670bae4ea6a7b7f45c1",
+      "normalized_sha256": "4fe090f05e4ce39a25559592d4207324fba228f18b3787028e6bbae6f6787eed",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "6b2b5ca7a4349614ba819195f88c1e77bb741f54a1f4a657d1dc2fda9fe256a3"
+    },
+    {
+      "path": "reference-maibot/src/plugin_runtime/hook_catalog.py",
+      "target": "src/plugin_runtime/hook_catalog.py",
+      "component": "native",
+      "sha256": "b84b912f488bd746a5a94f7dde17ea4caca59232b0b08689e122976baeb3a2aa",
+      "normalized_sha256": "56987c039cc000cd57b6148e6ecadcc37bf1ee8f5800328cf007594d94fd98d6",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "422d1cc4689f27fed7198169a63da35c45780b56d88192f39df6c8105fb0dfc6"
+    },
+    {
+      "path": "reference-maibot/src/plugin_runtime/capabilities/registry.py",
+      "target": "src/plugin_runtime/capabilities/registry.py",
+      "component": "native",
+      "sha256": "af028f4633ea840ba5f2f445778c7a7225978bc6179e7f9e8a87ab58bb4915c8",
+      "normalized_sha256": "816e84248123803c8a7e6ea22a7f7d967dc0d5299319cb1e8f6b830347779ac2",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "2017bc1604dcfdf5c7818cc97ea90ffbe2a8d66e110ce7caf32c8244ef38c24f"
+    },
+    {
+      "path": "reference-maibot/src/plugin_runtime/capabilities/core.py",
+      "target": "src/plugin_runtime/capabilities/core.py",
+      "component": "native",
+      "sha256": "058763ba4ae4e94b333814cc66ea22e6384900b32185029e54357540d6cb2cbf",
+      "normalized_sha256": "ca8d6a8dfea9ac4ce23ff29eff1a458b1d1f7d8a8fd6cdafdfa9126c5c390aec",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "84132ff9365ca13d66aa47c5eb5a2dead66d862b1d2a1f4d15d188235e27ad84"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/memory/person_profile.py",
+      "target": "src/maisaka/memory/person_profile.py",
+      "component": "native",
+      "sha256": "597f0f59e33383df9f64f7972adcf00319818391673c11c5895adb4abec62db5",
+      "normalized_sha256": "9595a60ab3f6098cea6353b7893a10818f4382d2d554c54adcb3d07e24c3f06f",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "192c08e587f64044fe4cfd32676956f56380cb8f273f47f03526cc4af887e329"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/memory/heuristic_injector.py",
+      "target": "src/maisaka/memory/heuristic_injector.py",
+      "component": "native",
+      "sha256": "ede6cbc262695ec58ae230400289ca2be834431f20b6589f3d63d544a11b9c32",
+      "normalized_sha256": "22c536c4461ea3142c2b27d2f835cefe33491290a2583d0287143e84e7dec137",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "b77d62404b34e67558514d4f96dc4813453abf2e68766f6fc109d1b6c8b723b2"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/builtin_tool/query_memory.py",
+      "target": "src/maisaka/builtin_tool/query_memory.py",
+      "component": "native",
+      "sha256": "5ecb977fe5f893b85b01627d223672547cd7e559c3d9471610b756d649396c31",
+      "normalized_sha256": "c7d307494f7e73d3edcd4e33f9becd86581407c212af7f2e554c2187b529fffe",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "4e2a2dfe9310060280369c898d7e7744f3b9707bb62c3c69d49123dfb300c8a5"
+    },
+    {
+      "path": "reference-maibot/src/maisaka/builtin_tool/query_person_profile.py",
+      "target": "src/maisaka/builtin_tool/query_person_profile.py",
+      "component": "native",
+      "sha256": "ba428ed6705fd3d36f1d11f0c869284b2de654409502fa4c79246779e26fdf9b",
+      "normalized_sha256": "104b707c26d2fcc9c8c6a38970e6b58ea36610a4d792e876e665d2d7b972656f",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "77f70a4546986b8776db17900b9198225ab18a1802f6a40ae3a0b3c67d638a06"
+    },
+    {
+      "path": "reference-maibot/src/webui/app.py",
+      "target": "src/webui/app.py",
+      "component": "native",
+      "sha256": "d9f1af531ab76d7004f301991e3c41ccd6bd4d8bd910846c746ac979b3d34cb0",
+      "normalized_sha256": "a035d2b29c0cdf0b3937ac87fe79840d6967c8edf716ad6e75eea5dc9f42547b",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "6feda0ac0ca889eef2947fdfc8af9b6dcf02ec22128af72d672cc1ac361e8ef7"
+    },
+    {
+      "path": "reference-maibot/src/webui/routers/memory.py",
+      "target": "src/webui/routers/memory.py",
+      "component": "native",
+      "sha256": "0b68a8762ab4a219c84c3d645e9a3998696d2d062dee8a6de8955fde9c390156",
+      "normalized_sha256": "49e96870e2dc8cf8d9fe207bdff54b8bb2be90d7239ca4f0d77c94b7551ccf30",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "2d6b70b7b4f03239b0409bc50eb8379d8f8fb072765896e24876be2f56176501"
+    },
+    {
+      "path": "reference-maibot/src/webui/routers/plugin/management.py",
+      "target": "src/webui/routers/plugin/management.py",
+      "component": "native",
+      "sha256": "5724a5c0571873e1786cd68298ab00d0eda772641dbe4dfbce4ffd1fff96f7f4",
+      "normalized_sha256": "7854be70280efa4236e87a2d4bc646cf022bffde1151c63672cfe02448b799d8",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "4a819c66da2e59aa1ce5a119e1c8890ac9ce2e85421b9bbd490e290d636ec063"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/runtime_facade.py",
+      "target": "src/A_memorix/core/runtime/runtime_facade.py",
+      "component": "native",
+      "sha256": "16ab4fc287495957c989f4fc2ae00ac68309c111a6d374e544e664ec8bef1f22",
+      "normalized_sha256": "1c6355ad423ed748310c93e662943d1e27fd7cabcebf0b37e1f1ed82bf532b19",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "c54970573bfb2dc66129d5d577f3a2726dc00226dff402b071c766184fba52b4"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/services/background_task_service.py",
+      "target": "src/A_memorix/core/runtime/services/background_task_service.py",
+      "component": "native",
+      "sha256": "1964a60c8e5e2c89d9955b777c98709b6745e25c7712416afe45139b41c6c03d",
+      "normalized_sha256": "38ab05797e89cc1cb3a42c24b740a962b4b408b2e11d5203d7ea50f89f0578aa",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "7a28c4b0d742ebabd6ade981b302f6bbac0ebbce23a8de5b4f0fe6d5f0c50063"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/services/embedding_state_service.py",
+      "target": "src/A_memorix/core/runtime/services/embedding_state_service.py",
+      "component": "native",
+      "sha256": "07755ed727c31555b2337a19eba183a717a033995bb3930333d7647849037c3a",
+      "normalized_sha256": "628238aad5f3d59ed74302ca5fa7b36ad02cdacdbaa2276824a73b02df750c8e",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "d31cb962f85c1fa17cecfd97af134cf200726a5d3faf93202ee8eb4edb35c73e"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/runtime/services/summary_service.py",
+      "target": "src/A_memorix/core/runtime/services/summary_service.py",
+      "component": "native",
+      "sha256": "38cbf066ca0f87ffd827d06b90b511318333fa39e99f6955a3b0417d3e6ba48e",
+      "normalized_sha256": "888cb910f47b78a0ad0b9ee5f04aa032e5573d1970e8fd4a7d9e3991fab16293",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "ecc5b52edaf35a551a1da8d481f1054acfbf7ad1f49e03568f112226d9b5e192"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/utils/episode_service.py",
+      "target": "src/A_memorix/core/utils/episode_service.py",
+      "component": "native",
+      "sha256": "45f1d8c40f797da7baf6761fd48e80f851cc4dce1bab5e2311a543aa3e2559e6",
+      "normalized_sha256": "e23c7702496ef24a4181ad02989e5c5d8ef041fe60d0641b263a5ae0319b90b8",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "98bfa5f78030f26702885d77c4416f8011a0c1fe17374d72ea411672c99fdcee"
+    },
+    {
+      "path": "reference-maibot/src/A_memorix/core/utils/summary_importer.py",
+      "target": "src/A_memorix/core/utils/summary_importer.py",
+      "component": "native",
+      "sha256": "c33d455a0f852be253189fb5a6d2fef1146afc410e2f578424132de47a71710d",
+      "normalized_sha256": "b389cac4881d2fae944dd10ca42fb473f94a725a7a8359de0c70cc6b8e63ea90",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "a6422ff9b4bdf451198c1b8ca4cc2c489b3b17ebe93a32aeb57cf07566ec8958"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/lib/memory-api.ts",
+      "target": "dashboard/src/lib/memory-api.ts",
+      "component": "dashboard",
+      "sha256": "782e434e10bc421406506cef3a4c702bcbab86d1a2ae5d4def1a82654b8f9b16",
+      "normalized_sha256": "04c0267fe03ab2321467a91c70bf5678009d34f95321ad2181e0217134c8c430",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "f65fa57ed0fb9086bd343d3faf31ca434b6eb5e8f714b0e41397ab9bea4aaefd"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/lib/plugin-api/types.ts",
+      "target": "dashboard/src/lib/plugin-api/types.ts",
+      "component": "dashboard",
+      "sha256": "a701bbf1a520b57a2a6218b4db048e72f6102533d2a3a4e430acd826ca331208",
+      "normalized_sha256": "53ecf6263f7caf5b9ce4effdaca4f5cc4e7e7ffe9059fe0792b3bb4c12aac911",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "6b69239903042ff277bcb072d22a8331cd25c9559726b1226a4a9cbc7c57b824"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/plugin-config/hooks/usePluginList.ts",
+      "target": "dashboard/src/routes/plugin-config/hooks/usePluginList.ts",
+      "component": "dashboard",
+      "sha256": "a3cc9217c8fd3d6a0531e07a4dec7ce6215858fc044847317aeb97e3e9372ad3",
+      "normalized_sha256": "9fe2d50b9524950f4f9202b5653f4c0154169546befcfc7079590da8474dfef7",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "cb17fa8690228993f6dfc258a134a96fbd142b15bf45795b8c6e5ce7fc679800"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/resource/knowledge-base.tsx",
+      "target": "dashboard/src/routes/resource/knowledge-base.tsx",
+      "component": "dashboard",
+      "sha256": "cb0a890a78ad2db6844cf27a57ac86cb3f2bae0b9d8e56c5c12a0a4460d6716f",
+      "normalized_sha256": "b70f54226188ba3a0848d8308d2a2ac1d79e1194d61ee4b5e4aef811ac8ad0fc",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "6a850b04444cb377b48f93fa6715fc0a858a12fc8ad8496a8cba912b82d3221c"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/routes/resource/knowledge-base/tabs/DeleteTab.tsx",
+      "target": "dashboard/src/routes/resource/knowledge-base/tabs/DeleteTab.tsx",
+      "component": "dashboard",
+      "sha256": "2f558c673b0bef1d7f46626e7d2d832f0fd4535c16970fc0652baf3fefc626d3",
+      "normalized_sha256": "4402add27daa055a7f687097b0c4e90304eb3253b5eb589673a94c64989e387d",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": "f2a3b8f45e29b7870e0286965efcddde33e3509679b350a35a9bb6dba24da22a"
+    },
+    {
+      "path": "reference-maibot/dashboard/src/components/memory/HeartMemoryManager.tsx",
+      "target": "dashboard/src/components/memory/HeartMemoryManager.tsx",
+      "component": "dashboard",
+      "sha256": "bacb758cd7c06c8c5f3029f367369ce9cc79ad970517f32384e2a97bf86ec2db",
+      "normalized_sha256": "bacb758cd7c06c8c5f3029f367369ce9cc79ad970517f32384e2a97bf86ec2db",
+      "previous_normalized_sha256": null,
+      "upstream_normalized_sha256": null
+    }
+  ]
+}

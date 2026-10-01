@@ -1,0 +1,166 @@
+--- a/src/services/memory_flow_service.py
++++ b/src/services/memory_flow_service.py
+@@ -93,6 +93,13 @@
+         user_evidence_text = self._format_user_evidence(evidence)
+ 
+         facts = await self._extract_facts(target_person, reply_text, user_evidence_text)
++        # Heart 记录可观察到的提取结果；即使空结果也不能武断归因为“没有价值”。
++        from src.services.heart_memory_backend import record_auto_selection
++
++        await record_auto_selection(
++            getattr(message, "session_id", ""), facts,
++            [getattr(item, "message_id", "") for item in evidence.target_messages],
++        )
+         if not facts:
+             return
+ 
+@@ -132,6 +139,9 @@
+         session_platform = str(getattr(session, "platform", "") or getattr(message, "platform", "") or "").strip()
+         session_user_id = str(getattr(session, "user_id", "") or "").strip()
+         group_id = str(getattr(session, "group_id", "") or "").strip()
++        session_id = str(getattr(message, 'session_id', '') or getattr(session, 'session_id', '') or '')
++        if not session_id:
++            return None
+ 
+         if session_platform and session_user_id and not group_id:
+             if is_bot_self(session_platform, session_user_id):
+@@ -143,7 +153,7 @@
+         reply_to = str(getattr(message, "reply_to", "") or "").strip()
+         if reply_to:
+             try:
+-                replies = find_messages(message_id=reply_to, limit=1)
++                replies = find_messages(session_id=session_id, message_id=reply_to, limit=1)
+             except Exception as exc:
+                 logger.debug(f"查询 reply_to 目标失败: {exc}")
+                 replies = []
+@@ -171,11 +181,11 @@
+         except Exception as exc:
+             logger.debug(f"查询最近用户消息目标失败: {exc}")
+             return None
+-        for candidate in reversed(candidates):
+-            person = self._person_from_user_message(candidate, fallback_platform=session_platform)
+-            if person is not None:
+-                return person
+-        return None
++        for candidate in reversed(candidates):
++            person = self._person_from_user_message(candidate, fallback_platform=session_platform)
++            if person is not None:
++                return person
++        return None
+ 
+     @staticmethod
+     def _person_from_user_message(message: Any, *, fallback_platform: str = "") -> Optional[Person]:
+@@ -206,7 +216,7 @@
+         reply_to = str(getattr(message, "reply_to", "") or "").strip()
+         if reply_to:
+             try:
+-                replies = find_messages(message_id=reply_to, limit=1)
++                replies = find_messages(session_id=session_id, message_id=reply_to, limit=1)
+             except Exception as exc:
+                 logger.debug("查询人物事实 reply_to 证据失败: %s", exc)
+                 replies = []
+@@ -227,10 +237,10 @@
+         except Exception as exc:
+             logger.debug("查询人物事实近期用户证据失败: %s", exc)
+             return PersonFactEvidence(target_messages=[], context_messages=[])
+-        target_messages = self._filter_target_user_messages(candidates, person, seen_ids)
+-        if len(target_messages) > 3:
+-            target_messages = target_messages[-3:]
+-        return PersonFactEvidence(target_messages=target_messages, context_messages=candidates)
++        target_messages = self._filter_target_user_messages(candidates, person, seen_ids)
++        if len(target_messages) > 3:
++            target_messages = target_messages[-3:]
++        return PersonFactEvidence(target_messages=target_messages, context_messages=candidates)
+ 
+     def _collect_context_messages(self, *, session_id: str, trigger_message: Any, limit: int = 8) -> List[Any]:
+         timestamp = self._extract_message_timestamp(trigger_message)
+@@ -360,6 +370,15 @@
+ 严格输出 JSON 数组，例如：
+ ["他喜欢深夜打游戏", "他养了一只猫"]
+ 如果没有可写入的事实，输出 []"""
++        # Heart 只追加可在 WebUI 编辑的筛选原则；原生证据约束和写入算法不变。
++        try:
++            from src.services.heart_memory_backend import memory_selection_guidance
++
++            guidance = memory_selection_guidance().strip()
++            if guidance:
++                prompt += "\n\n补充筛选原则（不得放宽上述证据与归属要求）：" + guidance
++        except ImportError:
++            pass
+         try:
+             if self._extractor is None:
+                 from src.services.llm_service import LLMServiceClient
+@@ -521,6 +540,7 @@
+                 "pending_message_count": pending_message_count,
+                 "trigger_message_count": total_message_count,
+                 "summary_review_count": 2,
++                "evidence_message_ids": [str(getattr(message, 'message_id', '') or '')],
+             },
+             respect_filter=True,
+             user_id=self._extract_session_user_id(message),
+@@ -532,6 +552,9 @@
+             )
+             return
+ 
++        # 成功跳过也必须保存游标，避免重启或删除摘要后重复分析同一批消息。
++        from heart_shared.summary_novelty import save_cursor
++        save_cursor(session_id, total_message_count)
+         state.last_trigger_message_count = total_message_count
+         state.last_trigger_time = time.time()
+         logger.info(
+@@ -553,6 +576,10 @@
+             if metadata_store is None:
+                 return 0
+ 
++            from heart_shared.summary_novelty import load_cursor
++            saved_count = min(total_message_count, load_cursor(session_id))
++            if saved_count > 0:
++                return saved_count
+             paragraphs = metadata_store.get_paragraphs_by_source(f"chat_summary:{session_id}")
+             if not paragraphs:
+                 return 0
+@@ -577,25 +604,25 @@
+         except Exception:
+             return 0.0
+ 
+-    @staticmethod
+-    def _paragraph_metadata(paragraph: dict[str, Any]) -> dict[str, Any]:
+-        metadata = paragraph.get("metadata")
+-        if isinstance(metadata, dict):
+-            return metadata
+-        if isinstance(metadata, (bytes, bytearray)):
+-            try:
+-                metadata = metadata.decode("utf-8")
+-            except Exception:
+-                return {}
+-        if isinstance(metadata, str):
+-            try:
+-                parsed = json.loads(metadata)
+-            except Exception:
+-                return {}
+-            return parsed if isinstance(parsed, dict) else {}
+-        return {}
+-
+-    @staticmethod
++    @staticmethod
++    def _paragraph_metadata(paragraph: dict[str, Any]) -> dict[str, Any]:
++        metadata = paragraph.get("metadata")
++        if isinstance(metadata, dict):
++            return metadata
++        if isinstance(metadata, (bytes, bytearray)):
++            try:
++                metadata = metadata.decode("utf-8")
++            except Exception:
++                return {}
++        if isinstance(metadata, str):
++            try:
++                parsed = json.loads(metadata)
++            except Exception:
++                return {}
++            return parsed if isinstance(parsed, dict) else {}
++        return {}
++
++    @staticmethod
+     def _coerce_positive_int(value: Any) -> int:
+         try:
+             number = int(value or 0)

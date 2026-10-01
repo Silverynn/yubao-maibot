@@ -1,0 +1,190 @@
+--- a/dashboard/src/components/memory/HeartMemoryManager.tsx
++++ b/dashboard/src/components/memory/HeartMemoryManager.tsx
+@@ -0,0 +1,187 @@
++import { useCallback, useEffect, useRef, useState } from 'react'
++
++import { Button } from '@/components/ui/button'
++import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
++import { Textarea } from '@/components/ui/textarea'
++import { useToast } from '@/hooks/use-toast'
++import { backendApi } from '@/lib/http'
++import { getMemoryImportChatTargets, type MemoryImportChatTargetPayload } from '@/lib/memory-api'
++
++const API = '/api/webui/memory/heart'
++interface Candidate {
++  id: number; chat_id: string; name: string; text: string; reason: string
++  evidence: string[]; status: string; created: number
++}
++interface GroupMemory { hash: string; text: string; type: string; created: number; name: string }
++interface Result { success: boolean; message?: string; status?: string }
++interface Preview extends Result { plan_id: string; old_text: string; new_text: string }
++const statusNames: Record<string, string> = {
++  pending: '待审核', written: '已写入原生记忆', ignored: '已拒绝／忽略',
++  skipped: '重复，未新增', conflict_pending: '冲突待本人确认',
++  conflict_cancelled: '本人取消更新', conflict_expired: '本人确认超时', failed: '更新失败，需要核实',
++}
++
++export function HeartMemoryManager({ onChanged }: { onChanged: () => void }) {
++  const { toast } = useToast()
++  const [targets, setTargets] = useState<MemoryImportChatTargetPayload[]>([])
++  const [chat, setChat] = useState('')
++  const [status, setStatus] = useState('pending')
++  const [candidates, setCandidates] = useState<Candidate[]>([])
++  const [memories, setMemories] = useState<GroupMemory[]>([])
++  const [busy, setBusy] = useState(false)
++  const [editor, setEditor] = useState<{ candidate?: Candidate; memory?: GroupMemory } | null>(null)
++  const [deleting, setDeleting] = useState<Candidate | null>(null)
++  const [text, setText] = useState('')
++  const [reason, setReason] = useState('管理员纠正记忆内容')
++  const [preview, setPreview] = useState<Preview | null>(null)
++  const loadVersion = useRef(0)
++  const chatName = (id: string) => targets.find((target) => target.chat_id === id)?.chat_name ?? '未取得会话名称'
++  const report = useCallback((error: unknown) => toast({ title: '操作未完成',
++    description: error instanceof Error ? error.message : String(error), variant: 'destructive' }), [toast])
++
++  const refresh = useCallback(async () => {
++    const version = ++loadVersion.current
++    setBusy(true)
++    setCandidates([])
++    try {
++      const pending = await backendApi.request<{ success: boolean; items: Candidate[] }>('GET',
++        `${API}/candidates?${new URLSearchParams({ chat_id: chat, status })}`)
++      if (version !== loadVersion.current) return
++      setCandidates(pending.items)
++      if (chat) {
++        const stored = await backendApi.request<{ success: boolean; items: GroupMemory[] }>('GET',
++          `${API}/group-memories?${new URLSearchParams({ chat_id: chat })}`)
++        if (version === loadVersion.current) setMemories(stored.items)
++      } else setMemories([])
++    } catch (error) { if (version === loadVersion.current) report(error) }
++    finally { if (version === loadVersion.current) setBusy(false) }
++  }, [chat, status, report])
++
++  useEffect(() => { void getMemoryImportChatTargets().then((data) => setTargets(data.data)).catch(report) }, [report])
++  useEffect(() => { setMemories([]); void refresh(); return () => { loadVersion.current++ } }, [refresh])
++
++  async function review(item: Candidate, approve: boolean, editedText?: string) {
++    setBusy(true)
++    try {
++      const result = await backendApi.request<Result>('POST', `${API}/candidates/${item.id}/review`, {
++        body: { approve, expected_text: item.text, edited_text: editedText },
++      })
++      if (!result.success) throw new Error(result.message ?? '原生系统尚未确认写入')
++      toast({ title: statusNames[result.status ?? ''] ?? '审核已处理', description: result.message })
++      setEditor(null); onChanged(); await refresh()
++    } catch (error) { report(error) } finally { setBusy(false) }
++  }
++
++  async function deleteRecord() {
++    if (!deleting) return
++    setBusy(true)
++    try {
++      const result = await backendApi.request<Result>('POST', `${API}/candidates/${deleting.id}/delete`, {
++        body: { expected_text: deleting.text, confirmed: true },
++      })
++      if (!result.success) throw new Error(result.message ?? '删除未完成')
++      toast({ title: '审核记录已删除', description: result.message })
++      setDeleting(null); await refresh()
++    } catch (error) { report(error) } finally { setBusy(false) }
++  }
++
++  function openEditor(item: { candidate?: Candidate; memory?: GroupMemory }) {
++    setEditor(item); setText((item.candidate ?? item.memory)?.text ?? '')
++    setReason('管理员纠正记忆内容'); setPreview(null)
++  }
++
++  async function previewEdit() {
++    if (!editor?.memory) return
++    setBusy(true)
++    try {
++      const result = await backendApi.request<Preview>('POST', `${API}/group-edit/preview`, {
++        body: { chat_id: chat, paragraph_hash: editor.memory.hash, expected_text: editor.memory.text,
++          new_text: text, reason },
++      })
++      if (!result.success) throw new Error(result.message ?? '预览失败')
++      setPreview(result)
++    } catch (error) { report(error) } finally { setBusy(false) }
++  }
++
++  async function executeEdit() {
++    if (!preview) return
++    setBusy(true)
++    try {
++      const result = await backendApi.request<Result>('POST', `${API}/group-edit/execute`, {
++        body: { plan_id: preview.plan_id, confirmed: true },
++      })
++      if (!result.success) throw new Error(result.message ?? '更新未完整完成，请检查日志')
++      toast({ title: '原生记忆已更新', description: result.message })
++      setEditor(null); onChanged(); await refresh()
++    } catch (error) { report(error) } finally { setBusy(false) }
++  }
++
++  return <div className="space-y-4">
++    <div className="rounded-xl border p-4 space-y-3">
++      <h2 className="text-lg font-semibold">候选审核与群回忆</h2>
++      <p className="text-muted-foreground text-sm">候选尚未进入长期记忆。批准后存入原生库；编辑群回忆也修改原生库，不另存一套正式记忆。管理员审核不等于用户本人确认。</p>
++      <div className="flex flex-wrap gap-3 items-center">
++        <label>群聊范围：<select aria-label="群聊范围" className="bg-background border rounded p-2" disabled={busy} value={chat} onChange={(event) => setChat(event.target.value)}>
++          <option value="">全部会话候选（选择群后查看群回忆）</option>
++          {targets.filter((target) => target.is_group).map((target) => <option key={target.chat_id} value={target.chat_id}>{target.chat_name}</option>)}
++        </select></label>
++        <label>候选状态：<select aria-label="候选状态" className="bg-background border rounded p-2" disabled={busy} value={status} onChange={(event) => setStatus(event.target.value)}>
++          {Object.entries(statusNames).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
++          <option value="">所有状态</option>
++        </select></label>
++        <Button disabled={busy} onClick={() => void refresh()}>{busy ? '正在处理…' : '刷新'}</Button>
++      </div>
++    </div>
++    <section className="space-y-3">
++      <h3 className="font-semibold">候选／审核记录 · {statusNames[status] ?? '所有状态'} · {candidates.length} 条（最多显示50条）</h3>
++      {busy && <p role="status">正在加载所选状态，请稍候…</p>}
++      {!busy && !candidates.length && <p className="text-muted-foreground">此范围与状态下没有候选。确定的事实可能已自动写入，不一定进入候选区。</p>}
++      {candidates.map((item) => <article key={item.id} className="border rounded-xl p-4 space-y-2">
++        <p className="font-medium">#{item.id} · {item.name} · {chatName(item.chat_id)} · {statusNames[item.status] ?? item.status}</p>
++        <p className="text-sm text-muted-foreground">{new Date(item.created * 1000).toLocaleString()} · {item.reason}</p>
++        <p className="whitespace-pre-wrap break-words">拟记住：{item.text}</p>
++        <details><summary className="cursor-pointer">查看原始发言证据</summary><div className="whitespace-pre-wrap text-sm">{item.evidence.length ? item.evidence.join('\n') : '旧候选未保存原文；写入时仍会核实来源'}</div></details>
++        {item.status === 'pending' && <div className="flex gap-2 flex-wrap">
++          <Button disabled={busy} onClick={() => void review(item, true)}>批准原文</Button>
++          <Button variant="outline" disabled={busy} onClick={() => openEditor({ candidate: item })}>编辑后批准</Button>
++          <Button variant="outline" disabled={busy} onClick={() => void review(item, false)}>拒绝收录</Button>
++        </div>}
++        <Button variant="outline" disabled={busy || item.status === 'conflict_pending'} onClick={() => setDeleting(item)}>删除候选／审核记录</Button>
++        {item.status === 'conflict_pending' && <p className="text-sm text-muted-foreground">正在等待本人确认，请先取消或完成冲突处理再删除审核记录。</p>}
++      </article>)}
++    </section>
++    <section className="space-y-3">
++      <h3 className="font-semibold">本群正式回忆（原生长期记忆，最近50条）</h3>
++      <p className="text-sm text-muted-foreground">这一栏是已经保存的正式记忆，不受上方“候选状态”筛选影响。只随选择的群变化。修改需要先预览再确认；删除正式记忆请使用原生“删除”页面。</p>
++      {!chat ? <p>请先选择一个群。</p> : !memories.length ? <p>此群暂无可显示的正式回忆。</p> : memories.map((item) => <article key={item.hash} className="border rounded-xl p-4 space-y-2">
++        <p className="text-sm text-muted-foreground">{item.type === 'person_fact' ? '本群人物事实' : '本群聊天摘要'} · {item.name} · {new Date(item.created * 1000).toLocaleString()}</p>
++        <p className="whitespace-pre-wrap break-words">{item.text}</p>
++        <Button variant="outline" disabled={busy} onClick={() => openEditor({ memory: item })}>修改原生记忆</Button>
++      </article>)}
++    </section>
++    <Dialog open={deleting !== null} onOpenChange={(open) => { if (!open && !busy) setDeleting(null) }}>
++      <DialogContent><DialogHeader><DialogTitle>删除候选／审核记录？</DialogTitle>
++        <DialogDescription>只从审核列表中删除这条记录，保留操作日志。如果内容已写入长期记忆，本操作不会删除它；请到原生“删除”页面处理正式记忆。</DialogDescription></DialogHeader>
++        <p className="whitespace-pre-wrap">{deleting?.text}</p>
++        <DialogFooter><Button variant="outline" disabled={busy} onClick={() => setDeleting(null)}>取消删除</Button>
++          <Button disabled={busy} onClick={() => void deleteRecord()}>确认删除审核记录</Button></DialogFooter>
++      </DialogContent>
++    </Dialog>
++    <Dialog open={editor !== null} onOpenChange={(open) => { if (!open && !busy) setEditor(null) }}>
++      <DialogContent className="max-h-[90vh] overflow-y-auto">
++        <DialogHeader><DialogTitle>{editor?.candidate ? '编辑候选并审核收录' : '修正原生群回忆'}</DialogTitle>
++          <DialogDescription>保留原会话与人物归属；记录管理员操作。自动冲突更新仍需要原用户确认。</DialogDescription></DialogHeader>
++        <p className="whitespace-pre-wrap break-words text-sm">原内容：{(editor?.candidate ?? editor?.memory)?.text}</p>
++        {preview ? <><p className="whitespace-pre-wrap break-words">新内容：{preview.new_text}</p><p className="text-sm">{preview.message}</p></> : <>
++          <label>新内容<Textarea aria-label="新内容" maxLength={2000} disabled={busy} value={text} onChange={(event) => setText(event.target.value)} /></label>
++          {editor?.memory && <label>修改原因<Textarea aria-label="修改原因" maxLength={500} disabled={busy} value={reason} onChange={(event) => setReason(event.target.value)} /></label>}
++        </>}
++        <DialogFooter><Button variant="outline" disabled={busy} onClick={() => setEditor(null)}>取消</Button>
++          {editor?.candidate ? <Button disabled={busy || !text.trim()} onClick={() => editor.candidate && void review(editor.candidate, true, text)}>批准修改后的内容</Button>
++            : preview ? <Button disabled={busy} onClick={() => void executeEdit()}>确认修改原生记忆</Button>
++              : <Button disabled={busy || !text.trim() || !reason.trim()} onClick={() => void previewEdit()}>预览新旧内容</Button>}
++        </DialogFooter>
++      </DialogContent>
++    </Dialog>
++  </div>
++}

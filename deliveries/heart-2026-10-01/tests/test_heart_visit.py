@@ -1,0 +1,107 @@
+"""Browser re-entry must not inherit invisible chat context or temporary emotion."""
+import json
+import importlib.util
+import sys
+import unittest
+import uuid
+
+from test_heart_mood import ROOT
+from heart_shared.storage import AuditStore
+
+sys.path.insert(0, str(ROOT / 'vtuber'))
+from heart_bridge import HeartBridge
+from maibot_client import visit_user_id
+
+
+class Live2DVisitTests(unittest.TestCase):
+    def test_installer_adds_visit_hooks_once(self):
+        source = ROOT / 'vtuber/scripts/install_heart_bridge.py'
+        spec = importlib.util.spec_from_file_location('heart_bridge_installer', source)
+        installer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(installer)
+        stage = ROOT / '.runtime/test-data' / uuid.uuid4().hex
+        contents = {
+            'src/open_llm_vtuber/server.py': '        self.app = FastAPI(title="Open-LLM-VTuber Server")  # Added title for clarity\n        # It will be populated during the initialize method call\n',
+            'src/open_llm_vtuber/websocket_handler.py': '            await self._send_initial_messages(\n',
+            'src/open_llm_vtuber/conversations/single_conversation.py': '        batch_input = create_batch_input(\n',
+            'frontend/index.html': '<body></body>\n',
+            'heart_bridge.py':'# test\n',
+            'expression_catalog.py':'# test\n',
+            'frontend/heart-avatar.mjs':'// test\n',
+            'frontend/heart-controller.mjs':'// test\n',
+        }
+        for relative, content in contents.items():
+            target = stage / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding='utf-8')
+        installer.apply(stage)
+        installer.apply(stage)
+        self.assertEqual((stage/'src/open_llm_vtuber/websocket_handler.py').read_text(encoding='utf-8').count(
+            'begin_visit(client_uid, model_provider='), 1)
+        self.assertEqual((stage/'src/open_llm_vtuber/server.py').read_text(encoding='utf-8').count(
+            'model_provider=lambda: self.default_context_cache.live2d_model'),1)
+        self.assertEqual((stage/'src/open_llm_vtuber/conversations/single_conversation.py').read_text(encoding='utf-8').count(
+            '"heart_client_uid": client_uid'), 1)
+
+    def test_each_browser_visit_has_a_distinct_private_identity(self):
+        first = '11111111-1111-4111-8111-111111111111'
+        second = '22222222-2222-4222-8222-222222222222'
+        self.assertNotEqual(visit_user_id(first), visit_user_id(second))
+        self.assertEqual(visit_user_id(first), 'vtuber_visit_' + first.replace('-', ''))
+        with self.assertRaises(ValueError):
+            visit_user_id('../../qq_private')
+
+    def test_reentry_ends_old_temporary_emotion_but_not_qq(self):
+        first = '11111111-1111-4111-8111-111111111111'
+        second = '22222222-2222-4222-8222-222222222222'
+        store = AuditStore(ROOT / '.runtime/test-data' / uuid.uuid4().hex)
+        with self.subTest(visit='reentry'):
+            with store.connect() as db:
+                for session, user, platform in (
+                    ('old-live', 'webui_user_' + visit_user_id(first), 'webui'),
+                    ('qq-chat', 'qq_person', 'qq'),
+                ):
+                    store.save_message(db, {'session_id':session, 'message_id':'m1',
+                        'processed_plain_text':'测试对话', 'message_info':{
+                            'platform':platform, 'user_info':{
+                                'user_id':user, 'user_nickname':'测试访客'}}})
+                    emotion = {'active':True, 'label':'疑惑', 'intensity':.7, 'topic':'旧话题'}
+                    db.execute('INSERT INTO emotions VALUES(?,?)',
+                               (session, json.dumps(emotion, ensure_ascii=False)))
+                db.execute('INSERT INTO avatar_views VALUES(?,?)', ('old-live', json.dumps({
+                    'revision':'r1', 'enabled':True, 'value':80, 'band':'开心',
+                    'active':True, 'label':'疑惑', 'intensity':.7, 'topic':'旧话题',
+                    'expression':'问号'})))
+            bridge = HeartBridge(store, ['问号','平静'])
+            bridge.begin_visit(second)
+            self.assertFalse(bridge.state()['ready'], 'new page cannot see old mood or chat')
+            with store.connect() as db:
+                self.assertFalse(store.emotion_snapshot(db, 'old-live')['active'])
+                self.assertTrue(store.emotion_snapshot(db, 'qq-chat')['active'])
+                events = [row[0] for row in db.execute(
+                    "SELECT kind FROM events WHERE session='old-live' ORDER BY seq")]
+                self.assertIn('临时情绪结束', events)
+            readable = next((store.root/'logs/Live2D').glob('*.txt')).read_text(encoding='utf-8-sig')
+            self.assertIn('网页重新进入', readable)
+            with store.connect() as db:
+                store.save_message(db, {'session_id':'new-live', 'message_id':'m2',
+                    'processed_plain_text':'新网页的话题', 'message_info':{
+                        'platform':'webui', 'user_info':{
+                            'user_id':'webui_user_' + visit_user_id(second),
+                            'user_nickname':'测试访客'}}})
+                db.execute('INSERT INTO avatar_views VALUES(?,?)', ('new-live', json.dumps({
+                    'revision':'r2', 'enabled':True, 'value':60, 'band':'平静',
+                    'active':False, 'label':'无', 'intensity':0, 'topic':'',
+                    'expression':'平静'})))
+                self.assertEqual(db.execute(
+                    "SELECT channel FROM session_sources WHERE session='new-live'").fetchone()[0], 'Live2D')
+            self.assertEqual(bridge.state()['value'], 60)
+            self.assertFalse(bridge.state()['active'])
+            bridge.begin_visit(second)
+            with store.connect() as db:
+                self.assertEqual(db.execute(
+                    "SELECT count(*) FROM events WHERE kind='临时情绪结束' AND session='old-live'").fetchone()[0], 1)
+
+
+if __name__ == '__main__':
+    unittest.main()
