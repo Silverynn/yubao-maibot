@@ -1,0 +1,35 @@
+--- a/src/config/model_configs.py
++++ b/src/config/model_configs.py
+@@ -156,6 +156,16 @@
+         },
+     )
+     """工具参数解析模式。可选值：`auto`、`strict`、`repair`、`double_decode`。"""
++
++    trust_env: bool = Field(
++        default=True,
++        json_schema_extra={
++            "x-widget": "switch",
++            "advanced": True,
++            "label": {"zh_CN": "使用系统代理", "en_US": "Use system proxy", "ja_JP": "システムプロキシを使用"},
++        },
++    )
++    """OpenAI 兼容客户端及管理页探测是否采用系统/环境代理。关闭时直连，也不读取环境中的 TLS 设置；其他服务商默认保持原行为。"""
+ 
+     max_retry: int = Field(
+         default=3,
+@@ -429,10 +439,11 @@
+         default_factory=TaskConfig,
+         json_schema_extra={
+             "x-widget": "custom",
+-            "advanced": True,
+-        },
+-    )
+-    """记忆模型配置，用于长期记忆总结、抽取、写回等高记忆任务；留空时由调用方按需回退"""
++            "advanced": False,
++            "label": {"zh_CN": "记忆流模型 (memory)", "en_US": "Memory flow model (memory)", "ja_JP": "記憶フローモデル (memory)"},
++        },
++    )
++    """聊天摘要等记忆任务使用的模型；auto优先选择本任务，留空则按调用方规则回退。人物事实提取、冲突判断和心情等仍使用各自任务配置，不随此项自动切换。"""
+ 
+     mid_memory: TaskConfig = Field(
+         default_factory=TaskConfig,

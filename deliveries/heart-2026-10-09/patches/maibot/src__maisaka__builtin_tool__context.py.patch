@@ -1,0 +1,42 @@
+--- a/src/maisaka/builtin_tool/context.py
++++ b/src/maisaka/builtin_tool/context.py
+@@ -152,7 +152,7 @@
+         """沿用旧回复链的文本后处理，执行分段与错别字注入。"""
+ 
+         if skip_post_process:
+-            return [reply_text]
++            return [reply_text] if reply_text.strip() else []
+ 
+         processed_segments: List[str] = []
+         for segment in process_llm_response(
+@@ -164,9 +164,7 @@
+             if normalized_segment:
+                 processed_segments.append(normalized_segment)
+ 
+-        if processed_segments:
+-            return processed_segments
+-        return [reply_text.strip()]
++        return processed_segments
+ 
+     @staticmethod
+     def post_process_reply_segments(
+@@ -179,7 +177,7 @@
+         """执行文本后处理，并保留错别字纠正段的引用提示。"""
+ 
+         if skip_post_process:
+-            return [ProcessedResponseSegment(reply_text.strip())]
++            return [ProcessedResponseSegment(reply_text.strip())] if reply_text.strip() else []
+ 
+         processed_segments: List[ProcessedResponseSegment] = []
+         for segment in process_llm_response_segments(
+@@ -196,9 +194,7 @@
+                     )
+                 )
+ 
+-        if processed_segments:
+-            return processed_segments
+-        return [ProcessedResponseSegment(reply_text.strip())]
++        return processed_segments
+ 
+     async def post_process_reply_message_items_async(
+         self,

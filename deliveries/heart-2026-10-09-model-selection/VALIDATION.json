@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-09",
+  "model_selection_checks": 55,
+  "installation_checks": 14,
+  "patch_apply_checks": 10,
+  "paid_llm_calls": 0,
+  "real_qq_messages_sent": 0,
+  "bot_started": false,
+  "partner_machine_tested": false,
+  "scope": "实际Schema/请求路由/两类judge的隔离执行，模拟模型；临时虚构目录10文件升级、拒绝冲突、写失败回退与幂等",
+  "old_delivery_preserved": true,
+  "existing_voice_config_preserved": true,
+  "limitations": [
+    "不同宿主或伙伴修改需按baseline与patch合并",
+    "已选模型的实际可用性及结构化输出质量需现场验收"
+  ]
+}

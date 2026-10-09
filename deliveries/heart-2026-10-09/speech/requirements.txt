@@ -1,0 +1,8 @@
+# 仅在明确选用本包的可选SenseVoice服务时，于隔离环境安装。
+aiohttp>=3.9,<4
+fastapi>=0.110,<1
+uvicorn>=0.29,<1
+python-multipart>=0.0.9
+numpy>=1.26,<2
+soundfile>=0.12,<1
+sherpa-onnx>=1.10.46,<2

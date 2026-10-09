@@ -1,0 +1,433 @@
+--- a/src/chat/utils/utils.py
++++ b/src/chat/utils/utils.py
+@@ -277,186 +277,83 @@
+ 
+ 
+ def split_into_sentences_w_remove_punctuation(text: str) -> list[str]:
+-    """将文本分割成句子，并根据概率合并
+-    1. 识别分割点（, ， 。 ; 空格），但如果分割点左右都是英文字母则不分割。
+-    2. 将文本分割成 (内容, 分隔符) 的元组。
+-    3. 根据原始文本长度计算合并概率，概率性地合并相邻段落。
+-    注意：此函数假定颜文字已在上层被保护。
+-    Args:
+-        text: 要分割的文本字符串 (假定颜文字已被保护)
+-    Returns:
+-        List[str]: 分割和合并后的句子列表
+-    """
+-    # 预处理：处理多余的换行符
+-    # 1. 将连续的换行符替换为单个换行符（保留换行符用于分割）
+-    text = re.sub(r"\n\s*\n+", "\n", text)
+-    # 2. 处理换行符和其他分隔符的组合（保留换行符，删除其他分隔符）
+-    text = re.sub(r"\n\s*([，,。;\s])", r"\n\1", text)
+-    text = re.sub(r"([，,。;\s])\s*\n", r"\1\n", text)
+-
+-    # 处理两个汉字中间的换行符（保留换行符，不替换为句号，让换行符强制分割）
+-    # text = re.sub(r"([\u4e00-\u9fff])\n([\u4e00-\u9fff])", r"\1。\2", text)  # 注释掉，保留换行符用于分割
+-
+-    len_text = len(text)
+-    if len_text < 3:
+-        return list(text) if random.random() < 0.01 else [text]
+-
+-    # 先标记哪些位置位于成对引号内部，避免在引号内部进行句子分割
+-    # 支持的引号包括：中英文单/双引号和常见中文书名号/引号
+-    quote_chars = {
+-        '"',
+-        "'",
+-        "“",
+-        "”",
+-        "‘",
+-        "’",
+-        "「",
+-        "」",
+-        "『",
+-        "』",
++    """按完整句子或显式换行分段，保留正文、标点及段间空白。
++
++    兼容旧函数名；逗号和普通空格不是消息边界，不再随机拆分/合并。
++    引号、括号内部和英文缩写/小数/网址中的句点不作为句子边界。
++    """
++    if not text or not text.strip():
++        return []
++    text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
++    pairs = {
++        "“": "”", "‘": "’", "「": "」", "『": "』",
++        "（": "）", "(": ")", "[": "]", "【": "】",
+     }
+-    inside_quote = [False] * len_text
+-    in_quote = False
+-    current_quote_char = ""
+-    for idx, ch in enumerate(text):
+-        if ch in quote_chars:
+-            # 遇到引号时切换状态（英文引号本身开闭相同，用同一个字符表示）
+-            if not in_quote:
+-                in_quote = True
+-                current_quote_char = ch
+-                inside_quote[idx] = False
+-            else:
+-                # 只有遇到同一类引号才视为关闭
+-                if ch == current_quote_char or ch in {'"', "'"} and current_quote_char in {'"', "'"}:
+-                    in_quote = False
+-                    current_quote_char = ""
+-                inside_quote[idx] = False
+-        else:
+-            inside_quote[idx] = in_quote
+-
+-    # 定义分隔符（包含换行符）
+-    separators = {"，", ",", " ", "。", ";", "\n"}
+-    segments = []
+-    current_segment = ""
+-
+-    # 1. 分割成 (内容, 分隔符) 元组
+-    i = 0
+-    while i < len(text):
+-        char = text[i]
+-        if char in separators:
+-            # 引号内部一律不作为分割点（包括换行）
+-            if inside_quote[i]:
+-                can_split = False
+-            else:
+-                # 换行符在不在引号内时都强制分割
+-                if char == "\n":
+-                    can_split = True
+-                else:
+-                    # 检查分割条件
+-                    can_split = True
+-                    # 检查分隔符左右是否有冒号（中英文），如果有则不分割
+-                    if i > 0:
+-                        prev_char = text[i - 1]
+-                        if prev_char in {":", "："}:
+-                            can_split = False
+-                    if i < len(text) - 1:
+-                        next_char = text[i + 1]
+-                        if next_char in {":", "："}:
+-                            can_split = False
+-
+-                    # 如果左右没有冒号，再检查空格的特殊情况
+-                    if can_split and char == " " and i > 0 and i < len(text) - 1:
+-                        prev_char = text[i - 1]
+-                        next_char = text[i + 1]
+-                        dash_chars = {"-", "—"}
+-                        if prev_char in dash_chars or next_char in dash_chars:
+-                            can_split = False
+-                        else:
+-                            # 不分割数字和数字、数字和英文、英文和数字、英文和英文之间的空格
+-                            prev_is_alnum = prev_char.isdigit() or is_english_letter(prev_char)
+-                            next_is_alnum = next_char.isdigit() or is_english_letter(next_char)
+-                            if prev_is_alnum and next_is_alnum:
+-                                can_split = False
+-
+-            if can_split:
+-                # 只有当当前段不为空时才添加
+-                if current_segment:
+-                    segments.append((current_segment, char))
+-                # 如果当前段为空，但分隔符是空格或换行符，则也添加一个空段（保留分隔符）
+-                elif char in {" ", "\n"}:
+-                    segments.append(("", char))
+-                current_segment = ""
+-            else:
+-                # 不分割，将分隔符加入当前段
+-                current_segment += char
+-        else:
+-            current_segment += char
+-        i += 1
+-
+-    # 添加最后一个段（没有后续分隔符）
+-    if current_segment:
+-        segments.append((current_segment, ""))
+-
+-    # 过滤掉完全空的段（内容和分隔符都为空）
+-    segments = [(content, sep) for content, sep in segments if content or sep]
+-
+-    # 如果分割后为空（例如，输入全是分隔符且不满足保留条件），恢复颜文字并返回
+-    if not segments:
+-        return [text] if text else []  # 如果原始文本非空，则返回原始文本（可能只包含未被分割的字符或颜文字占位符）
+-
+-    # 2. 概率合并
+-    if len_text < 12:
+-        split_strength = 0.2
+-    elif len_text < 32:
+-        split_strength = 0.6
+-    else:
+-        split_strength = 0.7
+-    # 合并概率与分割强度相反
+-    merge_probability = 1.0 - split_strength
+-
+-    merged_segments = []
+-    idx = 0
+-    while idx < len(segments):
+-        current_content, current_sep = segments[idx]
+-
+-        # 检查是否可以与下一段合并
+-        # 条件：不是最后一段，且随机数小于合并概率，且当前段有内容（避免合并空段）
++    quote_stack: list[str] = []
++    boundaries = {"。", "！", "？", "!", "?", "；", ";"}
++    url_positions: set[int] = set()
++    for match in re.finditer(r"https?://[^\s，。！？；]+", text):
++        # 网址中的 ?、; 是地址的一部分，尾部的英文句读仍属于正文。
++        address = match.group().rstrip(".,;!?")
++        url_positions.update(range(match.start(), match.start() + len(address)))
++    protected_positions = {position for start, end in _reply_structured_spans(text) for position in range(start, end)}
++    sentences: list[str] = []
++    buffer = ""
++    index = 0
++
++    while index < len(text):
++        char = text[index]
++        buffer += char
++        # 列表编号和代码里的句点不能当作句末；整块内容原样进入后续合并。
++        if index in protected_positions:
++            if index + 1 not in protected_positions and buffer.strip():
++                sentences.append(buffer)
++                buffer = ""
++            index += 1
++            continue
++        if quote_stack and char == quote_stack[-1]:
++            quote_stack.pop()
++        elif char in pairs:
++            quote_stack.append(pairs[char])
++        elif char in {'"', "'", "`"}:
++            # don't / user's 中的撇号不能让后面的正文永久处于引号内。
++            apostrophe = (
++                char == "'" and index > 0 and index + 1 < len(text)
++                and is_english_letter(text[index - 1]) and is_english_letter(text[index + 1])
++            )
++            if not apostrophe:
++                quote_stack.append(char)
++
++        # 英文句点只在其后为空白或文本结尾时断句；保护3.14、文件名和网址。
++        abbreviation = re.search(
++            r"\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|vs|etc|[A-Za-z]|(?:[A-Za-z]\.)+[A-Za-z])\.$",
++            buffer, re.IGNORECASE,
++        )
++        period_boundary = (
++            char == "." and not abbreviation
++            and (index + 1 == len(text) or text[index + 1].isspace())
++        )
+         if (
+-            idx + 1 < len(segments)
+-            and current_content
+-            and current_sep != "\n"
+-            and random.random() < merge_probability
++            not quote_stack and index not in url_positions
++            and (char in boundaries or char == "\n" or period_boundary)
+         ):
+-            next_content, next_sep = segments[idx + 1]
+-            # 合并: (内容1 + 分隔符1 + 内容2, 分隔符2)
+-            # 只有当下一段也有内容时才合并文本，否则只传递分隔符
+-            if next_content:
+-                merged_content = current_content + current_sep + next_content
+-                merged_segments.append((merged_content, next_sep))
+-            else:  # 下一段内容为空，只保留当前内容和下一段的分隔符
+-                merged_segments.append((current_content, next_sep))
+-
+-            idx += 2  # 跳过下一段，因为它已被合并
+-        else:
+-            # 不合并，直接添加当前段
+-            merged_segments.append((current_content, current_sep))
+-            idx += 1
+-
+-    # 提取最终的句子内容
+-    final_sentences = [content for content, sep in merged_segments if content]  # 只保留有内容的段
+-
+-    # 清理可能引入的空字符串和仅包含空白的字符串
+-    final_sentences = [
+-        s for s in final_sentences if s.strip()
+-    ]  # 过滤掉空字符串以及仅包含空白（如换行符、空格）的字符串
+-    final_sentences = [
+-        normalized_sentence
+-        for sentence in final_sentences
+-        if (normalized_sentence := re.sub(r"[^\S\r\n]*[\r\n]+[^\S\r\n]*", " ", sentence).strip())
+-    ]
+-
+-    logger.debug(f"分割并合并后的句子: {final_sentences}")
+-    return final_sentences
++            # 连续问号/句号等附在当前句尾，不产生只有标点的下一条消息。
++            while index + 1 < len(text) and text[index + 1] in boundaries | {"."}:
++                index += 1
++                buffer += text[index]
++            if buffer.strip():
++                sentences.append(buffer)
++            elif sentences:
++                sentences[-1] += buffer
++            buffer = ""
++        index += 1
++
++    if buffer.strip():
++        sentences.append(buffer)
++    elif sentences:
++        sentences[-1] += buffer
++    logger.debug(f"按完整句子分段后的文本: {sentences}")
++    return sentences
+ 
+ 
+ def merge_sentences_to_max_count(sentences: list[str], max_count: int) -> list[str]:
+@@ -524,30 +421,109 @@
+ 
+ 
+ def random_remove_punctuation(text: str) -> str:
+-    """随机处理标点符号，模拟人类打字习惯
+-
+-    Args:
+-        text: 要处理的文本
+-
+-    Returns:
+-        str: 处理后的文本
+-    """
++    """兼容旧调用，原样保留文本，避免随机删除或替换标点。"""
++    return text
++
++
++def _reply_structured_spans(text: str) -> list[tuple[int, int]]:
++    """识别应保持整体版式的代码块、列表和多行引用。"""
++
++    spans: list[tuple[int, int]] = []
++    for match in re.finditer(r"(?ms)^[ \t]*(?P<fence>`{3,}|~{3,})[^\n]*\n.*?(?:^[ \t]*(?P=fence)[ \t]*(?=\n|$)|\Z)", text):
++        spans.append(match.span())
++    for match in re.finditer(r'(?s)“.*?”|「.*?」|『.*?』|"[^"\n]*\n[^"]*"', text):
++        if "\n" in match.group():
++            spans.append(match.span())
++    lines = list(re.finditer(r"[^\n]+(?:\n|$)|\n", text))
++    marker = re.compile(r"^[ \t]*(?:\d+[.)、](?:[ \t]+|(?=[一-鿿]))|[-+*•][ \t]+|>[ \t]?)")
++    index = 0
++    while index < len(lines):
++        if not marker.match(lines[index].group()):
++            index += 1
++            continue
++        start = lines[index].start()
++        end = lines[index].end()
++        if index and lines[index - 1].group().rstrip().endswith(("：", ":")):
++            start = lines[index - 1].start()
++        index += 1
++        while index < len(lines):
++            line = lines[index].group()
++            continuation = bool(line.strip()) and (line.startswith("  ") or line.startswith("\t"))
++            blank_between_items = not line.strip() and index + 1 < len(lines) and marker.match(lines[index + 1].group())
++            if not (marker.match(line) or continuation or blank_between_items):
++                break
++            end = lines[index].end()
++            index += 1
++        spans.append((start, end))
++    merged: list[tuple[int, int]] = []
++    for start, end in sorted(spans):
++        if merged and start < merged[-1][1]:
++            merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
++        else:
++            merged.append((start, end))
++    return merged
++
++
++def _flatten_reply_prose(text: str) -> str:
++    """普通聊天合并到一行，保留已有句内标点与英文词间空格。"""
++
+     result = ""
+-    text_len = len(text)
+-
+-    for i, char in enumerate(text):
+-        if char == "。" and i == text_len - 1:  # 结尾的句号
+-            if random.random() > 0.1:  # 90%概率删除结尾句号
+-                continue
+-        elif char == "，":
+-            rand = random.random()
+-            if rand < 0.05:  # 5%概率删除逗号
+-                continue
+-            elif rand < 0.25:  # 20%概率把逗号变成空格
+-                result += " "
+-                continue
+-        result += char
++    for line in text.split("\n"):
++        line = line.strip()
++        if not line:
++            continue
++        if result:
++            unquoted_tail = result.rstrip("”’」』）》】\"'")
++            if unquoted_tail and unquoted_tail[-1] in "。！？!?；;：:，,、….":
++                separator = " " if ord(result[-1]) < 128 else ""
++            elif ord(result[-1]) < 128 and ord(line[0]) < 128:
++                separator = " "
++            else:
++                separator = "。"
++            result += separator
++        result += line
+     return result
++
++
++def _format_reply_display_text(text: str) -> str:
++    """方案B：普通消息不换行，只去气泡末尾句号，结构化内容保持版式。"""
++
++    normalized = text.replace("\r\n", "\n").replace("\r", "\n").strip()
++    pieces: list[tuple[str, bool]] = []
++    offset = 0
++    for start, end in _reply_structured_spans(normalized):
++        raw_prose = normalized[offset:start]
++        prose = _flatten_reply_prose(raw_prose)
++        if prose:
++            if pieces and raw_prose.startswith("\n") and not pieces[-1][0].endswith("\n"):
++                prose = "\n" + prose
++            if raw_prose.endswith("\n"):
++                prose += "\n"
++            pieces.append((prose, False))
++        elif pieces and "\n" in raw_prose and not pieces[-1][0].endswith("\n"):
++            pieces.append(("\n", True))
++        block = normalized[start:end]
++        if block.strip():
++            pieces.append((block, True))
++        offset = end
++    raw_prose = normalized[offset:]
++    prose = _flatten_reply_prose(raw_prose)
++    if prose:
++        if pieces and raw_prose.startswith("\n") and not pieces[-1][0].endswith("\n"):
++            prose = "\n" + prose
++        pieces.append((prose, False))
++    if pieces and not pieces[-1][1]:
++        body = pieces[-1][0]
++        abbreviation = re.search(
++            r"\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|vs|etc|[A-Za-z]|(?:[A-Za-z]\.)+[A-Za-z])\.$",
++            body, re.IGNORECASE,
++        )
++        final_url = re.search(r"https?://[^\s]+$", body)
++        if (body.endswith("。") and not body.endswith("。。")
++                or body.endswith(".") and not body.endswith("..") and not abbreviation and not final_url):
++            body = body[:-1].rstrip()
++        pieces[-1] = (body, False)
++    return "".join(piece for piece, _ in pieces).strip()
+ 
+ 
+ def _get_random_default_reply() -> str:
+@@ -571,8 +547,11 @@
+ ) -> list[ProcessedResponseSegment]:
+     """处理回复文本，并保留错别字纠正消息的引用提示。"""
+ 
++    if not text or not text.strip():
++        return []
+     if not global_config.response_post_process.enable_response_post_process:
+-        return [ProcessedResponseSegment(text)]
++        display_text = _format_reply_display_text(text)
++        return [ProcessedResponseSegment(display_text)] if display_text else []
+ 
+     # 先保护颜文字
+     if global_config.response_splitter.enable_kaomoji_protection:
+@@ -649,6 +628,8 @@
+ 
+     segments = _merge_processed_segments_to_max_count(segments, max_split_num)
+ 
++    # 消息分段只决定发送边界，不能删除边界处的逗号、分号或句号。
++
+     # if extracted_contents:
+     #     for content in extracted_contents:
+     #         sentences.append(content)
+@@ -664,7 +645,14 @@
+             for segment, recovered_text in zip(segments, recovered_sentences, strict=True)
+         ]
+ 
+-    return segments
++    # 合并、错字和颜文字恢复完成后才整理显示，保留引用纠正等发送元数据。
++    display_segments: list[ProcessedResponseSegment] = []
++    for segment in segments:
++        display_text = _format_reply_display_text(segment.text)
++        if display_text:
++            display_segments.append(ProcessedResponseSegment(display_text, quote_previous=segment.quote_previous))
++    logger.debug(f"清理空行和句末句号后的文本: {[segment.text for segment in display_segments]}")
++    return display_segments
+ 
+ 
+ def process_llm_response(text: str, enable_splitter: bool = True, enable_chinese_typo: bool = True) -> list[str]:

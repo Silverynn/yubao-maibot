@@ -1,0 +1,4 @@
+--- /dev/null
++++ b/plugins/sensevoice-stt/requirements.txt
+@@ -0,0 +1 @@
++aiohttp>=3.9.0

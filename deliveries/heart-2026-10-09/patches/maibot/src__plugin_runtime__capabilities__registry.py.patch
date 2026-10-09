@@ -1,0 +1,18 @@
+--- a/src/plugin_runtime/capabilities/registry.py
++++ b/src/plugin_runtime/capabilities/registry.py
+@@ -2,6 +2,7 @@
+ 
+ from src.common.logger import get_logger
+ from src.plugin_runtime.host.capability_service import CapabilityImpl
++from src.services.heart_realtime import capability as realtime_capability
+ from src.services.heart_memory_backend import resolve_capability
+ from src.services.heart_memory_backend import candidates_capability, manual_capability, manage_capability
+ 
+@@ -25,6 +26,7 @@
+         """
+         cap_service.register_capability(name, impl)
+ 
++    _register("heart.realtime", realtime_capability)
+     _register("heart.memory.resolve", resolve_capability)
+     _register("heart.memory.manual", manual_capability)
+     _register("heart.memory.candidates", candidates_capability)

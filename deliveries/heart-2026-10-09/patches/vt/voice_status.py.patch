@@ -1,0 +1,29 @@
+--- /dev/null
++++ b/voice_status.py
+@@ -0,0 +1,26 @@
++"""只检查用户明确配置的本机健康接口；现有声音未接探针时不伪报故障。"""
++from urllib.parse import urlsplit
++import os
++import httpx
++
++async def local_service_status(kind):
++    if kind not in {'VOICE','ASR'}:raise ValueError('unknown service')
++    url=os.environ.get('HEART_'+kind+'_HEALTH_URL','').strip()
++    if not url:
++        return {'state':'external','ready':None,'message':'沿用现有语音包，未接健康探针；请以实际录音/播放验证'}
++    parsed=urlsplit(url)
++    if (parsed.scheme not in {'http','https'} or parsed.hostname not in {'localhost','127.0.0.1','::1'}
++            or parsed.username or parsed.password or parsed.fragment):
++        return {'state':'unavailable','ready':False,'message':'健康地址必须是无鉴权信息的本机HTTP(S)地址'}
++    try:
++        async with httpx.AsyncClient(timeout=1.5,trust_env=False,follow_redirects=False) as client:
++            response=await client.get(url);response.raise_for_status();data=response.json()
++        if not isinstance(data,dict) or type(data.get('ready')) is not bool:
++            return {'state':'external','ready':None,'message':'接口没有标准ready字段，需适配现有语音包'}
++        if not data['ready']:return {'state':'loading','ready':False}
++        return {'state':'busy' if data.get('available') is False else 'ready','ready':True}
++    except (httpx.HTTPError,ValueError):
++        return {'state':'unavailable','ready':False}
++
++async def local_voice_status():
++    return await local_service_status('VOICE')

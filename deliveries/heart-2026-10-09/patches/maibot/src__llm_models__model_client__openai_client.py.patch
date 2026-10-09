@@ -1,0 +1,20 @@
+--- a/src/llm_models/model_client/openai_client.py
++++ b/src/llm_models/model_client/openai_client.py
+@@ -10,7 +10,7 @@
+ from uuid import uuid4
+ 
+ from json_repair import repair_json
+-from openai import APIConnectionError, APIStatusError, AsyncOpenAI, AsyncStream
++from openai import APIConnectionError, APIStatusError, AsyncOpenAI, AsyncStream, DefaultAsyncHttpxClient
+ from openai._types import FileTypes, Omit, omit
+ from openai.types.chat import (
+     ChatCompletion,
+@@ -1365,6 +1365,8 @@
+             organization=api_provider.organization,
+             project=api_provider.project,
+             base_url=client_config.base_url,
++            # 按服务商决定网络路径，保留 SDK 自带的连接池和重定向默认值。
++            http_client=None if api_provider.trust_env else DefaultAsyncHttpxClient(trust_env=False),
+             timeout=api_provider.timeout,
+             max_retries=api_provider.max_retry,
+             default_headers=client_config.default_headers or None,

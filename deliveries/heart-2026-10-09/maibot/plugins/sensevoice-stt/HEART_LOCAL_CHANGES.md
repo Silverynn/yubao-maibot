@@ -1,0 +1,8 @@
+# 本机安装分支 0.3.1
+来源：https://github.com/DMJXMJ/maibot-sensevoice-stt （保留原MIT许可和Git历史）
+复用已有VT Python和CPU/int8 SenseVoice服务，端口12395；只允许本机HTTP。
+QQ语音在原生before_process转文字；无语音输出能力。
+增加Heart识别审计：原生session/message编号、来源、时长、耗时、文字、成功/失败/取消。
+一次20秒请求，不重复推理；失败发文字回执并中止AI处理；临时录音清理。
+最多4段、12MiB、90秒；服务全局串行推理，不重复加载模型。
+上游更新可能覆盖本机改动，请先备份再合并。

@@ -1,0 +1,205 @@
+// 平台级交互提示和回执，不依赖形象名称、参数或表情文件。
+export class DialogueTracker {
+  constructor(clock=()=>performance.now()) { this.clock=clock; this.turns=new Map(); }
+  begin(id, voiceEnabled) {
+    if (!this.turns.has(id)) this.turns.set(id,{started:this.clock(),segments:new Set(),seen:new Set()});
+    if(typeof voiceEnabled==='boolean') this.turns.get(id).voiceEnabled=voiceEnabled;
+    while(this.turns.size>256) this.turns.delete(this.turns.keys().next().value);
+    return this.turns.get(id);
+  }
+  acceptPreview(trace) {
+    if(!trace?.turn_id) return true;
+    const turn=this.begin(trace.turn_id), key=trace.segment;
+    if(turn.segments.has(key)) return false;
+    turn.segments.add(key); return true;
+  }
+  receipt(trace, phase) {
+    if(!trace?.turn_id) return null;
+    const turn=this.begin(trace.turn_id), key=phase+':'+trace.segment;
+    if(turn.seen.has(key)) return null;
+    turn.seen.add(key);
+    return {turn_id:trace.turn_id, phase, segment:trace.segment??null,
+            browser_elapsed_ms:Math.max(0,this.clock()-turn.started)};
+  }
+}
+
+// 用户选择属于浏览器，不属于角色心情；保存失败也不能阻止聊天。
+export class VoicePreference {
+  constructor(storage) {
+    this.storage=storage; this.key='heart.voice.enabled.v1'; this.enabled=true;
+    try { this.enabled=storage?.getItem(this.key)!=='false'; } catch { /* 隐私模式可能不允许保存。 */ }
+  }
+  toggle() {
+    this.enabled=!this.enabled;
+    try { this.storage?.setItem(this.key,String(this.enabled)); } catch { /* 当前页面仍可使用开关。 */ }
+    return this.enabled;
+  }
+}
+export function prepareVoiceInput(packet, enabled, id) {
+  if(!['text-input','mic-audio-end','ai-speak-signal'].includes(packet.type)) return packet;
+  return {...packet,heart_turn_id:id,heart_voice_enabled:enabled===true};
+}
+
+export function voiceServiceLabel(state, enabled=true) {
+  if(!enabled) return '本轮可只显示文字，不需要语音服务';
+  return {ready:'本地语音已就绪',busy:'本地语音正在合成（不是故障）',
+    loading:'本地语音正在加载',external:'沿用现有语音包 · 健康状态未接入，请实际试听',
+    unavailable:'语音健康检查失败，可关闭语音继续聊天'}[state]
+    || '正在检查本地语音…';
+}
+
+if(typeof window!=='undefined' && typeof document!=='undefined') {
+  const tracker=new DialogueTracker();
+  const pending=[], traces=new WeakMap();
+  let csrf='', posting=false, panel, active;
+  let storage;
+  try { storage=window.localStorage; } catch { /* 本页可用，不要求浏览器开放存储。 */ }
+  const voice=new VoicePreference(storage);
+  const control=document.getElementById('heart-voice-control')||document.createElement('div');
+  control.id='heart-voice-control';
+  control.style.cssText='position:fixed;right:18px;top:16px;z-index:1002;width:260px;max-width:calc(100vw - 36px);font:14px/1.5 system-ui;pointer-events:auto';
+  const button=document.getElementById('heart-voice-toggle')||document.createElement('button');
+  const hint=document.getElementById('heart-voice-hint')||document.createElement('div');
+  const service=document.getElementById('heart-voice-service')||document.createElement('div');
+  service.id='heart-voice-service'; hint.id='heart-voice-hint';
+  service.style.cssText='font:11px/1.5 system-ui;color:#cbd5e1;text-align:center';
+  let serviceState='';
+  button.disabled=false;
+  button.id='heart-voice-toggle'; button.type='button';
+  button.style.cssText='display:block;width:100%;padding:10px 12px;border:2px solid;border-radius:10px;font:600 15px/1.4 system-ui;cursor:pointer;pointer-events:auto;text-align:center;box-shadow:0 2px 8px #0004';
+  hint.style.cssText='margin-top:4px;font:11px/1.5 system-ui;color:#cbd5e1;text-align:center;pointer-events:none';
+  hint.textContent='切换从下一条消息生效 · 不改变心情与表情';
+  function showVoice() {
+    button.textContent=voice.enabled?'🔊 语音开启 · 同步显示':'🔇 语音关闭 · 仅文字';
+    hint.textContent=voice.enabled?'文字与声音一起出现 · 下条消息起生效':'跳过语音合成 · 下条消息起生效';
+    button.setAttribute('aria-pressed',String(voice.enabled));
+    button.setAttribute('aria-label',voice.enabled?'关闭语音':'开启语音');
+    button.title=voice.enabled?'下一条消息起跳过语音合成，只显示文字':'下一条消息起，文字随声音一起显示';
+    button.style.background=voice.enabled?'#065f46':'#78350f';
+    button.style.borderColor=voice.enabled?'#34d399':'#fbbf24'; button.style.color='#fff';
+    service.textContent=voiceServiceLabel(serviceState,voice.enabled);
+  }
+  button.addEventListener('click',()=>{voice.toggle();showVoice();});
+  control.append(button,hint,service); document.body.appendChild(control); showVoice();
+  async function checkVoice() {
+    try {
+      if(voice.enabled) {
+        const response=await fetch('/heart/voice-status',{cache:'no-store',signal:AbortSignal.timeout(2500)});
+        serviceState=response.ok?(await response.json()).state:'unavailable';
+      }
+    } catch { serviceState='unavailable'; }
+    finally {
+      service.textContent=voiceServiceLabel(serviceState,voice.enabled);
+      setTimeout(checkVoice,5000);
+    }
+  }
+  const asrStatus=document.getElementById('heart-asr-service')||document.createElement('div');
+  asrStatus.id='heart-asr-service'; asrStatus.setAttribute('role','status');
+  asrStatus.style.cssText='font:12px/1.6 system-ui;color:#cbd5e1;text-align:center';
+  async function checkASR() {
+    try {
+      const response=await fetch('/heart/asr-status',{cache:'no-store',signal:AbortSignal.timeout(2500)});
+      const data=response.ok?await response.json():{};
+      asrStatus.textContent=data.state==='external'?'🎙 沿用现有识别 · 健康状态未接入，请实际试录':data.ready?'🎙 语音输入已就绪 · 点麦克风说话，停顿后发送':'🎙 语音输入健康检查未通过 · 请检查现有识别服务';
+      asrStatus.title='首次使用请允许麦克风权限。语音输出开关不影响语音输入。';
+    } catch { asrStatus.textContent='🎙 无法连接识别服务 · 仍可输入文字'; }
+    finally { setTimeout(checkASR,5000); }
+  }
+  control.appendChild(asrStatus); void checkASR();
+  void checkVoice();  // No queue, no synthesis, and no network request when speech is off.
+  // 放在模型无关的心情面板内，不改模型资源；面板未加载时保留悬浮按钮。
+  const mountControl=()=>{
+    const mood=document.getElementById('heart-mood-panel');
+    if(!mood) return false;
+    control.style.cssText='margin-top:10px;font:14px/1.5 system-ui;pointer-events:auto';
+    mood.appendChild(control); return true;
+  };
+  if(!mountControl()) {
+    const observer=new MutationObserver(()=>{if(mountControl()) observer.disconnect();});
+    observer.observe(document.body,{childList:true,subtree:true});
+  }
+  function status(text) {
+    if(!panel) {
+      panel=document.createElement('div'); panel.id='heart-dialogue-progress';
+      panel.setAttribute('role','status'); panel.setAttribute('aria-live','polite');
+      panel.style.cssText='position:fixed;right:18px;bottom:24px;z-index:1001;max-width:300px;padding:9px 14px;border-radius:12px;color:white;background:#0f172ae6;font:14px/1.5 system-ui;pointer-events:none';
+      document.body.appendChild(panel);
+    }
+    panel.textContent=text;
+  }
+  async function deliver() {
+    if(posting || !pending.length) return;
+    posting=true;
+    try {
+      if(!csrf) { const r=await fetch('/heart/state',{signal:AbortSignal.timeout(3000)}); if(r.ok) csrf=(await r.json()).csrf||''; }
+      if(!csrf) throw Error('尚未取得本页日志回执凭据');
+      while(pending.length) {
+        const entry=pending[0];
+        const r=await fetch('/heart/dialogue-events',{method:'POST',headers:{'Content-Type':'application/json','X-Heart-Client':csrf},
+          body:JSON.stringify(entry.body),signal:AbortSignal.timeout(3000)});
+        if(!r.ok) { if(++entry.attempts>=3) {console.warn('交互回执未保存：HTTP '+r.status);pending.shift();} throw Error('回执稍后重试'); }
+        pending.shift();
+      }
+    } catch(error) {
+      if(pending[0] && ++pending[0].attempts>=3) pending.shift();
+      console.warn('Heart交互观察：'+error.message);
+    }
+    finally { posting=false; if(pending.length) setTimeout(deliver,500); }
+  }
+  function report(trace,phase) {
+    const body=tracker.receipt(trace,phase); if(!body) return;
+    const feedbackMs=tracker.begin(trace.turn_id).feedbackMs;
+    if(phase==='feedback_visible' && feedbackMs!=null) body.browser_elapsed_ms=feedbackMs;
+    pending.push({body,attempts:0}); if(pending.length>256) pending.shift(); void deliver();
+  }
+  function started(trace) {
+    active=trace; tracker.begin(trace.turn_id); status('已收到，正在思考…');
+    requestAnimationFrame(()=> { const turn=tracker.begin(trace.turn_id);
+                                 if(turn.feedbackMs==null) turn.feedbackMs=tracker.clock()-turn.started;
+                                 report(trace,'feedback_visible'); });
+  }
+  window.heartDialogue={acceptPreview:t=>(!active || !t?.turn_id || t.turn_id===active.turn_id) && tracker.acceptPreview(t), textShown:(t, mode)=>{
+    if(active && t?.turn_id && t.turn_id!==active.turn_id) return;
+    status(mode==='disabled'?'文字已显示 · 语音关闭，本轮未合成声音':
+           mode==='ready'?'文字与声音就绪 · 正在开始播放':
+           mode==='unavailable'?'本段语音未生成 · 已保留文字': '文字已显示');
+    requestAnimationFrame(()=>report(t,'text_visible'));
+  }};
+  // 只处理当前平台自己的 WebSocket，不碰 QQ、其他网页或 HTTP 请求。
+  const originalSend=WebSocket.prototype.send;
+  WebSocket.prototype.send=function(raw) {
+    const url=new URL(this.url);
+    const aliases=new Set(['localhost','127.0.0.1','[::1]']);
+    const localAlias=aliases.has(url.hostname) && aliases.has(location.hostname) && url.port===location.port;
+    if((url.host!==location.host && !localAlias) || url.pathname!=='/client-ws' || typeof raw!=='string') return originalSend.call(this,raw);
+    if(!traces.has(this)) {
+      traces.set(this,true);
+      this.addEventListener('message',event=> {
+        try {
+          const p=JSON.parse(event.data);
+          if(p.type==='heart-turn-start') started(p.heart_trace);
+          if(p.type==='control' && p.text==='conversation-chain-end') status('本轮回复已结束');
+          if(p.type==='error') status('本轮处理未完成：'+String(p.message||'请查看日志').slice(0,100));
+        } catch { /* 二进制音频不是本模块的消息，不改变它。 */ }
+      });
+    }
+    try {
+      const p=JSON.parse(raw);
+      if(['text-input','mic-audio-end','ai-speak-signal'].includes(p.type)) {
+        const input=prepareVoiceInput(p,voice.enabled,crypto.randomUUID());
+        Object.assign(p,input);
+        active={turn_id:p.heart_turn_id}; tracker.begin(p.heart_turn_id,p.heart_voice_enabled);
+        status(voice.enabled?'已提交，正在处理 · 回复将与声音一起出现':'已提交，正在处理 · 本轮仅文字');
+        requestAnimationFrame(()=> {const turn=tracker.begin(p.heart_turn_id); turn.feedbackMs=tracker.clock()-turn.started;});
+        raw=JSON.stringify(p);
+      } else if(p.type==='interrupt-signal') status('已打断本轮回复');
+    } catch { /* 不改变不认识的原始协议。 */ }
+    return originalSend.call(this,raw);
+  };
+  window.addEventListener('heart-playback',event=> {
+    const {phase,trace}=event.detail;
+    window.heartActiveSpeechTrace=trace;
+    status(phase==='playing'?'声音正在播放':phase==='play_failed'?'声音播放失败 · 文字仍保留':'本段播放结束');
+    report(trace,phase);
+  });
+}

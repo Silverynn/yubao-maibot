@@ -1,0 +1,47 @@
+--- a/src/open_llm_vtuber/server.py
++++ b/src/open_llm_vtuber/server.py
+@@ -8,6 +8,7 @@
+ 
+ import os
+ import shutil
++from pathlib import Path
+ 
+ from fastapi import FastAPI
+ from starlette.middleware.cors import CORSMiddleware
+@@ -34,9 +35,26 @@
+         response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+         response.headers["Access-Control-Allow-Headers"] = "*"
+ 
+-        if path.endswith(".js"):
++        if path.endswith((".js", ".mjs")):
+             response.headers["Content-Type"] = "application/javascript"
+ 
++        return response
++
++
++class FrontendStaticFiles(CORSStaticFiles):
++    """Always revalidate UI modules and version the entry page after an update."""
++    async def get_response(self, path: str, scope):
++        if path in {"", ".", "index.html"}:
++            from frontend_assets import versioned_html
++            root = Path(self.directory).resolve()
++            response = Response(
++                versioned_html((root / "index.html").read_text(encoding="utf-8"), root),
++                media_type="text/html", headers={"Cache-Control": "no-store"})
++            response.headers["Access-Control-Allow-Origin"] = "*"
++            return response
++        response = await super().get_response(path, scope)
++        if path.endswith((".js", ".mjs", ".css")):
++            response.headers["Cache-Control"] = "no-cache"
+         return response
+ 
+ 
+@@ -147,7 +165,7 @@
+         # Mount main frontend last (as catch-all)
+         self.app.mount(
+             "/",
+-            CORSStaticFiles(directory="frontend", html=True),
++            FrontendStaticFiles(directory="frontend", html=True),
+             name="frontend",
+         )
+ 

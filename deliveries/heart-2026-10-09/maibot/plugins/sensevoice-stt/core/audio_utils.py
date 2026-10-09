@@ -1,0 +1,37 @@
+"""音频临时文件工具 — 纯标准库，无外部依赖。"""
+
+from __future__ import annotations
+
+import base64
+import os
+import tempfile
+
+
+def decode_base64_to_wav(base64_data: str, runtime_dir: str) -> str:
+    """解码 base64 WAV 数据，写入运行时临时目录，返回绝对路径。
+
+    Args:
+        base64_data: 标准 base64 编码的 WAV 二进制数据。
+        runtime_dir: 插件运行时目录（来自 ``self.ctx.paths.runtime_dir``）。
+
+    Returns:
+        临时 WAV 文件的绝对路径。调用者有责任在转录完成后删除。
+    """
+    if not isinstance(base64_data, str) or len(base64_data) > 16 * 1024 * 1024:
+        raise ValueError('audio_size')
+    raw = base64.b64decode(base64_data, validate=True)
+    os.makedirs(runtime_dir, exist_ok=True)
+    tmp = tempfile.NamedTemporaryFile(
+        suffix=".wav", prefix="maibot_stt_", dir=runtime_dir, delete=False
+    )
+    tmp.write(raw)
+    tmp.close()
+    return tmp.name
+
+
+def cleanup_temp_file(path: str) -> None:
+    """安全删除临时文件，吞掉所有异常。"""
+    try:
+        os.unlink(path)
+    except OSError:
+        pass

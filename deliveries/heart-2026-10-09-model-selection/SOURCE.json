@@ -1,0 +1,16 @@
+{
+  "baseline_commit": "50b9eab29201832889173eb277f5a8db6606f75e",
+  "license": "GPL-3.0-or-later",
+  "host_version_tested": "MaiBot 1.2.5 / SDK 2.8.1",
+  "host_sources": [
+    "maibot/src/config/model_configs.py",
+    "maibot/src/config/config.py",
+    "maibot/src/config/default_model_config.py",
+    "maibot/src/llm_models/utils_model.py",
+    "maibot/src/plugin_runtime/capabilities/core.py",
+    "maibot/src/services/heart_memory_backend.py",
+    "tests/support/config_schema.py"
+  ],
+  "upstream": "https://github.com/Mai-with-u/MaiBot",
+  "note": "完整文件仅作已知基线安装与比较。未知改动须按patch做三方合并，不能整文件覆盖。"
+}

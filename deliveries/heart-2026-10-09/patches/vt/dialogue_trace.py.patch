@@ -1,0 +1,166 @@
+--- /dev/null
++++ b/dialogue_trace.py
+@@ -0,0 +1,163 @@
++"""网页一轮交互的精确关联与耗时观察。只观察，不干预记忆或心情。"""
++from collections import OrderedDict
++from contextvars import ContextVar
++from datetime import datetime
++import asyncio
++import re
++import threading
++import time
++import uuid
++
++from loguru import logger
++
++current_turn = ContextVar('heart_dialogue_turn', default=None)
++_turns = OrderedDict()
++_registry_lock = threading.Lock()
++
++
++class TurnTrace:
++    def __init__(self, client, text, turn_id=None):
++        self.client = client
++        try:
++            self.turn_id = str(uuid.UUID(str(turn_id))) if turn_id else str(uuid.uuid4())
++        except ValueError:
++            self.turn_id = str(uuid.uuid4())
++        self.text = str(text)[:4000]
++        self.started = time.monotonic()
++        self.message_id = ''
++        self.session = ''
++        self.pending = []
++        self.seen = set()
++        self.lock = threading.RLock()
++
++    def packet(self, segment=None):
++        return {'turn_id': self.turn_id, 'segment': segment}
++
++    def bind(self, message_id):
++        # 编号来自本轮 MaiBot WebSocket 的 user_message，而不是“最近消息”。
++        with self.lock:
++            if self.message_id and self.message_id != str(message_id):
++                raise ValueError('本轮交互收到两个不同的输入编号，停止关联')
++            self.message_id = str(message_id)
++
++    def received_generated_reply(self, question, parts):
++        """只在同一消息的已生成正文全部接收时提前结束；不是凭空估计句数。"""
++        if not self.message_id or not parts:
++            return False
++        import heart_bridge
++        if heart_bridge._active_bridge is None:
++            return False
++        store=heart_bridge._active_bridge.store
++        user='webui_user_vtuber_visit_'+str(self.client).replace('-','').lower()
++        with store.connect() as db:
++            rows=db.execute('''SELECT e.payload FROM events e JOIN session_sources src
++                ON src.session=e.session JOIN messages m ON m.session=e.session
++                WHERE src.user_id=? AND src.channel='Live2D' AND src.platform='webui'
++                AND m.message_id=? AND e.kind='生成回复（尚非送达）'
++                AND json_extract(e.payload,'$.message_id')=? ''',
++                (user,self.message_id,self.message_id)).fetchall()
++        if len(rows)!=1:
++            return False  # 多次生成或缺少证据时保留接收窗口，绝不猜最后一句。
++        import json
++        expected=json.loads(rows[0]['payload']).get('response')
++        if not isinstance(expected,str) or not expected.strip():
++            return False
++        candidates=[''.join(parts)]
++        first, question=parts[0].strip(),str(question).strip()
++        if question and first.startswith(question):
++            tail=first[len(question):]
++            if tail and tail[0] in ' \t\r\n,，:：;；':
++                # 原生 WebUI 有时在首段前附上被引用的问题；只消除这个精确前缀。
++                candidates.append(tail.lstrip(' \t\r\n,，:：;；')+''.join(parts[1:]))
++        # 原生拆句会移除逗号/句末标点。这里仅判断这一轮正文是否收齐，
++        # 不改显示文字，不用于记忆去重；数字、小数点、否定词等仍完整匹配。
++        def normalize(value):
++            value = re.sub(r'[\s，。！？；!?;]', '', value)
++            value = re.sub(r'(?<!\d)[,.]|[,.](?!\d)', '', value)
++            return value
++        return any(normalize(expected)==normalize(candidate) for candidate in candidates)
++
++    def stage(self, phase, *, key=None, **data):
++        with self.lock:
++            key = key or phase
++            if key in self.seen:
++                return
++            self.seen.add(key)
++            self.pending.append((key, {'phase':phase, 'elapsed_seconds':round(time.monotonic()-self.started, 3),
++                                      'observed_at':datetime.now().astimezone().isoformat(), **data}))
++
++    def flush(self, store, final=False):
++        # 限定同一网页身份 + 明确输入编号，绝不拿 QQ 或另一个访客来充数。
++        with self.lock:
++            if not self.pending:
++                return
++            user = 'webui_user_vtuber_visit_' + str(self.client).replace('-', '').lower()
++            with store.connect() as db:
++                if self.message_id:
++                    rows = db.execute('''SELECT m.session FROM messages m JOIN session_sources src
++                        ON src.session=m.session WHERE m.message_id=? AND src.user_id=?
++                        AND src.platform='webui' AND src.channel='Live2D' ''',
++                        (self.message_id, user)).fetchall()
++                else:
++                    # /表情 等本地命令没有原生输入 ID；只找已登记的本网页会话。
++                    # 它单独成为任务卡片，不能借用上一条聊天的消息编号。
++                    rows = db.execute('''SELECT session FROM session_sources WHERE user_id=?
++                        AND platform='webui' AND channel='Live2D' ''',(user,)).fetchall()
++                if len(rows) == 1:
++                    self.session = rows[0]['session']
++                elif not final:
++                    return  # 原生消息事件可能还在 IPC 中；等到真正登记后再补卡片。
++            pending, self.pending = self.pending, []
++            for key, data in pending:
++                kind = data.pop('_kind', 'Live2D交互')
++                data.setdefault('status', '已观察')
++                store.append(kind, self.session, event_id=f'dialogue:{self.turn_id}:{key}',
++                    message_id=self.message_id if self.session else '', task_id=self.turn_id,
++                    user_text=self.text,
++                    **data)
++
++
++def new_turn(client, text, turn_id=None):
++    trace = TurnTrace(client, text, turn_id)
++    with _registry_lock:
++        # 同一个网页提交编号不能覆盖另一轮已经登记的交互。
++        if trace.turn_id in _turns:
++            trace.turn_id = str(uuid.uuid4())
++        _turns[trace.turn_id] = trace
++        while len(_turns) > 256:
++            _, old = _turns.popitem(last=False)
++            flush_trace(old, final=True)
++    return trace
++
++
++def lookup(turn_id):
++    with _registry_lock:
++        return _turns.get(turn_id)
++
++
++def flush_trace(trace, final=False):
++    if trace is None:
++        return
++    try:
++        import heart_bridge
++        if heart_bridge._active_bridge is not None:
++            trace.flush(heart_bridge._active_bridge.store, final)
++    except Exception as error:
++        logger.warning('网页交互日志待重试，不影响文字/声音：{}', type(error).__name__)
++
++
++async def watch_trace(trace):
++    """轻量观察任务：文件排版仍由原有后台写入器负责。"""
++    try:
++        while True:
++            await asyncio.to_thread(flush_trace, trace)
++            await asyncio.sleep(.25)
++    except asyncio.CancelledError:
++        raise
++
++
++def annotate(payload, segment=None):
++    trace = current_turn.get()
++    if trace:
++        payload['heart_trace'] = trace.packet(segment)
++    return payload

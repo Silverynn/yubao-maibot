@@ -1,0 +1,20 @@
+--- a/plugins/heart_mood/plugin.py
++++ b/plugins/heart_mood/plugin.py
+@@ -90,7 +90,7 @@
+ class AISettings(PluginConfigBase):
+     __ui_label__ = "AI心情判断（可选）"
+     enabled: bool = Field(default=False, description="开启后AI判断优先，不与关键词重复加分；会额外调用所选模型")
+-    model_name: str = Field(default="", max_length=128, description="心情判断专用模型名称；留空使用utils任务的默认模型，填写时须与模型配置中的name完全一致")
++    model_name: str = Field(default="", max_length=128, description="兼容旧配置：模型配置页面的heart_mood列表有选择时优先使用页面选择；该列表留空时使用本名称，本名称也为空则使用utils；须与已有模型name一致")
+     fallback_keywords: bool = Field(default=False, description="仅AI失败时改用关键词；关闭则失败不计刺激，仍记录原因")
+     timeout_seconds: float = Field(default=20, ge=1, le=60, description="单次AI等待上限秒数；后台评估不阻塞聊天，旧配置的6秒会保留")
+     max_output_tokens: int = Field(default=4096, ge=256, le=16384, description="模型输出长度上限（不是心情分数）；过小可能截断，过大会增加费用与等待")
+@@ -191,7 +191,7 @@
+     }),
+     "ai": ("AI 心情判断（可选）", {
+         "enabled": "启用 AI 判断", "fallback_keywords": "AI 失败时使用关键词规则",
+-        "model_name": "心情判断专用模型名称（留空使用utils）",
++        "model_name": "旧手填模型（页面未选heart_mood时使用）",
+         "timeout_seconds": "单次判断最长等待（秒）", "max_output_tokens": "模型输出长度上限",
+         "delta_multiplier": "AI 建议变化倍率", "positive_limit": "单次最多加分",
+         "negative_limit": "单次最多减分", "confidence_threshold": "最低判断把握程度",

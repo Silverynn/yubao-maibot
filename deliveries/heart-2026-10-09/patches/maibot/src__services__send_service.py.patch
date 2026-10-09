@@ -1,0 +1,53 @@
+--- a/src/services/send_service.py
++++ b/src/services/send_service.py
+@@ -45,6 +45,8 @@
+ from src.plugin_runtime.hook_schema_utils import build_object_schema
+ from src.plugin_runtime.host.hook_dispatcher import HookDispatchResult
+ from src.plugin_runtime.host.hook_spec_registry import HookSpec, HookSpecRegistry
++from src.services.heart_live2d_delivery import skip_live2d_typing
++from src.services.heart_realtime import can_deliver, defer_delivery, is_managed
+ 
+ logger = get_logger("send_service")
+ 
+@@ -671,7 +673,8 @@
+ 
+     if set_reply or not message.processed_plain_text:
+         message.processed_plain_text = _build_processed_plain_text(message)
+-    if typing:
++    # Live2D 后面还有语音合成，不再叠加 QQ 式的人工打字停顿。
++    if typing and not skip_live2d_typing(message):
+         typing_time = calculate_typing_time(
+             input_string=message.processed_plain_text or "",
+             is_emoji=message.is_emoji,
+@@ -790,6 +793,8 @@
+ ) -> None:
+     """将已发送成功的消息同步到当前会话对应的 Maisaka 历史。"""
+ 
++    if source_kind != "heart_realtime_heard" and is_managed(message):
++        return  # 实时草稿只在实际播放完成之后同步历史。
+     session_id = str(message.session_id or "").strip()
+     if not session_id:
+         return
+@@ -887,6 +892,8 @@
+             reply_message_id=reply_message_id,
+             reply_message=reply_message,
+         )
++        if not can_deliver(message):
++            return None  # 插话后冻结旧输出；QQ与未绑定会话不受影响。
+         delivery_batch = await platform_io_manager.send_message(
+             message,
+             route_key,
+@@ -914,9 +921,10 @@
+ 
+     if delivery_batch.has_success:
+         _record_sent_emoji_usage(message)
+-        if storage_message:
+-            await _store_sent_message(message)
+-        await _notify_memory_automation_on_message_sent(message)
++        if not defer_delivery(message):
++            if storage_message:
++                await _store_sent_message(message)
++            await _notify_memory_automation_on_message_sent(message)
+         should_log_delivery = show_log and any(
+             receipt.driver_kind != DriverKind.LOCAL
+             for receipt in delivery_batch.sent_receipts

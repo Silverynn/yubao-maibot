@@ -1,0 +1,61 @@
+--- a/frontend/heart-controller.mjs
++++ b/frontend/heart-controller.mjs
+@@ -1,15 +1,26 @@
+ // 纯逻辑层便于离线测试；稳定心情与话题情绪的来源只有 Heart 插件。
+ export class HeartController {
+-  constructor(report) { this.report = report; this.current = null; this.lastModel = null; this.lastCommand = null; }
++  constructor(report) { this.report = report; this.current = null; this.lastModel = null; this.lastCommand = null; this.speaking = false; }
+   owns() { return Boolean(this.current?.ready && (this.current.enabled || this.current.manual)); }
++  canTalk(state = this.current) {
++    return Boolean(state?.ready && state.enabled && !state.manual && !state.performance && !state.active &&
++      state.expression === state.neutral_expression && state.talk_expression &&
++      state.talk_expression !== state.neutral_expression);
++  }
++  async speech(started, adapter) {
++    this.speaking = started;
++    if (this.current) await this.update(this.current, adapter);
++  }
+   async update(state, adapter) {
+     this.current = state;
+     if (!state.ready) return;
+     if (!state.valid_expression) { await this.report(state, 'failed'); return; }
+     const model = adapter?.getModel?.();
+-    const expression = typeof state.expression === 'number'
+-      ? adapter?.getExpressionName?.(state.expression)
+-      : state.expression;
++    const talking = this.speaking && this.canTalk(state);
++    const target = talking ? state.talk_expression : state.expression;
++    const command = state.command_id + (talking ? ':speech' : ':rest');
++    const motion = talking ? state.talk_motion : state.motion;
++    const expression = typeof target === 'number' ? adapter?.getExpressionName?.(target) : target;
+     // Open-LLM-VTuber models can expose either names or numeric indexes in
+     // emotionMap. Never assume a particular model directory or expression set.
+     if (!model || typeof expression !== 'string' || !expression ||
+@@ -17,15 +28,25 @@
+       await this.report(state, 'unavailable');
+       return;
+     }
+-    if (this.lastCommand === state.command_id && this.lastModel === model) {
++    if (this.lastCommand === command && this.lastModel === model) {
+       // 动作已完成但回执可能丢失：只重发回执，不重复播放动作。
+       await this.report(state, 'applied');
+       return;
+     }
+     try {
++      // 模型可自行配置配套动作。仅在新指令或换模型时播放，不随轮询反复重播。
++      if (motion) {
++        const {group, index} = motion;
++        if (typeof group !== 'string' || !Number.isInteger(index) || index < 0 ||
++            !model.startMotion || (adapter.getMotionCount && adapter.getMotionCount(group) <= index)) {
++          await this.report(state, 'unavailable');
++          return;
++        }
++        model.startMotion(group, index, 3); // Cubism 的强制优先级，允许手动表情立即响应。
++      }
+       model.setExpression(expression);
+       this.lastModel = model;
+-      this.lastCommand = state.command_id;
++      this.lastCommand = command;
+     } catch (error) {
+       await this.report(state, 'failed');
+       throw error;

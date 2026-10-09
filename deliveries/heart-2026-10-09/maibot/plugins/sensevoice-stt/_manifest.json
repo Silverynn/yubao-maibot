@@ -1,0 +1,50 @@
+{
+  "manifest_version": 2,
+  "id": "dmjxmj.sensevoice-stt",
+  "version": "0.3.1",
+  "name": "SenseVoice STT 语音转文字",
+  "description": "本机SenseVoice语音转文字；QQ仅文字回复；接入Heart观测",
+  "author": {
+    "name": "GPT-5.5, Deepseek-V4",
+    "url": "https://github.com/DMJXMJ"
+  },
+  "license": "MIT",
+  "urls": {
+    "repository": "https://github.com/DMJXMJ/maibot-sensevoice-stt",
+    "homepage": "https://github.com/DMJXMJ/maibot-sensevoice-stt#readme",
+    "documentation": "https://github.com/DMJXMJ/maibot-sensevoice-stt/blob/main/README.md",
+    "issues": "https://github.com/DMJXMJ/maibot-sensevoice-stt/issues"
+  },
+  "host_application": {
+    "min_version": "1.0.0",
+    "max_version": "1.99.99"
+  },
+  "sdk": {
+    "min_version": "2.0.0",
+    "max_version": "2.99.99"
+  },
+  "capabilities": [
+    "send.text"
+  ],
+  "plugin_type": "media",
+  "dependencies": [
+    {
+      "type": "python_package",
+      "name": "aiohttp",
+      "version_spec": ">=3.9.0"
+    }
+  ],
+  "i18n": {
+    "default_locale": "zh-CN",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  },
+  "display": {
+    "icon": {
+      "type": "emoji",
+      "value": "🎙️",
+      "background": "#F0E8F7"
+    }
+  }
+}

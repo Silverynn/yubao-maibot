@@ -1,0 +1,107 @@
+--- a/src/open_llm_vtuber/conversations/single_conversation.py
++++ b/src/open_llm_vtuber/conversations/single_conversation.py
+@@ -46,18 +46,45 @@
+         str: Complete response text
+     """
+     # Create TTSTaskManager for this conversation
+-    tts_manager = TTSTaskManager()
++    from voice_context import client_uid as voice_client_uid, requested_voice
++    tts_manager = TTSTaskManager(voice_enabled=requested_voice(metadata))
++    voice_token = voice_client_uid.set(client_uid)
++    from dialogue_trace import current_turn, new_turn, watch_trace, flush_trace
++    trace = new_turn(client_uid, user_input if isinstance(user_input, str) else '[语音输入待转写]',
++                     (metadata or {}).get('heart_turn_id'))
++    turn_token = current_turn.set(trace)
++    observer = asyncio.create_task(watch_trace(trace))
++    from heart_realtime_client import turn as rt_turn, draft as rt_draft, final_input, LINKS, cancel_current, observe_turn_mode
++    rt_token = rt_turn.set(None)
++    draft_token = rt_draft.set(None)
+     full_response = ""  # Initialize full_response here
+ 
+     try:
+         # Send initial signals
+         await send_conversation_start_signals(websocket_send)
++        await websocket_send(json.dumps({'type':'heart-turn-start', 'heart_trace':trace.packet(),
++                                         'text':'已收到，正在思考…'}))
++        trace.stage('feedback_sent', status='已向网页发出处理中提示；是否画到屏幕看页面回执')
++        trace.stage('voice_mode', voice_enabled=tts_manager.voice_enabled,
++                    status='语音开启：回复文字随本段声音一起显示' if tts_manager.voice_enabled else
++                           '语音关闭：本轮跳过语音合成，只显示文字；心情与表情照常')
+         logger.info(f"New Conversation Chain {session_emoji} started!")
+ 
+         # Process user input
+-        input_text = await process_user_input(
+-            user_input, context.asr_engine, websocket_send
+-        )
++        if (metadata or {}).get("heart_rt_correction"):
++            input_text = str(user_input)
++            rt_context = {"link": LINKS[client_uid], "epoch": metadata["heart_rt_epoch"],
++                          "utterance_id": metadata["heart_rt_utterance"], "correction": True}
++        else:
++            input_text = await process_user_input(
++                user_input, context.asr_engine, websocket_send
++            )
++            rt_context = await final_input(client_uid, input_text, metadata or {})
++        if rt_context and rt_context.get("skip_brain"):
++            return ""
++        rt_turn.set(rt_context)
++        trace.text = input_text
++        observe_turn_mode(client_uid,trace)
+ 
+         # Create batch input
+         metadata = {**(metadata or {}), "heart_client_uid": client_uid}
+@@ -124,6 +151,7 @@
+                     logger.debug(f"Unexpected item content: {output_item}")
+ 
+         except Exception as e:
++            trace.stage('failed', status='获取回复未完成：' + type(e).__name__)
+             logger.exception(
+                 f"Error processing agent response stream: {e}"
+             )  # Log with stack trace
+@@ -138,18 +166,15 @@
+             # full_response will contain partial response before error
+         # --- End processing agent response ---
+ 
+-        # Wait for any pending TTS tasks
+-        if tts_manager.task_list:
+-            await asyncio.gather(*tts_manager.task_list)
+-            await websocket_send(json.dumps({"type": "backend-synth-complete"}))
+-
++        # finalize 自己会等待 TTS，不能重复发送两次合成完成信号。
+         await finalize_conversation_turn(
+             tts_manager=tts_manager,
+             websocket_send=websocket_send,
+             client_uid=client_uid,
+         )
+-
+-        if context.history_uid and full_response:  # Check full_response before storing
++        trace.stage('turn_end', status='本轮网页交互结束；记忆等后台结果仍可补齐')
++
++        if context.history_uid and full_response and rt_turn.get() is None:  # 实时输出按播放回执保存，不存未播稿
+             store_message(
+                 conf_uid=context.character_config.conf_uid,
+                 history_uid=context.history_uid,
+@@ -163,9 +188,12 @@
+         return full_response  # Return accumulated full_response
+ 
+     except asyncio.CancelledError:
++        await cancel_current(rt_turn.get())
++        trace.stage('interrupted', status='用户打断或页面断开；停止本轮剩余播放')
+         logger.info(f"🤡👍 Conversation {session_emoji} cancelled because interrupted.")
+         raise
+     except Exception as e:
++        trace.stage('failed', status='交互未完成：' + type(e).__name__)
+         logger.error(f"Error in conversation chain: {e}")
+         await websocket_send(
+             json.dumps({"type": "error", "message": f"Conversation error: {str(e)}"})
+@@ -173,3 +201,10 @@
+         raise
+     finally:
+         cleanup_conversation(tts_manager, session_emoji)
++        observer.cancel()
++        await asyncio.gather(observer, return_exceptions=True)
++        await asyncio.to_thread(flush_trace, trace, True)
++        rt_turn.reset(rt_token)
++        rt_draft.reset(draft_token)
++        current_turn.reset(turn_token)
++        voice_client_uid.reset(voice_token)

@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-09",
+  "python_regression": 113,
+  "display_isolated": 68,
+  "frontend_mock": 21,
+  "avatar_two_models": 5,
+  "frontend_installed_readonly": "passed, zero writes",
+  "declared_baseline_upgrade": {
+    "files_checked": 82,
+    "patches_checked": 60,
+    "changed": 60,
+    "idempotent": true,
+    "existing_voice_config_preserved": true,
+    "optional_asr_and_mood_not_installed": true
+  },
+  "paid_llm_calls": 0,
+  "real_qq_messages_sent": 0,
+  "partner_machine_tested": false,
+  "scope": "包内实际代码+模拟模型/DOM/健康服务；临时文件安装保护；并非完整语音包或真人录音验收",
+  "remaining": [
+    "伙伴现有ASR/TTS回调需现场移植验收",
+    "不同前端构建须移植接缝",
+    "完整MaiBot基线来自10月1日包"
+  ],
+  "compatibility_fixes": [
+    "默认保留现有语音包",
+    "可选健康探针不误报未连接",
+    "动态字幕称呼",
+    "部署指纹校验/冲突整批停止/写失败回滚",
+    "补齐实时依赖与可配置路径"
+  ]
+}

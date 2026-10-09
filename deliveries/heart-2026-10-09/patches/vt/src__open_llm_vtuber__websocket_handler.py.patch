@@ -1,0 +1,33 @@
+--- a/src/open_llm_vtuber/websocket_handler.py
++++ b/src/open_llm_vtuber/websocket_handler.py
+@@ -175,8 +175,8 @@
+         # Send initial group status
+         await self.send_group_update(websocket, client_uid)
+ 
+-        # Start microphone
+-        await websocket.send_text(json.dumps({"type": "control", "text": "start-mic"}))
++        # Connecting the page is not a request to record the user's microphone.
++        # Keep input opt-in via the existing microphone button; TTS is independent.
+ 
+     async def _init_service_context(
+         self, send_text: Callable, client_uid: str
+@@ -255,6 +255,10 @@
+             logger.warning("Message received without type")
+             return
+ 
++        if msg_type == "heart-rt":
++            from heart_realtime_client import event
++            await event(self, websocket, client_uid, data)
++            return
+         handler = self._message_handlers.get(msg_type)
+         if handler:
+             await handler(websocket, client_uid, data)
+@@ -282,6 +286,8 @@
+ 
+     async def handle_disconnect(self, client_uid: str) -> None:
+         """Handle client disconnection"""
++        from heart_realtime_client import close
++        await close(client_uid)
+         group = self.chat_group_manager.get_client_group(client_uid)
+         if group:
+             await handle_group_interrupt(

@@ -1,0 +1,11 @@
+--- a/src/services/heart_memory_backend.py
++++ b/src/services/heart_memory_backend.py
+@@ -142,7 +142,7 @@
+                   "duplicate只填写duplicate_ids；conflict只填写conflict_ids；clear两项都为空；"
+                   "无法确定时必须uncertain；不能自行编造事实id。"
+                   "补充偏好不能放宽上述本人核实及确认规则：" + guidance + "\n待分析数据：" + json.dumps(payload, ensure_ascii=False))
+-        response = await LLMServiceClient(task_name="utils", request_type="heart.memory_conflict").generate_response(prompt, session_id=args["chat_id"])
++        response = await LLMServiceClient(task_name="heart_memory_dedup", request_type="heart.memory_conflict").generate_response(prompt, session_id=args["chat_id"])
+         raw = response.response.strip()
+         if raw.startswith("```"):
+             raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw)

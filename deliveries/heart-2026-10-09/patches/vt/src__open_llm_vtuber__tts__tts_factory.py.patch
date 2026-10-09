@@ -1,0 +1,20 @@
+--- a/src/open_llm_vtuber/tts/tts_factory.py
++++ b/src/open_llm_vtuber/tts/tts_factory.py
+@@ -5,6 +5,9 @@
+ class TTSFactory:
+     @staticmethod
+     def get_tts_engine(engine_type, **kwargs) -> Type[TTSInterface]:
++        if engine_type == "moonbell_tts":
++            from .moonbell_tts import TTSEngine
++            return TTSEngine(**kwargs)
+         if engine_type == "silent_tts":
+             from .silent_tts import TTSEngine as SilentTTSEngine
+ 
+@@ -226,6 +229,6 @@
+     tts_engine = TTSFactory.get_tts_engine(
+         "spark_tts",
+         api_url="http://127.0.0.1:7860/voice_clone",
+-        used_voices=r"D:\python\spark_tts\收集的语音\纳西妲-完整.mp3",
++        used_voices=r"example-reference.wav",
+     )
+     tts_engine.generate_audio("Hello world")

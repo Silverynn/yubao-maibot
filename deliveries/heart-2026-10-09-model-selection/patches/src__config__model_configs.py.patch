@@ -1,0 +1,27 @@
+--- a/src/config/model_configs.py
++++ b/src/config/model_configs.py
+@@ -462,6 +462,24 @@
+     )
+     """执行文本概括，整理等小任务，是麦麦必须的模型。可以选择速度快的小尺寸模型"""
+ 
++    heart_mood: TaskConfig = Field(
++        default_factory=TaskConfig,
++        json_schema_extra={
++            "x-widget": "custom", "advanced": False,
++            "label": {"zh_CN": "心情评估模型 (heart_mood)", "en_US": "Mood assessment model (heart_mood)", "ja_JP": "気分評価モデル (heart_mood)"},
++        },
++    )
++    """Heart心情及临时情绪评估专用文本模型。选择后优先于插件里的旧手填模型名称；列表留空则保留旧手填设置，旧设置也为空时使用utils。输出预算、温度及单次等待仍由心情插件设置决定；此处硬超时仍可进一步限制等待。不影响回复模型或评估频率。"""
++
++    heart_memory_dedup: TaskConfig = Field(
++        default_factory=TaskConfig,
++        json_schema_extra={
++            "x-widget": "custom", "advanced": False,
++            "label": {"zh_CN": "记忆查重／冲突判断模型 (heart_memory_dedup)", "en_US": "Memory deduplication/conflict model (heart_memory_dedup)", "ja_JP": "記憶の重複・矛盾判定モデル (heart_memory_dedup)"},
++        },
++    )
++    """Heart人物事实的同义去重／冲突判断及聊天摘要语义去重专用文本模型；留空使用utils原设置。完全相同的记忆仍由规则判断，不调用模型。摘要输出预算、温度和总等待由记忆插件设置决定；此处硬超时可进一步限制等待。聊天摘要生成、人物事实提取、忘记定位及嵌入模型各自配置，不随此项切换。"""
++
+     learner: TaskConfig = Field(
+         default_factory=TaskConfig,
+         json_schema_extra={

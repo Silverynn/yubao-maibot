@@ -1,0 +1,25 @@
+--- a/src/open_llm_vtuber/config_manager/asr.py
++++ b/src/open_llm_vtuber/config_manager/asr.py
+@@ -307,10 +307,22 @@
+         return values
+ 
+ 
++class SenseVoiceHTTPConfig(I18nMixin):
++    """Shared local CPU recognition service; no cloud credentials."""
++    endpoint_url: str = Field("http://127.0.0.1:12395/v1/audio/transcriptions")
++    timeout_seconds: int = Field(25, ge=1, le=28)
++    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
++        "endpoint_url": Description(en="Local recognizer URL", zh="本机语音识别接口"),
++        "timeout_seconds": Description(en="Recognition timeout", zh="识别超时秒数"),
++    }
++
++
+ class ASRConfig(I18nMixin):
+     """Configuration for Automatic Speech Recognition."""
+ 
++    sensevoice_http: Optional[SenseVoiceHTTPConfig] = Field(default_factory=SenseVoiceHTTPConfig)
+     asr_model: Literal[
++        "sensevoice_http",
+         "disabled_asr",
+         "faster_whisper",
+         "whisper_cpp",

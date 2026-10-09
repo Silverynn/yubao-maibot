@@ -1,0 +1,33 @@
+--- a/src/open_llm_vtuber/conversations/conversation_handler.py
++++ b/src/open_llm_vtuber/conversations/conversation_handler.py
+@@ -30,7 +30,11 @@
+     broadcast_to_group: Callable,
+ ) -> None:
+     """Handle triggers that start a conversation"""
+-    metadata = None
++    from voice_context import requested_voice
++    # 打字、语音输入、主动发言都按这一轮的开关处理，不更改其他连接。
++    metadata = {'heart_turn_id': data.get('heart_turn_id'),
++                'heart_voice_enabled': requested_voice(data),
++                'heart_rt_utterance': data.get('heart_rt_utterance')}
+ 
+     if msg_type == "ai-speak-signal":
+         try:
+@@ -49,6 +53,7 @@
+         # Add metadata to indicate this is a proactive speak request
+         # that should be skipped in both memory and history
+         metadata = {
++            **metadata,
+             "proactive_speak": True,
+             "skip_memory": True,  # Skip storing in AI's internal memory
+             "skip_history": True,  # Skip storing in local conversation history
+@@ -126,7 +131,8 @@
+         except Exception as e:
+             logger.error(f"Error handling interrupt: {e}")
+ 
+-        if context.history_uid:
++        from heart_realtime_client import LINKS
++        if context.history_uid and client_uid not in LINKS:
+             store_message(
+                 conf_uid=context.character_config.conf_uid,
+                 history_uid=context.history_uid,
