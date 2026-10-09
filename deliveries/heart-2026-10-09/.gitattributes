@@ -1,0 +1,2 @@
+# Preserve the exact bytes checked by SHA256.json on Windows and other hosts.
+* -text

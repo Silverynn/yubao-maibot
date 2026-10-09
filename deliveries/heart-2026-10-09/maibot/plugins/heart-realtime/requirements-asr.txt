@@ -1,0 +1,4 @@
+sherpa-onnx==1.13.8
+sherpa-onnx-core==1.13.8
+aiohttp>=3.9.0
+numpy>=1.26.4,<2

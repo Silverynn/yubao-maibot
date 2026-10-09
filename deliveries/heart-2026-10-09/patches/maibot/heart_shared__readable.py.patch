@@ -1,0 +1,70 @@
+--- a/heart_shared/readable.py
++++ b/heart_shared/readable.py
+@@ -126,12 +126,66 @@
+         if dialogue and relation == '证据消息ID关联':
+             lines.append('触发对话：' + '；'.join(plain(m.get('text', '')) for m in dialogue))
+         lines.append('说明：这是外观表演请求，不代表真实情绪改变；动作是否执行看前端回执。')
++    elif kind == 'Live2D交互':
++        lines.append('进度：'+plain(data.get('status', '')))
++        if data.get('response'):
++            lines.append('网页回复：'+plain(data['response']))
++        if isinstance(data.get('browser_elapsed_ms'), (int,float)):
++            lines.append(f"距用户提交：{data['browser_elapsed_ms']/1000:.2f}秒（页面回执）")
++        elif isinstance(data.get('elapsed_seconds'), (int,float)):
++            lines.append(f"距后台接受本轮交互：{data['elapsed_seconds']:.2f}秒")
++        lines.append('说明：文字、语音和情绪各自异步处理；此进度不代表记忆任务全部结束。')
++    elif kind == "语音识别":
++        lines.append('调用：语音转文字 · ' + plain(data.get('status', '')))
++        lines.append('输入来源：' + plain(data.get('source', '')))
++        if data.get('model'):
++            lines.append('识别模型：' + plain(data['model']))
++        if data.get('text'):
++            lines.append('识别文字：' + plain(data['text']))
++        if isinstance(data.get('audio_seconds'), (int, float)):
++            lines.append(f"录音时长：{data['audio_seconds']:.2f}秒")
++        if isinstance(data.get('duration_seconds'), (int, float)):
++            lines.append(f"识别耗时：{data['duration_seconds']:.2f}秒")
++        if data.get('reason'):
++            lines.append('结果说明：' + plain(data['reason']))
++        if data.get('reply_mode') == 'text':
++            lines.append('回复方式：QQ仅文字，不进行语音合成。')
++        lines.append('说明：识别文字可能有误；识别失败或静音不会作为用户原话交给AI。录音不进入观测日志。')
++    elif kind == "语音合成":
++        labels = {'neutral':'平静','joy':'开心','sadness':'难过','anger':'生气','confusion':'疑惑',
++                  'surprise':'惊讶','blush':'害羞','distressed':'委屈','curiosity':'好奇','thinking':'思考',
++                  'comfort':'安慰','sleepy':'困倦','playful':'调皮','listening':'倾听'}
++        lines.append('调用：本地语音 · ' + plain(data.get('status', '')))
++        lines.append('语音台词：' + plain(data.get('text', '')))
++        lines.append('语气：' + labels.get(data.get('style'), '尚未生成'))
++        if data.get('voice_name'):
++            lines.append('声音预设：'+plain(data['voice_name'],80))
++        if data.get('voice_instruction'):
++            lines.append('语调要求：'+plain(data['voice_instruction']))
++            lines.append('语调说明：这是实际传给语音模型的要求，不是对音高/语速的声学测量。')
++        if data.get('assessment_pending'):
++            lines.append('状态说明：合成开始时，本轮情绪尚未确认；采用当时最近已确认状态。之后表情可继续更新。')
++        if isinstance(data.get('duration_seconds'), (int,float)):
++            lines.append(f"合成耗时：{data['duration_seconds']:.2f}秒")
++        from .speech_readable import render_speech_observation
++        lines.extend(render_speech_observation(data))
++        lines.append('原因：' + plain(data.get('reason', '')))
++        lines.append('说明：合成成功不等于已播放；实际播放另看Live2D动作回执。')
+     elif kind == "Live2D动作":
+         lines.append("调用：Live2D表情接口 · " + plain(data.get("status", "")))
+-        lines.append("目标表情：" + plain(data.get("expression", "")))
++        expr=data.get('expression','')
++        labels={'neutral':'平静','happy':'开心','sad':'难过','angry':'生气','confused':'疑惑',
++                'surprised':'惊讶','shy':'害羞','distressed':'委屈','curious':'好奇',
++                'thinking':'思考','comfort':'安慰','sleepy':'困倦','playful':'调皮','listening':'倾听','talk':'说话'}
++        lines.append("目标表情：" + plain(labels.get(expr,expr)))
++        if data.get('motion'):
++            motion=data['motion']
++            lines.append(f"配套动作：{plain(motion.get('group',''))} 的第 {int(motion.get('index',0))+1} 个动作")
+         lines.append("原因：" + plain(data.get("reason", "")))
+         if data.get("status") == "前端报告：已执行表情设置":
+             lines.append("说明：表情设置代码已执行；这不等于人眼或截图确认。")
++        elif data.get('status') in {'前端报告：开始播放声音', '前端报告：结束播放声音'}:
++            lines.append('说明：这是实际播放/结束回执；有情绪时保留情绪表情，仅平静状态临时使用说话表情。')
+         else:
+             lines.append("说明：此条不表示表情已成功执行，请查看后续执行回执；首次加载模型时可能暂不可用。")
+     elif kind == "AI心情评估跳过":

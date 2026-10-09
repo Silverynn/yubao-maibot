@@ -1,0 +1,26 @@
+--- a/frontend/heart-avatar.mjs
++++ b/frontend/heart-avatar.mjs
+@@ -17,6 +17,23 @@
+ const controller = new HeartController(report);
+ window.heartController = controller;
+ window.yubaoHeartController = controller; // compatibility with the older timing shim
++// 播放器在真正开始/结束音频时发事件；不根据“收到音频”假装已经在说话。
++window.addEventListener('heart-speech', async event => {
++  const adapter = window.getLAppAdapter?.();
++  const state = controller.current;
++  const started = event.detail === 'playing';
++  if (started === controller.speaking) return; // ended和pause可能都到达，只记录一次。
++  try {
++    await controller.speech(started, adapter);
++    if (state?.ready) await fetch('/heart/speech-events', {
++      method:'POST', headers:{'Content-Type':'application/json','X-Heart-Client':state.csrf},
++      body:JSON.stringify({command_id:state.command_id, phase:started ? 'playing' : 'ended',
++        client_id:client, event_id:crypto.randomUUID(),
++        turn_id:window.heartActiveSpeechTrace?.turn_id, segment:window.heartActiveSpeechTrace?.segment,
++        talking:started && controller.canTalk(state)}), signal:AbortSignal.timeout(3000),
++    });
++  } catch (error) { console.warn('语音动作记录未完成', error); }
++});
+ const panel = document.createElement('section');
+ panel.id = 'heart-mood-panel';
+ panel.setAttribute('aria-label', '当前形象的心情与话题情绪');

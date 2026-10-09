@@ -1,0 +1,121 @@
+--- a/src/open_llm_vtuber/conversations/tts_manager.py
++++ b/src/open_llm_vtuber/conversations/tts_manager.py
+@@ -16,7 +16,9 @@
+ class TTSTaskManager:
+     """Manages TTS tasks and ensures ordered delivery to frontend while allowing parallel TTS generation"""
+ 
+-    def __init__(self) -> None:
++    def __init__(self, voice_enabled: bool = True) -> None:
++        # 每轮自己保存开关，不修改共享 TTS 引擎，避免不同网页互相干扰。
++        self.voice_enabled = voice_enabled if type(voice_enabled) is bool else True
+         self.task_list: List[asyncio.Task] = []
+         self._lock = asyncio.Lock()
+         # Queue to store ordered payloads
+@@ -52,7 +54,23 @@
+         """
+         if self._send_error is not None:
+             raise self._send_error
+-        if len(re.sub(r'[\s.,!?，。！？\'"』」）】\s]+', "", tts_text)) == 0:
++        # 只对本地声带的首个长片段做音文等长分段，不等整段长音频才开始。
++        # 已被预处理成不同朗读文本的输出不拆，避免字幕/朗读错配。
++        if (self.voice_enabled and self._sequence_counter == 0
++                and getattr(tts_engine, 'prefer_short_first_chunk', False)
++                and tts_text == display_text.text):
++            from speech_chunks import short_first_speech
++            pieces = short_first_speech(tts_text)
++            if len(pieces) > 1:
++                for index, piece in enumerate(pieces):
++                    await self.speak(piece, DisplayText(piece, display_text.name, display_text.avatar),
++                                     actions if index == 0 else None,
++                                     live2d_model, tts_engine, websocket_send)
++                return
++        # 开启：文字等这一段音频准备好再一起送出。关闭：根本不调用声带。
++        # /表情等没有朗读内容的本地命令仍立即送出，不受开关影响。
++        previewed = False
++        if not self.voice_enabled or len(re.sub(r'[\s.,!?，。！？\'"』」）】\s]+', "", tts_text)) == 0:
+             logger.debug("Empty TTS text, sending silent display payload")
+             # Get current sequence number for silent payload
+             current_sequence = self._sequence_counter
+@@ -65,7 +83,7 @@
+                 )
+ 
+             task = asyncio.create_task(
+-                self._send_silent_payload(display_text, actions, current_sequence)
++                self._send_silent_payload(display_text, actions, current_sequence, previewed)
+             )
+             self.task_list.append(task)
+             return
+@@ -113,7 +131,20 @@
+                 # Send payloads in order
+                 while self._next_sequence_to_send in buffered_payloads:
+                     next_payload = buffered_payloads.pop(self._next_sequence_to_send)
++                    from heart_realtime_client import eligible_payload
++                    if not eligible_payload(next_payload):
++                        raise asyncio.CancelledError()
+                     await websocket_send(json.dumps(next_payload))
++                    from dialogue_trace import current_turn
++                    trace = current_turn.get()
++                    if trace and next_payload.get('display_text'):
++                        trace.stage('text_sent', key=f'text:{self._next_sequence_to_send}',
++                                    response=next_payload['display_text']['text'],
++                                    segment=self._next_sequence_to_send,
++                                    voice_enabled=self.voice_enabled,
++                                    status='文字与音频一起交给网页' if next_payload.get('audio') else
++                                           '已交给网页显示文字；语音关闭，未调用声带' if not self.voice_enabled else
++                                           '已交给网页显示文字（无音频）')
+                     delivery = self._delivery.get(self._next_sequence_to_send)
+                     if delivery is not None and not delivery.done():
+                         delivery.set_result(None)
+@@ -136,6 +167,7 @@
+         display_text: DisplayText,
+         actions: Optional[Actions],
+         sequence_number: int,
++        previewed: bool = False,
+     ) -> None:
+         """Queue a silent audio payload"""
+         audio_payload = prepare_audio_payload(
+@@ -143,12 +175,20 @@
+             display_text=display_text,
+             actions=actions,
+         )
++        from dialogue_trace import annotate
++        annotate(audio_payload, sequence_number)
++        audio_payload['heart_previewed'] = previewed
++        audio_payload['heart_voice_enabled'] = self.voice_enabled
++        audio_payload['heart_audio_status'] = 'text_only' if self.voice_enabled else 'disabled'
+         await self._queue_and_wait_delivery(audio_payload, sequence_number)
+ 
+     async def _queue_and_wait_delivery(self, payload: Dict, sequence_number: int) -> None:
+         """排入队列不等于发送完成；文字、表情和音频都要等实际发送。"""
+         if self._send_error is not None:
+             raise self._send_error
++        from heart_realtime_client import annotate_payload
++        if not await annotate_payload(payload, sequence_number):
++            return
+         delivery = asyncio.get_running_loop().create_future()
+         self._delivery[sequence_number] = delivery
+         try:
+@@ -177,6 +217,11 @@
+             )
+         except Exception as e:
+             logger.error(f"Error preparing audio payload: {e}")
++            from dialogue_trace import current_turn
++            trace = current_turn.get()
++            if trace:
++                trace.stage('voice_failed', key=f'voice-failed:{sequence_number}',
++                            segment=sequence_number, status='语音合成失败，降级为文字：'+type(e).__name__)
+             # Queue silent payload for error case
+             payload = prepare_audio_payload(
+                 audio_path=None,
+@@ -190,6 +235,11 @@
+                 logger.debug("Audio cache file cleaned.")
+ 
+         # 发送错误不再当成 TTS 错误重复入队；交由上层结束本轮。
++        from dialogue_trace import annotate
++        annotate(payload, sequence_number)
++        payload['heart_previewed'] = False
++        payload['heart_voice_enabled'] = self.voice_enabled
++        payload['heart_audio_status'] = 'ready' if payload.get('audio') else 'unavailable'
+         await self._queue_and_wait_delivery(payload, sequence_number)
+ 
+     async def _generate_audio(self, tts_engine: TTSInterface, text: str) -> str:

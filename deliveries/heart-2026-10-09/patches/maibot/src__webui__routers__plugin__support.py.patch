@@ -1,0 +1,12 @@
+--- a/src/webui/routers/plugin/support.py
++++ b/src/webui/routers/plugin/support.py
+@@ -197,7 +197,8 @@
+ 
+ 
+ def get_plugins_dir() -> Path:
+-    plugins_dir = Path("plugins").resolve()
++    """从当前MaiBot源码根目录查找插件，避免WebUI启动工作目录改变时误报空列表。"""
++    plugins_dir = Path(__file__).resolve().parents[4] / "plugins"
+     plugins_dir.mkdir(exist_ok=True)
+     return plugins_dir
+ 

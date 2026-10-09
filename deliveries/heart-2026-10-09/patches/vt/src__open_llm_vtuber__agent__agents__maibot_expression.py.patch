@@ -1,0 +1,13 @@
+--- a/src/open_llm_vtuber/agent/agents/maibot_expression.py
++++ b/src/open_llm_vtuber/agent/agents/maibot_expression.py
+@@ -41,8 +41,8 @@
+ 
+     choices = "\n".join(f"{key}: {EXPRESSION_HINTS[key]}" for key in EXPRESSION_HINTS if key in allowed)
+     system = (
+-        "你只负责判断鱼宝刚说完的话适合哪种 Live2D 表情。"
+-        "依据鱼宝自己的语气和态度判断，不要把用户的问题当成鱼宝的心情。"
++        "你只负责判断当前角色刚说完的话适合哪种 Live2D 表情。"
++        "依据当前角色自己的语气和态度判断，不要把用户的问题当成当前角色的心情。"
+         "普通说明或不确定时选 neutral；强烈表情只在语气明确时选。"
+         "回复只包含下列一个英文键名，不要加括号、标点或解释。\n"
+         + choices

@@ -1,0 +1,83 @@
+--- a/src/chat/replyer/maisaka_generator_base.py
++++ b/src/chat/replyer/maisaka_generator_base.py
+@@ -432,20 +432,29 @@
+ 
+     @staticmethod
+     def _build_replyer_output_instruction() -> str:
+-        """构建 replyer 的最终输出格式说明。"""
++        """构建最终输出格式说明，正常标点属于正文而不是多余内容。"""
+ 
+         locale = BaseMaisakaReplyGenerator._get_prompt_locale()
+         if locale.startswith("en"):
+             return (
+-                "Please do not output any extra content (including unnecessary prefixes or suffixes, "
+-                "colons, brackets, stickers, plain at, or @). Only output the message content itself."
++                "Output only the message itself, without speaker labels, commentary, stickers, plain at, or @. "
++                "Keep normal punctuation, including commas, periods, question marks and colons needed by the content. "
++                "Use complete sentences or clear paragraph breaks for longer replies. "
++                "A casual tone should not omit punctuation between clauses or join many sentences with only commas."
+             )
+         if locale.startswith("ja"):
+             return (
+-                "余計な内容（不要な前置きや後置き、コロン、括弧、スタンプ、通常の at や @ など）は出力せず、"
+-                "発言内容だけを出力してください。"
+-            )
+-        return "请注意不要输出多余内容(包括不必要的前后缀，冒号，括号，表情包，@等 )，只输出发言内容就好。"
++                "話者名の接頭辞、解説、スタンプ、通常の at や @ などの余計な内容を付けず、発言内容だけを出力してください。"
++                "本文に必要な読点、句点、疑問符、コロンなどの通常の句読点は保持してください。"
++                "長い返信は文末または明確な改行で区切り、口語的な表現でも節の間の句読点を省略したり、"
++                "複数の文を読点だけでつなげたりしないでください。"
++            )
++        return (
++            "只输出发言内容，不添加身份前缀、解释性后缀、表情包、@等额外内容。"
++            "正文正常需要的逗号、句号、问号、冒号等标点应当保留，不属于多余内容。"
++            "较长回复使用完整句子或明确分段；语气可以口语化，但不要省略分句之间必要的标点，"
++            "不要把多个完整句子仅用逗号连成一长串。"
++        )
+ 
+     @staticmethod
+     def _replace_regex_capture_groups(reaction: str, match: re.Match[str]) -> str:
+@@ -567,7 +576,9 @@
+ 
+     def _build_reply_instruction(self) -> str:
+         return (
+-            "请自然地回复。不要输出多余说明、括号、@ 或额外标记，"
++            "请顺着当前聊天自然回复，把情绪放在说出口的话里，"
++            "需要时可以自然多接一句，不必刻意凑成固定的句数。"
++            "不要输出动作、声音或心理旁白，不要输出多余说明、括号、@ 或额外标记，"
+             "只输出实际要发言的内容。"
+         )
+ 
+@@ -637,7 +648,10 @@
+         """根据 reply 工具参数构建本次回复的篇幅要求。"""
+ 
+         style_messages = {
+-            "简短表达": "请简短的回复，允许句子残缺，奇怪表达，倒装，省略，符合口语习惯，符合省力随意回复习惯",
++            "简短表达": (
++                "保持简洁，先回应对方此刻的意思和情绪；允许自然接一句，"
++                "不为省字而删掉关心或必要信息。不要把简短理解为冷淡。"
++            ),
+             "正常回复": "",
+             "长回复": "可以针对问题做出较为详细的评论和说明",
+         }
+@@ -1190,9 +1204,17 @@
+                         session_id=preview_chat_id,
+                     )
+                 generation_options = LLMGenerationOptions(model_name=active_model_name)
+-                generation_result = await active_model.generate_response_with_context(
+-                    context_factory=context_factory,
+-                    options=generation_options,
++                # 只有已绑定的 Live2D 实时会话可能采用草稿；其余会话直接调用原模型。
++                from src.services.heart_realtime_drafts import generate_reply
++
++                generation_result = await generate_reply(
++                    session_id=preview_chat_id, generator=self, model=active_model,
++                    context_factory=context_factory, options=generation_options,
++                    reply_message=reply_message, requirements=active_reply_requirements,
++                    tool_args=active_reply_tool_args, task_name=active_task_name,
++                    model_name=active_model_name, retry_count=retry_count,
++                    expected_items=request_messages,
++                    reply_reason=reply_reason or "",
+                 )
+                 aggregate_prompt_tokens += generation_result.prompt_tokens
+                 aggregate_completion_tokens += generation_result.completion_tokens

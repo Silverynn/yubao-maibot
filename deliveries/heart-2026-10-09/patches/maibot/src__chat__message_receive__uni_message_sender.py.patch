@@ -1,0 +1,20 @@
+--- a/src/chat/message_receive/uni_message_sender.py
++++ b/src/chat/message_receive/uni_message_sender.py
+@@ -12,6 +12,7 @@
+ from src.common.logger import get_logger
+ from src.common.message_server.api import get_global_api
+ from src.common.utils.utils_message import MessageUtils
++from src.services.heart_live2d_delivery import skip_live2d_typing
+ from src.webui.routers.chat.serializers import serialize_message_sequence
+ 
+ install(extra_lines=3)
+@@ -331,7 +332,8 @@
+             #     if modified_message._modify_flags.modify_plain_text:
+             #         message.processed_plain_text = modified_message.plain_text
+ 
+-            if typing:
++            # 与 Platform IO 新发送链保持一致，仅识别真实 Live2D 目标会话。
++            if typing and not skip_live2d_typing(message):
+                 typing_time = calculate_typing_time(
+                     input_string=message.processed_plain_text,  # type: ignore
+                     is_emoji=message.is_emoji,

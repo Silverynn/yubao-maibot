@@ -1,0 +1,38 @@
+{
+  "manifest_version": 2,
+  "id": "heart.memory-audit",
+  "name": "Heart 记忆插件（管理与日志）",
+  "version": "1.5.1",
+  "description": "增强MaiBot原生记忆流：候选审核、冲突与重复保护、更新和忘记、群回忆及日志。聊天摘要模型在模型配置的memory任务选择；插件用法页提供直达入口。",
+  "author": {
+    "name": "Heart project contributors",
+    "url": "https://github.com/Silverynn/yubao-maibot"
+  },
+  "urls": {
+    "repository": "https://github.com/Silverynn/yubao-maibot"
+  },
+  "i18n": {
+    "default_locale": "zh-CN",
+    "locales_path": "_locales",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  },
+  "license": "GPL-3.0-or-later",
+  "host_application": {
+    "min_version": "1.2.4",
+    "max_version": "1.2.99"
+  },
+  "sdk": {
+    "min_version": "2.8.0",
+    "max_version": "2.99.99"
+  },
+  "dependencies": [],
+  "capabilities": [
+    "heart.memory.resolve",
+    "heart.memory.manual",
+    "heart.memory.candidates",
+    "heart.memory.manage",
+    "send.text"
+  ]
+}

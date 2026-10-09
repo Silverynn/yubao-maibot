@@ -1,0 +1,34 @@
+[
+  [
+    "console.log(\"Real speech confirmed - checking if need to interrupt\"),",
+    "window.heartRealtime?.begin(),console.log(\"Real speech confirmed - checking if need to interrupt\"),"
+  ],
+  [
+    "Rt=reactExports.useCallback(Vt=>{Vt.isSpeech>a.current&&It(Vt.isSpeech)},[])",
+    "Rt=reactExports.useCallback((Vt,Ut)=>{window.heartRealtime?.frame(Vt,Ut);Vt.isSpeech>a.current&&It(Vt.isSpeech)},[])"
+  ],
+  [
+    "heartTrace:Gt.heart_trace||null,",
+    "heartTrace:Gt.heart_trace||null,heartRt:Gt.heart_rt||null,"
+  ],
+  [
+    "const kt=new Audio(gt);audioManager.setCurrentAudio(kt,wt);",
+    "const kt=new Audio(gt);window.heartRealtime?.attach(kt,rt.heartRt);audioManager.setCurrentAudio(kt,wt);"
+  ],
+  [
+    "case\"audio\":st===\"interrupted\"||st===\"listening\"?console.log(\"Audio playback intercepted.",
+    "case\"audio\":if(!(window.heartRealtime?.accept(Gt)??true))break;(st===\"interrupted\"||st===\"listening\")&&Gt.heart_rt?.kind!==\"ack\"?console.log(\"Audio playback intercepted."
+  ],
+  [
+    "st===\"interrupted\"||st===\"listening\"?console.log(\"Audio playback intercepted.",
+    "(st===\"interrupted\"||st===\"listening\")&&Gt.heart_rt?.kind!==\"ack\"?console.log(\"Audio playback intercepted."
+  ],
+  [
+    "window.heartDialogue?.textShown(rt.heartTrace,rt.heartAudioStatus),",
+    "window.heartDialogue?.textShown(rt.heartTrace,rt.heartAudioStatus),dt||window.heartRealtime?.textShown(rt.heartRt),"
+  ],
+  [
+    "if(at===\"interrupted\"){console.warn(\"Audio playback blocked by interruption state.\")",
+    "if(at===\"interrupted\"||!(window.heartRealtime?.acceptTask(rt)??true)){console.warn(\"Audio playback blocked by interruption state.\")"
+  ]
+]

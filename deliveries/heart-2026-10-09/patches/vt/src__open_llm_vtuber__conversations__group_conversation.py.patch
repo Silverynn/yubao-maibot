@@ -1,0 +1,12 @@
+--- a/src/open_llm_vtuber/conversations/group_conversation.py
++++ b/src/open_llm_vtuber/conversations/group_conversation.py
+@@ -51,7 +51,8 @@
+         metadata: Optional metadata for special processing flags
+     """
+     # Create TTSTaskManager for each member
+-    tts_managers = {uid: TTSTaskManager() for uid in group_members}
++    from voice_context import requested_voice
++    tts_managers = {uid: TTSTaskManager(voice_enabled=requested_voice(metadata)) for uid in group_members}
+ 
+     try:
+         logger.info(f"Group Conversation Chain {session_emoji} started!")

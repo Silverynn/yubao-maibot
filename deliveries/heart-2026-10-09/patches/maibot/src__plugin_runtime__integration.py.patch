@@ -1,0 +1,39 @@
+--- a/src/plugin_runtime/integration.py
++++ b/src/plugin_runtime/integration.py
+@@ -37,6 +37,7 @@
+ from src.config.config import config_manager
+ from src.config.file_watcher import FileChange, FileWatcher
+ from src.platform_io import DeliveryBatch, InboundMessageEnvelope, get_platform_io_manager
++from src.plugin_runtime.launch_policy import get_launch_disabled_plugin_reasons
+ from src.plugin_runtime.capabilities import (
+     RuntimeComponentCapabilityMixin,
+     RuntimeCoreCapabilityMixin,
+@@ -368,6 +369,8 @@
+             for plugin_id, reason in blocked_plugin_reasons.items()
+             if str(plugin_id or "").strip() and str(reason or "").strip()
+         }
++        # 重载和依赖刷新后仍保留启动隔离，不写入插件config.toml。
++        normalized_reasons.update(get_launch_disabled_plugin_reasons())
+         changed_plugin_ids = {
+             plugin_id
+             for plugin_id in set(self._blocked_plugin_reasons) | set(normalized_reasons)
+@@ -396,7 +399,7 @@
+ 
+         result = await self._plugin_dependency_pipeline.execute(
+             plugin_dirs,
+-            initial_blocked_plugin_reasons=duplicate_plugin_reasons,
++            initial_blocked_plugin_reasons={**duplicate_plugin_reasons, **get_launch_disabled_plugin_reasons()},
+         )
+         blocked_plugin_reasons = dict(result.blocked_plugin_reasons)
+         llm_provider_conflicts = self._discover_llm_provider_conflicts(
+@@ -852,8 +855,9 @@
+         statuses: Dict[str, str] = {}
+         for supervisor in self.supervisors:
+             statuses.update(supervisor.get_plugin_load_statuses())
++        launch_disabled = get_launch_disabled_plugin_reasons()
+         for plugin_id in self._blocked_plugin_reasons:
+-            statuses[plugin_id] = "failed"
++            statuses[plugin_id] = "offline" if plugin_id in launch_disabled else "failed"
+         # /offline 是一次临时运行时操作，不会修改插件的 enabled 配置。
+         # 因此已成功卸载的适配器必须保留显式状态，避免 WebUI 将“启用但未加载”误判为加载失败。
+         for plugin_id in self._offline_adapter_plugin_ids:

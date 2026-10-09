@@ -1,0 +1,44 @@
+--- a/src/plugin_runtime/runner/plugin_loader.py
++++ b/src/plugin_runtime/runner/plugin_loader.py
+@@ -19,6 +19,7 @@
+ import sys
+ 
+ from src.common.logger import get_logger
++from src.plugin_runtime.launch_policy import get_launch_disabled_plugin_reasons
+ from src.plugin_runtime.runner.manifest_validator import ManifestValidator, PluginManifest, is_reserved_plugin_directory
+ 
+ logger = get_logger("plugin_runtime.runner.plugin_loader")
+@@ -115,7 +116,11 @@
+         normalized_plugin_id = str(plugin_id or "").strip()
+         if not normalized_plugin_id:
+             return None
+-        return self._blocked_plugin_reasons.get(normalized_plugin_id)
++        # 在Runner内再次检查，避免重载或配置校验绕过本次启动的隔离规则。
++        return (
++            get_launch_disabled_plugin_reasons().get(normalized_plugin_id)
++            or self._blocked_plugin_reasons.get(normalized_plugin_id)
++        )
+ 
+     def discover_and_load(
+         self,
+@@ -209,6 +214,9 @@
+ 
+         plugin_id = manifest.id
+         if not self._plugin_type_matches_filter(plugin_dir, manifest):
++            return None
++        if launch_reason := get_launch_disabled_plugin_reasons().get(plugin_id):
++            logger.info(f"插件 {plugin_id} 本次保持离线: {launch_reason}")
+             return None
+         if blocked_reason := self.get_blocked_plugin_reason(plugin_id):
+             self._failed_plugins[plugin_id] = blocked_reason
+@@ -555,6 +563,10 @@
+         plugin_path: Path,
+     ) -> Optional[PluginMeta]:
+         """加载单个插件"""
++        # 最后一道检查：直接加载候选模块也不能激活本次被隔离的QQ适配器。
++        if blocked_reason := self.get_blocked_plugin_reason(plugin_id):
++            logger.info(f"插件 {plugin_id} 未加载: {blocked_reason}")
++            return None
+         # 确保兼容层导入钩子已安装（旧版插件可能 import src.plugin_system）
+         self._ensure_compat_hook()
+ 
