@@ -1,0 +1,117 @@
+{
+  "baseline_commit": "50b9eab29201832889173eb277f5a8db6606f75e",
+  "entries": [
+    {
+      "project": "maibot",
+      "target": "src/config/model_configs.py",
+      "path": "maibot/src/config/model_configs.py",
+      "component": "model-selection",
+      "sha256": "44d3c54aae6c6c1ea309046d4adf8ca4ec313bd595797608e81d5245ac704c7c",
+      "before_sha256": "09a4a7a3daadf00c3aff8b48084b3f251acced37bb0c9b473289e3820be54ab1",
+      "baseline": "baseline/maibot/src/config/model_configs.py",
+      "patch": "patches/src__config__model_configs.py.patch",
+      "baseline_source": "10月9日交付源码"
+    },
+    {
+      "project": "maibot",
+      "target": "src/config/config.py",
+      "path": "maibot/src/config/config.py",
+      "component": "model-selection",
+      "sha256": "84028ac4e01eecd31588bb43bba263d79894c09140440684b3ed60cb71793ad8",
+      "before_sha256": "5a4f2b7be0780632f4c465c3906c0d42976817766cd8b500cdd00c7a21ef7ae7",
+      "baseline": "baseline/maibot/src/config/config.py",
+      "patch": "patches/src__config__config.py.patch",
+      "baseline_source": "10月9日交付源码"
+    },
+    {
+      "project": "maibot",
+      "target": "src/config/default_model_config.py",
+      "path": "maibot/src/config/default_model_config.py",
+      "component": "model-selection",
+      "sha256": "480dd69d476c2f55bdf66f61bc064cdb5b0e18c4c73f89cbf8ae458e1fd5adaa",
+      "before_sha256": "8cb1fe070035bb14631538d30a0dfc8bc193d702914e1ab5a390901ce81784a4",
+      "baseline": "baseline/maibot/src/config/default_model_config.py",
+      "patch": "patches/src__config__default_model_config.py.patch",
+      "baseline_source": "该次选模更新前的宿主源码（新增比较基线；伙伴未修改匹配不作保证）"
+    },
+    {
+      "project": "maibot",
+      "target": "src/llm_models/utils_model.py",
+      "path": "maibot/src/llm_models/utils_model.py",
+      "component": "model-selection",
+      "sha256": "ed4cdab6fa02e47bf8f20647ea097a894a98e86c7cc4e5696976be1285d72079",
+      "before_sha256": "d906d2d80a7e1b4192a048115ad120008b42a24470d0ea2dd27e4c04450bd57c",
+      "baseline": "baseline/maibot/src/llm_models/utils_model.py",
+      "patch": "patches/src__llm_models__utils_model.py.patch",
+      "baseline_source": "该次选模更新前的宿主源码（新增比较基线；伙伴未修改匹配不作保证）"
+    },
+    {
+      "project": "maibot",
+      "target": "src/plugin_runtime/capabilities/core.py",
+      "path": "maibot/src/plugin_runtime/capabilities/core.py",
+      "component": "model-selection",
+      "sha256": "6c37356405cdb575aac63baf0fc7f959321d2b9cd1330ca1cf7d441ff2e2cae1",
+      "before_sha256": "cde1a0d3ee641a01bb27a118084238bc08e8ee003e3b46510b13968e628ec07c",
+      "baseline": "baseline/maibot/src/plugin_runtime/capabilities/core.py",
+      "patch": "patches/src__plugin_runtime__capabilities__core.py.patch",
+      "baseline_source": "该次选模更新前的宿主源码（新增比较基线；伙伴未修改匹配不作保证）"
+    },
+    {
+      "project": "maibot",
+      "target": "src/services/heart_memory_backend.py",
+      "path": "maibot/src/services/heart_memory_backend.py",
+      "component": "model-selection",
+      "sha256": "c324131ec593090883f7398aeda5c6bc370af946dd559fabd9775c676b8bdb49",
+      "before_sha256": "3c50b5fefb82df01cdaabb252333652fa5ea737bfc51a0fa88306405483e7ec1",
+      "baseline": "baseline/maibot/src/services/heart_memory_backend.py",
+      "patch": "patches/src__services__heart_memory_backend.py.patch",
+      "baseline_source": "10月9日交付源码"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/summary_semantic.py",
+      "path": "maibot/heart_shared/summary_semantic.py",
+      "component": "model-selection",
+      "sha256": "2312ec74e71d76f4dc6e80c0c749c53cad287abd23d8351ee249127102204398",
+      "before_sha256": "2359a6db8dd3b174ca44395d5c2485ad06d837ae235f63147e6fbef80411dd25",
+      "baseline": "baseline/maibot/heart_shared/summary_semantic.py",
+      "patch": "patches/heart_shared__summary_semantic.py.patch",
+      "baseline_source": "10月9日交付源码"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart_mood/appraiser.py",
+      "path": "maibot/plugins/heart_mood/appraiser.py",
+      "component": "model-selection",
+      "sha256": "c4da4c4e6326819e4c375a61f845a7fd0dd2b3bd24eb0da57b6a412bb78a8c93",
+      "before_sha256": "706d9a9fdb00f317ac2b4ee4a21d81ff2e30a0a2a8fe434fd0b84443872a8916",
+      "baseline": "baseline/maibot/plugins/heart_mood/appraiser.py",
+      "patch": "patches/plugins__heart_mood__appraiser.py.patch",
+      "baseline_source": "10月9日交付源码"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart_mood/plugin.py",
+      "path": "maibot/plugins/heart_mood/plugin.py",
+      "component": "model-selection",
+      "sha256": "64197859d3a6ff71a0c221f8f52ba49682d05f6ea5a63193ba84ce584a9fdc85",
+      "before_sha256": "42af6b5fc6f60778b92c63b87ddb9ceab7bb526c515555ffb2266ad0de01fe66",
+      "baseline": "baseline/maibot/plugins/heart_mood/plugin.py",
+      "patch": "patches/plugins__heart_mood__plugin.py.patch",
+      "baseline_source": "10月9日交付源码"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart_memory_audit/README.md",
+      "path": "maibot/plugins/heart_memory_audit/README.md",
+      "component": "model-selection",
+      "sha256": "a756294ddd1b828959c77c06836ce119a14018a9ee3933bacbfbc1740b471b53",
+      "before_sha256": "6f084021715fc252c0d4c22b7ab468c0b44f4e33c0e78583167eb985bec469af",
+      "baseline": "baseline/maibot/plugins/heart_memory_audit/README.md",
+      "patch": "patches/plugins__heart_memory_audit__README.md.patch",
+      "baseline_source": "10月9日交付源码"
+    }
+  ],
+  "voice_changes": false,
+  "runtime_config_shipped": false
+}

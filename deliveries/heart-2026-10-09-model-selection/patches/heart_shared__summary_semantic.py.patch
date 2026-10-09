@@ -1,0 +1,11 @@
+--- a/heart_shared/summary_semantic.py
++++ b/heart_shared/summary_semantic.py
+@@ -127,7 +127,7 @@
+ async def judge(text, candidates, entities, relations, config, chat):
+     from src.services import llm_service
+     result = await llm_service.generate(llm_service.LLMServiceRequest(
+-        task_name='utils', request_type='heart.summary_semantic', session_id=chat,
++        task_name='heart_memory_dedup', request_type='heart.summary_semantic', session_id=chat,
+         prompt=build_prompt(text,candidates,entities,relations,config['guidance']),
+         temperature=0.0, max_tokens=config['max_tokens']))
+     if not result.success:

@@ -1,0 +1,31 @@
+--- a/src/plugin_runtime/capabilities/core.py
++++ b/src/plugin_runtime/capabilities/core.py
+@@ -614,7 +614,14 @@
+ 
+         try:
+             prompt = _normalize_prompt_arg(args.get("prompt"))
+-            task_name, model_name = _resolve_llm_capability_route(args, llm_api.get_available_models())
++            available_tasks = llm_api.get_available_models()
++            task_name, model_name = _resolve_llm_capability_route(args, available_tasks)
++            # 专用列表未配置时完全保持旧心情插件的utils/手填模型行为。
++            # 列表已配置则由模型配置页面选模，不能再被旧手填字段覆盖。
++            if plugin_id == "heart.mood" and task_name == "utils":
++                mood_task = available_tasks.get("heart_mood")
++                if mood_task is not None and any(name.strip() for name in mood_task.model_list):
++                    task_name, model_name = "heart_mood", None
+             task_name = llm_api.resolve_task_name(task_name)
+             result = await generate_with_budget(
+                 llm_api.generate,
+@@ -628,7 +635,11 @@
+                 ),
+                 args.get("request_timeout_seconds"),
+             )
+-            return result.to_capability_payload()
++            payload = result.to_capability_payload()
++            if plugin_id == "heart.mood":
++                payload["model_task"] = task_name
++                payload["model_selection_source"] = "模型配置页面" if task_name == "heart_mood" else "插件手填模型" if model_name else "utils默认模型"
++            return payload
+         except TimeoutError:
+             logger.warning(f"插件模型请求达到调用方时限，已执行本地取消清理：{plugin_id}")
+             return {"success": False, "error_code": "request_timeout", "error": "宿主模型请求超时，本地请求已取消"}

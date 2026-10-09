@@ -1,0 +1,64 @@
+{
+  "model_task_config": {
+    "replyer": {
+      "model_list": [
+        "fixture-replyer"
+      ],
+      "max_tokens": 4096
+    },
+    "planner": {
+      "model_list": [
+        "fixture-planner"
+      ],
+      "max_tokens": 4096
+    },
+    "memory": {
+      "model_list": [
+        "fixture-memory"
+      ],
+      "max_tokens": 8192
+    },
+    "mid_memory": {
+      "model_list": [],
+      "max_tokens": 4096
+    },
+    "utils": {
+      "model_list": [
+        "fixture-utils"
+      ],
+      "max_tokens": 4096
+    },
+    "learner": {
+      "model_list": [],
+      "max_tokens": 4096
+    },
+    "expression_use": {
+      "model_list": [],
+      "max_tokens": 4096
+    },
+    "emoji": {
+      "model_list": [],
+      "max_tokens": 4096
+    },
+    "vlm": {
+      "model_list": [],
+      "max_tokens": 4096
+    },
+    "voice": {
+      "model_list": [],
+      "max_tokens": 4096
+    },
+    "embedding": {
+      "model_list": [
+        "fixture-embedding"
+      ],
+      "max_tokens": 4096
+    },
+    "unused_old_field": {
+      "model_list": [
+        "fixture-unused_old_field"
+      ],
+      "max_tokens": 4096
+    }
+  }
+}

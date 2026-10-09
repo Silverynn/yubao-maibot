@@ -1,0 +1,11 @@
+--- a/src/llm_models/utils_model.py
++++ b/src/llm_models/utils_model.py
+@@ -72,6 +72,8 @@
+ DATA_URI_RETRY_MARGIN_BYTES = 128 * 1024
+ MIN_COMPRESSED_IMAGE_TARGET_SIZE_BYTES = 512 * 1024
+ EMPTY_TASK_FALLBACKS = {
++    "heart_mood": "utils",
++    "heart_memory_dedup": "utils",
+     "expression_use": "utils",
+     "learner": "utils",
+     "mid_memory": "planner",

@@ -1,0 +1,12 @@
+--- a/plugins/heart_mood/appraiser.py
++++ b/plugins/heart_mood/appraiser.py
+@@ -151,6 +151,9 @@
+     """只记录长度/用量等元数据；绝不保存整段模型返回或隐藏推理。"""
+     info = {"output_budget": budget}
+     if isinstance(result, dict):
++        info["model_name"] = result.get("model_name", "")
++        info["model_task"] = result.get("model_task", "")
++        info["model_selection_source"] = result.get("model_selection_source", "")
+         raw = result.get("response")
+         info["response_chars"] = len(raw) if isinstance(raw, str) else 0
+         tokens = result.get("completion_tokens")
