@@ -1,0 +1,16 @@
+[plugin]
+config_version = "0.3.0"
+
+[connection]
+enabled = false
+server_url = "http://127.0.0.1:8790"
+player_token = ""
+trust_env = false
+poll_seconds = 2.0
+
+[character]
+identity = "我是此房间指定的玩家角色，按照主持人确认的角色卡保持身份与行为连续。"
+guidance = "用符合角色的自然口吻，发言控制在100字左右，行动提案明确简短。"
+model_name = ""
+timeout_seconds = 40.0
+max_tokens = 4096

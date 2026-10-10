@@ -1,5 +1,7 @@
 # 极创二面题heart项目
 
+> **StoryRoom连接修复包（2026-10-10）：** [ZIP](deliveries/heart-storyroom-0.3-connect-fix-2026-10-10.zip) · [给伙伴GPT的修复步骤](deliveries/heart-storyroom-0.3-connect-fix-2026-10-10/docs/给伙伴GPT-连接修复操作单-20261010.md) · [完整安装指南](deliveries/heart-storyroom-0.3-connect-fix-2026-10-10/docs/给同伴AI助手的安装说明-20261010.md)。修复插件清单加载失败、旧0.3升级识别及伙伴形象选择/缓存；新建房间默认“故机”和“鱼宝”。只作为PC加入时无需运行第二个平台；保留配置、密钥、自改代码、记忆与语音包。旧交付包保留。
+
 基于 **MaiBot + NapCatQQ** 的 QQ 角色机器人定制。用于学习和完成 [Heart Heart Heart 项目](https://join.geek-tech.club/problems2/heart-heart-heart)：理解对话、状态、记忆与工具执行，并逐步加入虚拟形象和实时语音。
 
 这里共享的是现有定制、可重建补丁和学习计划，不是从零编写的聊天框架，也不表示题目的全部功能已完成。
