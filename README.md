@@ -10,6 +10,8 @@
 
 > **StoryRoom跑团交付（2026-10-10）：** [源码与说明](deliveries/heart-storyroom-2026-10-10/README.md) · [ZIP](deliveries/heart-storyroom-2026-10-10.zip) · [伙伴分步教程](deliveries/heart-storyroom-2026-10-10/docs/伙伴使用与验收教程-20261010.md) · [给AI助手的安装说明](deliveries/heart-storyroom-2026-10-10/docs/给同伴AI助手的安装说明-20261010.md)。新增有限世界线、双机器人PC连接、独立游戏经历与状态、检定裁决、双Live2D及分角色语音开关。默认关闭插件，保留原QQ/VT语音包与旧交付；公网双机、真人麦克风和完整Lv4.5移植尚待验收。
 
+> **StoryRoom 0.3 更新（2026-10-10）：** [源码与说明](deliveries/heart-storyroom-0.3-2026-10-10/README.md) · [ZIP](deliveries/heart-storyroom-0.3-2026-10-10.zip) · [给同伴GPT的安装与联机指南](deliveries/heart-storyroom-0.3-2026-10-10/docs/给同伴AI助手的安装说明-20261010.md) · [对比上次0.2](deliveries/heart-storyroom-0.3-2026-10-10/docs/与上次交付的区别-20261010.md)。新增可编辑世界线、隔离跑团记忆、持续旁听和自主讨论；双方PC与平台需一起升级0.3。保留伙伴自改代码、原语音包、配置和数据，公网地址与伙伴模型仍需准备。旧0.2包保留。
+
 ## 已有改动
 
 - 按固定账号区分管理员与普通成员，约束人物画像和事实归属。
