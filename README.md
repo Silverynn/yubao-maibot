@@ -8,6 +8,8 @@
 
 > **独立选模增量（2026-10-09）：** [源码与说明](deliveries/heart-2026-10-09-model-selection/README.md) · [ZIP](deliveries/heart-2026-10-09-model-selection.zip) · [给同伴AI助手的安装说明](deliveries/heart-2026-10-09-model-selection/给同伴AI助手的安装说明.md)。叠加在上面的10月9日包之后，新增心情评估、记忆查重／冲突判断独立模型选择和实际选模日志；保留现有语音包、配置和数据。未知源码修改停止并三方合并，不直接覆盖。
 
+> **StoryRoom跑团交付（2026-10-10）：** [源码与说明](deliveries/heart-storyroom-2026-10-10/README.md) · [ZIP](deliveries/heart-storyroom-2026-10-10.zip) · [伙伴分步教程](deliveries/heart-storyroom-2026-10-10/docs/伙伴使用与验收教程-20261010.md) · [给AI助手的安装说明](deliveries/heart-storyroom-2026-10-10/docs/给同伴AI助手的安装说明-20261010.md)。新增有限世界线、双机器人PC连接、独立游戏经历与状态、检定裁决、双Live2D及分角色语音开关。默认关闭插件，保留原QQ/VT语音包与旧交付；公网双机、真人麦克风和完整Lv4.5移植尚待验收。
+
 ## 已有改动
 
 - 按固定账号区分管理员与普通成员，约束人物画像和事实归属。

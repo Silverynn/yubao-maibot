@@ -1,0 +1,240 @@
+{
+  "version": "0.2.0",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "size": 9,
+      "sha256": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992"
+    },
+    {
+      "path": ".gitignore",
+      "size": 75,
+      "sha256": "a7000da5c26705755a7409cad4b01bc69840349ed7f7a50be72eb68c54b48c1d"
+    },
+    {
+      "path": "docs/Lv2.5-实现与验收说明-20261010.md",
+      "size": 6594,
+      "sha256": "8a83303a10adb3e7f0bfb8085a3b7b9366748cdc9baa422a30df7c0d3825972b"
+    },
+    {
+      "path": "docs/与上次交付的区别-20261010.md",
+      "size": 2094,
+      "sha256": "40a587c0b3600e858206c5a25929c7164250408c3940c709bbc227c570147951"
+    },
+    {
+      "path": "docs/伙伴使用与验收教程-20261010.md",
+      "size": 7614,
+      "sha256": "91df2876c9a88282e0af07d58619c69a8d94de71ad51ac4e332bcbeacc8e206b"
+    },
+    {
+      "path": "docs/日志示例-20261010.jsonl",
+      "size": 2105,
+      "sha256": "cff9bdf3755585eec9156c6dab39b24e4930db8f83b45761bf0cf2cd91f25bbc"
+    },
+    {
+      "path": "docs/给同伴AI助手的安装说明-20261010.md",
+      "size": 8791,
+      "sha256": "8f59dbe679c306a7a5b2aa90cb95cba0ea4eb7c4cdf418040ea903229a23cd64"
+    },
+    {
+      "path": "launch.py",
+      "size": 1367,
+      "sha256": "f7fd8d21e10593f21edd2ceeecae23a3088db24c57801fafd5b9d3cf1855cdb0"
+    },
+    {
+      "path": "LICENSE",
+      "size": 1079,
+      "sha256": "f467577afbb8ec1871871f73ff15bb5d9729b90ed2c2a63d50b9f11439b3aff5"
+    },
+    {
+      "path": "local-config.example.json",
+      "size": 185,
+      "sha256": "64d3a2b956743322b2056bfc3fcbb2e9fd18a3e4dffed6e42d35af1fc131d50a"
+    },
+    {
+      "path": "plugins/storyroom_pc/.gitignore",
+      "size": 31,
+      "sha256": "0d41abbab4c5955bd4ac7cdaaab7d436859429f56bd135a4022b90fef1b092e3"
+    },
+    {
+      "path": "plugins/storyroom_pc/_manifest.json",
+      "size": 482,
+      "sha256": "b9ff2e6a733d0b4a32f9d68a271b137def4dd000d003d912ea56822dfbc3d204"
+    },
+    {
+      "path": "plugins/storyroom_pc/config.example.toml",
+      "size": 446,
+      "sha256": "112b2b152977efa6cf054c490edc9a94ae2ee001b0d176fcdb848006da68376c"
+    },
+    {
+      "path": "plugins/storyroom_pc/plugin.py",
+      "size": 6030,
+      "sha256": "a4f88f0d813953981183a4d8d8d91b3a65fb79c6a7339912b4f891d0e0da4697"
+    },
+    {
+      "path": "plugins/storyroom_pc/worker.py",
+      "size": 11952,
+      "sha256": "a2ca2570349c4be80c9ba6c96fd3f36a46f968bc9d956b9f67e3f30ec2ecd6e1"
+    },
+    {
+      "path": "README.md",
+      "size": 7898,
+      "sha256": "802004e78e17fdc616745052925c6cb4a8bb322586765f41996a3636b178ba66"
+    },
+    {
+      "path": "requirements.txt",
+      "size": 67,
+      "sha256": "4d73d214908e8cb91622290d87e3aa849e2b931ec840173f6b893412a6077ec6"
+    },
+    {
+      "path": "scripts/check_compat.py",
+      "size": 2627,
+      "sha256": "a699ad203515509971fedb03ab36da833148a9ce602e606435b91712abd2015b"
+    },
+    {
+      "path": "scripts/install_pc.py",
+      "size": 1960,
+      "sha256": "afde1adbc48dd7c959a542fb499eb2fd687b324ebda49521aa07c9f4eb0d6e16"
+    },
+    {
+      "path": "scripts/setup_vendor.py",
+      "size": 1065,
+      "sha256": "15f3e6c47a1f71e48048c6b742f22a051bf18acb4654f132e924c4af4a20c7d7"
+    },
+    {
+      "path": "scripts/verify_package.py",
+      "size": 879,
+      "sha256": "50963aa0b897eec5f08e3470c53af4bcb206adef3a0bbcdea93ea9c838f71f85"
+    },
+    {
+      "path": "start.cmd",
+      "size": 95,
+      "sha256": "66aabc609b9825327ef5fa5e3d38c3d52f3a732aba2c41efc589457aa5306c88"
+    },
+    {
+      "path": "start_local.py",
+      "size": 2965,
+      "sha256": "7b498c4241091120d4e3ea0c079e88043f570667d364936c34d22b076a328077"
+    },
+    {
+      "path": "stories/lighthouse.json",
+      "size": 2964,
+      "sha256": "05e9efeee377456346ba96ed34b5eee411de8ad4e8bba3b9a1c64ab0430f9042"
+    },
+    {
+      "path": "storyroom/__init__.py",
+      "size": 77,
+      "sha256": "72aa332c2047e20e27701a1b9bfd4825c3cc3ce2cbda41dc84529b27c9e86914"
+    },
+    {
+      "path": "storyroom/app.py",
+      "size": 24419,
+      "sha256": "752086abe3d6f858a1855605ccd0ee65d72edf97a570c217b2b48da8fcb186ab"
+    },
+    {
+      "path": "storyroom/speech.py",
+      "size": 1757,
+      "sha256": "239c82ef5b69e846e4143e7fc3982b82fb16516d9174e67b0b528793affecf2c"
+    },
+    {
+      "path": "storyroom/store.py",
+      "size": 31131,
+      "sha256": "38c695ec68523124fc1d754118358e968917cc2e1aa807ec82660ccfe64ef4cd"
+    },
+    {
+      "path": "tests/test_audio.mjs",
+      "size": 728,
+      "sha256": "8eb8c8b69ab1bbf1971fd245aca1f8a7f35e91be466afa81722f9d5183325a6c"
+    },
+    {
+      "path": "tests/test_installer.py",
+      "size": 2242,
+      "sha256": "58d1c4a050d886cc61f211b2ef69770cc6953eb5b9163758054f5e3c5118c2f7"
+    },
+    {
+      "path": "tests/test_lv25.py",
+      "size": 13437,
+      "sha256": "5526f685babe15e87dee4978bd2142f7d7c33e422ba5594cc558402c02168369"
+    },
+    {
+      "path": "tests/test_media.mjs",
+      "size": 3631,
+      "sha256": "f7e7ceabb1a962eadaa13a5ed33419f5ff407ad6800a6da3b7b30e1c14fff2c0"
+    },
+    {
+      "path": "tests/test_media.py",
+      "size": 6851,
+      "sha256": "77759f68e3c831e9ce73567f6afdf2d6d7e1035a4f282b684072de4c877f22c3"
+    },
+    {
+      "path": "tests/test_network.py",
+      "size": 5016,
+      "sha256": "f6fb2f6ac3f3c235081e883011cd82a5739e9f5339525d640ac7e44fa2948d7f"
+    },
+    {
+      "path": "tests/test_sdk.py",
+      "size": 4241,
+      "sha256": "d6e45e25486795b4758a3fabda88988702b6f3a6bf711f6926adc5d3fc54c303"
+    },
+    {
+      "path": "tests/test_storyroom.py",
+      "size": 18782,
+      "sha256": "c419e94506b12f7fcb134cd3cfb1c271dccc055d4f8eebbe5d0e5e12181aaab1"
+    },
+    {
+      "path": "tests/test_visual.mjs",
+      "size": 1096,
+      "sha256": "e8bdfaba4ddd36362c2e17c2bf2b1f6e9ed16845b53b3fe794a9fa533fd3651d"
+    },
+    {
+      "path": "THIRD_PARTY.md",
+      "size": 969,
+      "sha256": "fdcc6d9d9000545be847d216de4a8dcfa378bfee66b5129ef6d65680b490f7b9"
+    },
+    {
+      "path": "VALIDATION.json",
+      "size": 636,
+      "sha256": "f4f53690a087553682d5ccd6d16d7938b4508c7f5eb85a38d85215bb2c7c87eb"
+    },
+    {
+      "path": "vendor-manifest.json",
+      "size": 725,
+      "sha256": "8762a4de2a55a53384c7ca3bd43e4dca169362855954cc0a92ca01a6d9e08106"
+    },
+    {
+      "path": "web/app.js",
+      "size": 14358,
+      "sha256": "4fcdb519c830de47f2da8cede97662f01687404601ec8d729bc252e80834fa28"
+    },
+    {
+      "path": "web/audio.js",
+      "size": 1431,
+      "sha256": "bbe81d202b5187fe3da017e54fea5559f8178c51e23a255deffb0eec38e61038"
+    },
+    {
+      "path": "web/index.html",
+      "size": 6955,
+      "sha256": "1ab0afed9228e0c0e0a2fe1057274f17ab6bf1dc06c63d64dc0b8bdba0b3b165"
+    },
+    {
+      "path": "web/media.js",
+      "size": 11037,
+      "sha256": "c2af678bc8b29ce340ae6f9fb7cb547da8df04ed0d8f7bb2750d1bcccf901490"
+    },
+    {
+      "path": "web/stage.js",
+      "size": 4245,
+      "sha256": "da0620dbb8138e1e79c4c53f12f540d4f50b8d493e69cc7e1d349ef2533c193b"
+    },
+    {
+      "path": "web/style.css",
+      "size": 6676,
+      "sha256": "d717b91a20ee6f598ea1c0cd894b7f15e8013d9f21bd7d504b592b62c362ffac"
+    },
+    {
+      "path": "web/visual.js",
+      "size": 843,
+      "sha256": "5f4c1360951071ff4f479ab63cc929f4a59df9deaa9e572209b2d6b49380ad7d"
+    }
+  ]
+}
