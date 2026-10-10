@@ -1,0 +1,310 @@
+{
+  "version": "0.4-dev",
+  "scope": "public-source-only",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "e9703cc9f4d6342c2a2d4f662b5226db8aef1739356e4d88c1fa58c19c9057d0"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "f467577afbb8ec1871871f73ff15bb5d9729b90ed2c2a63d50b9f11439b3aff5"
+    },
+    {
+      "path": "README.md",
+      "sha256": "eaef6a7a5ff865d6e7e93e58ed474f9cbc96033c63204d93cf61ec57b2142165"
+    },
+    {
+      "path": "README.upstream.md",
+      "sha256": "be4a77d9f9d467e103fa4a49b5ee0d850692548fb01181dbc693007a312dfc8d"
+    },
+    {
+      "path": "THIRD_PARTY.md",
+      "sha256": "fdcc6d9d9000545be847d216de4a8dcfa378bfee66b5129ef6d65680b490f7b9"
+    },
+    {
+      "path": "VALIDATION.json",
+      "sha256": "54ec6d5eda454ff24692515a57f86b8fa79543625ab13c99c49eb7141fd0e2c5"
+    },
+    {
+      "path": "docs/本次实现与验收.md",
+      "sha256": "8093989814855f0d9a840646a81f95a34ed16c4f7808f29f5ad4abb71018cc1b"
+    },
+    {
+      "path": "host_launcher.py",
+      "sha256": "3ac7f4674c6fd87a60a76482928cbc4940c8adc3a7b822c24a66cfdb13febef1"
+    },
+    {
+      "path": "launch.py",
+      "sha256": "f7fd8d21e10593f21edd2ceeecae23a3088db24c57801fafd5b9d3cf1855cdb0"
+    },
+    {
+      "path": "local-config.example.json",
+      "sha256": "64d3a2b956743322b2056bfc3fcbb2e9fd18a3e4dffed6e42d35af1fc131d50a"
+    },
+    {
+      "path": "model-config.example.json",
+      "sha256": "99ac2b4f89dcfdf6e882dddd343b2465f7c9dc6e02d8b6ae77a80231a2cb88c2"
+    },
+    {
+      "path": "plugins/storyroom_pc/.gitignore",
+      "sha256": "0d41abbab4c5955bd4ac7cdaaab7d436859429f56bd135a4022b90fef1b092e3"
+    },
+    {
+      "path": "plugins/storyroom_pc/_manifest.json",
+      "sha256": "167e6d2b5242e7115a5efbc0508a5d3aab22d92b5d450987568827c6e295ff7c"
+    },
+    {
+      "path": "plugins/storyroom_pc/config.example.toml",
+      "sha256": "ce8dd972bb064dae4eb889f7af982e4e0a2258796aea8c5e411c5f9513976f42"
+    },
+    {
+      "path": "plugins/storyroom_pc/plugin.py",
+      "sha256": "e3a82e0acba14c4d40bec863092f839f6f3aa60015ad96bc034727d6544887c8"
+    },
+    {
+      "path": "plugins/storyroom_pc/worker.py",
+      "sha256": "c8679f24de9e036dd59a4feadd6715ae3fc03d3f622000aa886b5e218745b8c5"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "44951a13285d243082d8c40eb0960161499d26e3f16379447ebf9d7a0a3f5a50"
+    },
+    {
+      "path": "run.py",
+      "sha256": "9c282d96ee0158faf34010d7a54f179ef3720e3b4d3b7d2f5b9be6bab578256d"
+    },
+    {
+      "path": "scripts/build_package.py",
+      "sha256": "1708e82eec3968c8b3965aec1758a68a48d6f36163172b126a7c9db338ccfdc6"
+    },
+    {
+      "path": "scripts/check_compat.py",
+      "sha256": "e34ec0019d24541c263e11ce22448afdd9f92092f2bf51ab36893cc14df20eab"
+    },
+    {
+      "path": "scripts/install_pc.py",
+      "sha256": "afde1adbc48dd7c959a542fb499eb2fd687b324ebda49521aa07c9f4eb0d6e16"
+    },
+    {
+      "path": "scripts/pc-v02-hashes.json",
+      "sha256": "63020b37bd141f0abdd9ede35e0d5f6ebb70298aea8226ac482998bec688d7a7"
+    },
+    {
+      "path": "scripts/pc-v03-fixed-hashes.json",
+      "sha256": "e652f9cb80b4feef72f2386b998af70291790ac62599dd2f4025aec2b2952c23"
+    },
+    {
+      "path": "scripts/pc-v03-hashes.json",
+      "sha256": "1d14dce6bfd211bb4d5ddc77abde811ca020c5013070497934659f84085f2726"
+    },
+    {
+      "path": "scripts/setup_vendor.py",
+      "sha256": "15f3e6c47a1f71e48048c6b742f22a051bf18acb4654f132e924c4af4a20c7d7"
+    },
+    {
+      "path": "scripts/update_pc.py",
+      "sha256": "6110b176df3cac5051e2a0e24e0ce68dd83f1750fd819fa8f974ddde2fb42957"
+    },
+    {
+      "path": "scripts/verify_package.py",
+      "sha256": "50963aa0b897eec5f08e3470c53af4bcb206adef3a0bbcdea93ea9c838f71f85"
+    },
+    {
+      "path": "start_local.py",
+      "sha256": "507a34b45fb66fd34ed2f8790f02001438161bfcde0ad8682197a6e75b27773e"
+    },
+    {
+      "path": "stories/lighthouse.json",
+      "sha256": "05e9efeee377456346ba96ed34b5eee411de8ad4e8bba3b9a1c64ab0430f9042"
+    },
+    {
+      "path": "storyroom/__init__.py",
+      "sha256": "72aa332c2047e20e27701a1b9bfd4825c3cc3ce2cbda41dc84529b27c9e86914"
+    },
+    {
+      "path": "storyroom/app.py",
+      "sha256": "af632f091e33a652fa0e9c815ef998cecbaf0391bc3f213a85909bbdbbf77151"
+    },
+    {
+      "path": "storyroom/authoring.py",
+      "sha256": "5b0bb5abbf7a5f132a6bc345ab8c80a631c76546076249d1a3661e08f8cfa334"
+    },
+    {
+      "path": "storyroom/fabula.py",
+      "sha256": "ab61ece3fcc8c119fd9d16c1e7e57ab7d57d443e59c8c7758a6f88a1b14737bf"
+    },
+    {
+      "path": "storyroom/gm.py",
+      "sha256": "9a7c49c8f1b2c2eed387a3ff33249f50dd76355543984179829d5a227281769d"
+    },
+    {
+      "path": "storyroom/room_features.py",
+      "sha256": "3d0c3a5ee0f9e2af5fefb6e4e0eff7c85c3cf6ac5cf67185c781ebba8d8d6fcd"
+    },
+    {
+      "path": "storyroom/runtime.py",
+      "sha256": "423954affa208ba29032585b37f0cb7afb66af5809d7d63981e346af6635530d"
+    },
+    {
+      "path": "storyroom/runtime_api.py",
+      "sha256": "74669d68e1aebe06c98e0b724f076c4de745d1770e3b4407e8f27862b50f64bf"
+    },
+    {
+      "path": "storyroom/scenes.py",
+      "sha256": "2d1f1eddb5ff76d9196eb753f2d11e6904e64c15caa4f99a3dd61c3402f4f3d1"
+    },
+    {
+      "path": "storyroom/speech.py",
+      "sha256": "239c82ef5b69e846e4143e7fc3982b82fb16516d9174e67b0b528793affecf2c"
+    },
+    {
+      "path": "storyroom/store.py",
+      "sha256": "88c0de863b22e8ffd6cad02742f34e1ac44a95c87b0c01bd5a16db698d2a2428"
+    },
+    {
+      "path": "storyroom/store_types.py",
+      "sha256": "9a57546e62b1f05ab19d803d107048da2ffd13664fbbed26a6881e276f5de61f"
+    },
+    {
+      "path": "tests/fixtures/storyroom-v03-manifest-before-fix.json",
+      "sha256": "8a6bdceb49888819015ab1e85aa4f6f1373047a13d4c62b419f3df83b10effd7"
+    },
+    {
+      "path": "tests/fixtures/worker-v03.py",
+      "sha256": "83e71689aef4261398c96db1786fc7dce5483c7d5df70b76f2416a953ad061c1"
+    },
+    {
+      "path": "tests/test_audio.mjs",
+      "sha256": "8eb8c8b69ab1bbf1971fd245aca1f8a7f35e91be466afa81722f9d5183325a6c"
+    },
+    {
+      "path": "tests/test_author.mjs",
+      "sha256": "e8a60f4fd5075152b62ca8fa75ca3c41a2b526714936c732ddd77fb545dee639"
+    },
+    {
+      "path": "tests/test_host_launcher.py",
+      "sha256": "344dc72796fdb9359fd662fee426163147303b53330d6e338bdce102459cc889"
+    },
+    {
+      "path": "tests/test_installer.py",
+      "sha256": "58d1c4a050d886cc61f211b2ef69770cc6953eb5b9163758054f5e3c5118c2f7"
+    },
+    {
+      "path": "tests/test_lv25.py",
+      "sha256": "27c420ca072fb14e1b7e978eb68050492050f4a42fe5641f7b6e72ed994c7030"
+    },
+    {
+      "path": "tests/test_manifest.py",
+      "sha256": "4d1a043aa61fc85d7c4a07c2714615c84ae1b4e880844a6428c198f1747dff82"
+    },
+    {
+      "path": "tests/test_media.mjs",
+      "sha256": "1f9d35c6f04289696aa9c0d446742d6483128e768e027b67e96e1b21ea78a974"
+    },
+    {
+      "path": "tests/test_media.py",
+      "sha256": "77759f68e3c831e9ce73567f6afdf2d6d7e1035a4f282b684072de4c877f22c3"
+    },
+    {
+      "path": "tests/test_network.py",
+      "sha256": "67ae5dd0cbb094fc02b519d1f495d51de5fb48f6fabb44f948afbd819d061521"
+    },
+    {
+      "path": "tests/test_runtime.mjs",
+      "sha256": "3a993bd72c37972138f2c363a0d31e45c90e18f146347b70f5b72d88b92a977c"
+    },
+    {
+      "path": "tests/test_runtime.py",
+      "sha256": "1861f5fd869637aa30c9d1909fdb029791f9df0c714978566b7db599f93d3aa3"
+    },
+    {
+      "path": "tests/test_sdk.py",
+      "sha256": "d6e45e25486795b4758a3fabda88988702b6f3a6bf711f6926adc5d3fc54c303"
+    },
+    {
+      "path": "tests/test_stage.mjs",
+      "sha256": "6b09e82cdc2a3a7054b4d4252dc14aa18e48f17f93f69dd6a672724d373e4293"
+    },
+    {
+      "path": "tests/test_start_local.py",
+      "sha256": "62a472d326fff9eb68aa3570fd5a31985bb867aa91172e7ae32aa4ebe7c2521b"
+    },
+    {
+      "path": "tests/test_storyroom.py",
+      "sha256": "b566118f074f53a943a1b0a6789d99eb88c4783fdf51fe12a6b3220aaa6cfd76"
+    },
+    {
+      "path": "tests/test_update_install.py",
+      "sha256": "120486c43636b08e04099205517ab89f14dd32004d02c74b056172f0e3663f51"
+    },
+    {
+      "path": "tests/test_upgrade.py",
+      "sha256": "2d7e81df6111022ccbd45b37abbe3604e6a259b7f9dbdaf6235a100097254399"
+    },
+    {
+      "path": "tests/test_visual.mjs",
+      "sha256": "e8bdfaba4ddd36362c2e17c2bf2b1f6e9ed16845b53b3fe794a9fa533fd3651d"
+    },
+    {
+      "path": "vendor-manifest.json",
+      "sha256": "8762a4de2a55a53384c7ca3bd43e4dca169362855954cc0a92ca01a6d9e08106"
+    },
+    {
+      "path": "web/app.js",
+      "sha256": "c430e0494ce1ddd6cb8f154ab3204a4e13f72b2821930dbc924c173cfb1f6f07"
+    },
+    {
+      "path": "web/audio.js",
+      "sha256": "bbe81d202b5187fe3da017e54fea5559f8178c51e23a255deffb0eec38e61038"
+    },
+    {
+      "path": "web/author.js",
+      "sha256": "8d45e171320db02cb7679060a7ef138e39db34deecc346ebfc9b97d111ecba42"
+    },
+    {
+      "path": "web/avatar-defaults.js",
+      "sha256": "1aedece42dd772d2454cd08e504ee70ae96fed007417b3b3a62e17071b533853"
+    },
+    {
+      "path": "web/index.html",
+      "sha256": "1bf39e00e68d750165e62608654083a2362275ab945b91c60adc435aa769969b"
+    },
+    {
+      "path": "web/media.js",
+      "sha256": "fd7af00b59d78bad79451cce0e958d0f3b4c6bf30ef087b32dbb3c12d5d18931"
+    },
+    {
+      "path": "web/runtime.js",
+      "sha256": "9ce1cc9651c7569035da9ebaab8205aa40937c09658048c9ccc2b33b9c20a0bd"
+    },
+    {
+      "path": "web/stage.js",
+      "sha256": "46e39daf48be83143ce75f7084b713fc4344a947499046fe10d93c6d44299170"
+    },
+    {
+      "path": "web/style.css",
+      "sha256": "d717b91a20ee6f598ea1c0cd894b7f15e8013d9f21bd7d504b592b62c362ffac"
+    },
+    {
+      "path": "web/vendor/cubism4.min.js",
+      "sha256": "af1267e6d52759b245766c578d905bfa025b532d5c3cc727c370957c4409e21b"
+    },
+    {
+      "path": "web/vendor/live2d-display-LICENSE.txt",
+      "sha256": "8ccace668a041e78ed525d091b0b5daf8b623ff447f912616de535415e4f302f"
+    },
+    {
+      "path": "web/vendor/pixi-LICENSE.txt",
+      "sha256": "536a16e090f0b6c1454a7c0b47ee8414a39a2f1724a154f10ca1edc750a2dcfd"
+    },
+    {
+      "path": "web/vendor/pixi.min.js",
+      "sha256": "403f2f2ee8145fa17f60c5c89403056efe2680e5096ec2762036486914ed19c5"
+    },
+    {
+      "path": "web/visual.js",
+      "sha256": "5f4c1360951071ff4f479ab63cc929f4a59df9deaa9e572209b2d6b49380ad7d"
+    }
+  ]
+}

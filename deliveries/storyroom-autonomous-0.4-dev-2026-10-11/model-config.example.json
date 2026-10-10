@@ -1,0 +1,8 @@
+{
+  "gm": {
+    "base_url": "https://api.deepseek.com/v1",
+    "api_key": "REPLACE_WITH_YOUR_OWN_API_KEY",
+    "model": "REPLACE_WITH_AN_AVAILABLE_MODEL_ID"
+  },
+  "images": null
+}

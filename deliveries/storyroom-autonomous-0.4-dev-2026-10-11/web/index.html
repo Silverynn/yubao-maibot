@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StoryRoom · 雾港主持台</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<header><div class="brand"><span class="mark">◈</span><div>STORYROOM<small>共同的舞台，有限的世界。</small></div></div>
+<div class="header-right"><span id="identity">尚未进入</span><button id="logout" hidden>退出</button></div></header>
+<div id="notice" role="status" hidden></div>
+<section id="login" class="login">
+<div><p class="eyebrow">WORLDLINE / 0.4 DEV</p><h1>今晚，<br>故事由你们继续。</h1><p class="muted">AI / 人类主持人 × 两位机器人玩家<br>自定义剧本 · 自主讨论 · 每一步可追溯</p></div>
+<form id="login-form" class="panel"><h2>进入主持台或玩家房间</h2><p>主持人密钥在平台的 .runtime 文件夹中。<br>玩家使用主持人分配的专用连接密钥。</p>
+<label for="login-key">登录密钥</label><input id="login-key" type="password" autocomplete="off" required minlength="8">
+<button class="primary" type="submit">进入房间</button><p class="hint">登录不会启动游戏。AI主持人仅在已配置模型、交还AI并恢复运行后调用。</p></form></section>
+<main id="workspace" hidden>
+<section class="panel" id="runtime-panel"><h2>游戏运行与主持权</h2><p id="run-status" role="status"></p><p id="run-warning" class="hint"></p>
+<div id="runtime-controls" hidden><button id="run-pause">暂停整场游戏</button><button id="run-resume">开始 / 恢复游戏</button><button id="gm-takeover">我来接管主持人</button><button id="gm-handoff">交还AI主持人</button><button id="gm-release">释放主持权并暂停</button>
+<details><summary>时间回溯与归档分支</summary><button id="load-checkpoints">加载检查点</button><select id="checkpoint-select"></select><button id="rewind-preview">预览恢复状态</button><pre id="rewind-details" style="max-height:350px;overflow:auto;white-space:pre-wrap"></pre><button id="rewind-confirm" disabled>建立新分支并回溯</button><select id="branch-select"></select><button id="archive-play">下载所选分支剧本</button></details></div>
+<button id="export-play">下载当前剧本</button><p class="hint">先接管，再恢复可人工主持。交还AI需要主机配置模型；它只在运行模式下调用。回溯恢复后保持暂停。</p></section>
+<section class="room-bar"><div><p class="eyebrow">YOUR TABLE</p><select id="rooms" aria-label="选择跑团房间"></select></div><button id="edit-story">编辑剧本 / 导入导出</button><button id="new-room">新建世界线</button></section>
+<section id="story-editor" class="panel" hidden><h2>你们设定世界、阶段、分支与结局</h2>
+<p class="hint">先载入模板或当前房间，再编辑。保存模板只影响新房间；应用当前房间需保留当前阶段与已确认标记，且没有待处理任务。世界规则由你们填写，机器人不能自行加主线。</p>
+<select id="template-picker" aria-label="剧本模板"></select><button id="load-template">载入模板</button><button id="load-room-script">载入当前房间剧本</button>
+<div class="form-grid"><label>剧本ID（复制成新模板请换新ID）<input id="script-id" maxlength="50"></label><label>剧本标题<input id="script-title" maxlength="100"></label><label>起点阶段ID<input id="script-start" maxlength="50"></label><label>全部事实标记ID（逗号分隔）<input id="script-flags"></label></div>
+<label>世界设定、允许与禁止的内容<textarea id="script-world" rows="4" maxlength="12000"></textarea></label>
+<div class="divider"></div><label>要编辑的阶段<select id="stage-picker"></select></label><label>阶段标题<input id="node-title" maxlength="100"></label><label>现场描述<textarea id="node-description" maxlength="6000"></textarea></label><label>本阶段角色看法<textarea id="node-outlook" maxlength="2000"></textarea></label>
+<label>舞台背景<select id="node-scene"><option value="harbor">码头</option><option value="workshop">屋内</option><option value="tower">塔内</option></select></label><label><input type="checkbox" id="node-ending"> 这是结局（不能再有后续分支）</label>
+<label>后续分支（每行：目标阶段ID | 名称 | 必需标记，以逗号分隔；没有条件可留空）<textarea id="node-branches" rows="4"></textarea></label><button id="stage-save">写入阶段草稿</button><button id="stage-delete">删除此阶段</button><label>新阶段ID<input id="new-stage-id" maxlength="50"></label><button id="add-stage">新增阶段（初始为结局，可修改）</button>
+<div class="divider"></div><button id="script-save">保存为模板</button><button id="script-apply">应用到当前房间</button><button id="script-export">导出JSON剧本</button><label>导入JSON文件<input id="script-import" type="file" accept="application/json,.json"></label>
+<details><summary>高级JSON编辑（可交给伙伴AI修改）</summary><textarea id="script-json" rows="14"></textarea><button id="script-json-read">将JSON载入草稿</button></details></section>
+<section id="creation" class="panel" hidden><h2>新建双人世界线</h2>
+<form id="create-form"><div class="form-grid"><label>房间名称<input id="room-name" value="雾港双人跑团" maxlength="50" required></label>
+<label>玩家一名称<input id="pc-one" value="故机" maxlength="40" required></label>
+<label>玩家二名称<input id="pc-two" value="鱼宝" maxlength="40" required></label>
+<label>玩家一形象<select id="model-one" aria-label="玩家一形象"></select></label><label>玩家二形象<select id="model-two" aria-label="玩家二形象"></select></label></div>
+<label>使用剧本<select id="story-select"></select></label><p class="hint">可使用内置示例，也可使用你们编辑的模板。房间创建后锁定剧本副本。</p>
+<button class="primary" type="submit">创建房间与两个PC接口</button></form></section>
+<section id="keys" class="panel" hidden><h2>保存玩家连接密钥</h2><p>只在本次创建或重置时显示。分别交给对应玩家插件，不能互用，也不要发到公开群聊。</p><div id="key-values"></div><button id="hide-keys">我已保存，隐藏密钥</button></section>
+<div id="table" hidden>
+<div class="table-grid"><section class="stage-column">
+<section class="stage" id="scene" data-scene="harbor"><div class="scene-decoration"><div class="moon"></div><div class="lighthouse"></div><div class="shore"></div></div>
+<canvas id="avatars" aria-label="两个玩家的Live2D共享舞台"></canvas>
+<div class="stage-caption"><p class="eyebrow" id="story-title">雾港最后一盏灯</p><h1 id="stage-title">第一幕</h1><p id="stage-description"></p></div><span id="renderer-status" class="render-status">正在准备舞台</span></section>
+<div id="characters" class="characters"></div>
+<section class="panel" id="room-settings"><h2>讨论、旁听与主持人发言</h2><p id="talk-status" role="status"></p>
+<button id="host-hold">主持人开始讲话</button><label>每次开放讨论，最多连续发言次数（两位合计，1～20）<input id="talk-limit" type="number" min="1" max="20" value="4"></label><button id="talk-open">介绍结束 / 继续自主讨论</button><button id="talk-pause">暂停后续自主讨论</button>
+<p class="hint">机器人轮流讨论。提出问题或具体行动时等待主持人回应；回复问题或裁决自主行动后继续思考。达到次数后等你继续。开始讲话会暂停输出，语音收音时也会自动暂停。共同主持人不开麦时，请手动按讲话按钮。</p></section>
+<section class="panel"><h2>跑团公共交流</h2><label>向房间发言（不直接变成已发生事实）<textarea id="dialogue-text" maxlength="2000"></textarea></label><button id="dialogue-send">发送给所有玩家旁听</button></section>
+<section class="panel"><h2>跑团专用记忆与其他玩家资料</h2><p class="hint">故事事实和玩家信息只在本房间使用，与QQ、日常Live2D聊天隔离；记录的谈话也不直接变成故事事实。</p><p id="memory-namespace"></p>
+<div id="memory-list"></div><div id="participants-list"></div>
+<details id="memory-editor"><summary>主持人编辑记忆 / 添加真人玩家或NPC资料</summary><label>记忆主题<input id="memory-subject" value="故事" maxlength="100"></label><label>已确认的故事或玩家信息<textarea id="memory-text" maxlength="4000"></textarea></label><button id="memory-add">加入本房间记忆</button><label>其他玩家或NPC名字<input id="participant-name" maxlength="40"></label><label>已确认资料<textarea id="participant-profile" maxlength="2000"></textarea></label><button id="participant-add">保存玩家资料</button></details></section>
+<section class="panel"><h2>语音与实时交谈</h2>
+<p class="hint">两个角色的朗读分别开启，只影响此浏览器。使用系统本地声音，不覆盖个人VT语音包。</p>
+<label>朗读声音<select id="voice-select"></select></label><button id="stop-speaking">停止本浏览器朗读</button>
+<div id="media-controls" hidden><label>当前交谈角色<select id="media-target"></select></label>
+<label><input type="checkbox" id="realtime"> 实时聊天（此浏览器）</label>
+<p class="hint">连续收音，发言结束后向所选角色提问；你开口时停止朗读。角色行动仍需主持人裁决。识别期间暂不收下一句，尚未接入原VT插件的提前生成和查询纠正。</p>
+<button id="record">开始录音</button><label>识别文字 / 键盘提问<textarea id="voice-text" maxlength="2000" rows="2"></textarea></label><button id="voice-submit">检查后发送给所选角色</button></div>
+<p id="media-status" role="status">语音功能默认关闭</p></section>
+<section class="panel world-info"><div class="section-title"><h2>这条世界线的边界</h2><span>Lv 2.5</span></div><p id="world"></p><p id="outlook" class="hint"></p><div id="flags" class="chips"></div></section>
+<section class="panel" id="dm-panel"><div class="section-title"><h2>主持人控制台</h2><span>只有你的裁决会改变世界</span></div>
+<form id="narrate-form"><label for="narration">描述现场 / 追加已经确认的事件</label><textarea id="narration" rows="3" placeholder="例如：雨势加大，门后的铃声停了。"></textarea><button type="submit">发布叙事</button></form>
+<div class="divider"></div><label for="turn-question">给PC的问题</label><input id="turn-question" value="你打算怎样行动？只控制自己的角色。"><div id="turn-buttons" class="button-row"></div>
+<div class="divider"></div><div class="form-grid compact"><label>骰式<input id="dice-expression" value="1d20"></label><label>检定难度<input id="dice-dc" type="number" min="1" max="200" value="12"></label></div>
+<button id="roll">自由投骰（不绑定行动）</button><span id="dice-result"></span><p class="hint">正式行动检定请在右侧提案中指定技能、锁定难度后投骰，避免重复投点。</p>
+<div class="divider"></div><label for="next-stage">允许的下一阶段</label><select id="next-stage"></select><button id="advance" class="primary">推进世界线</button>
+<div class="divider"></div><button id="demo">演示两位PC（不调用模型）</button><p class="hint">演示发言会明确标记「离线演示」，不是伪造真实模型结果。</p></section>
+<section class="panel" id="host-invites" hidden><h2>共同主持人</h2><label>同伴的名字<input id="cohost-name" maxlength="40" value="同伴GM"></label><button id="invite-host">生成仅本房间的GM密钥</button><div id="cohosts"></div><p class="hint">同伴可裁决此房间；不能访问其他房间或继续转授主持权限。</p></section>
+</section><aside>
+<section class="panel proposals"><div class="section-title"><h2>玩家提案</h2><span>不是既成事实</span></div><div id="tasks"></div></section>
+<section class="panel history"><div class="section-title"><h2>角色的已确认经历</h2><span>独立于QQ记忆</span></div><div id="experiences"></div></section>
+<section class="panel history"><div class="section-title"><h2>故事与行动记录</h2><span id="event-count"></span></div><div id="timeline"></div></section></aside></div>
+</div></main>
+<footer>StoryRoom 0.4 开发版 · 跑团与QQ、日常Live2D记忆隔离 · 持续旁听 / 轮流讨论 · 支持HTTPS远程连接</footer>
+<script src="/static/app.js" type="module"></script>
+</body></html>

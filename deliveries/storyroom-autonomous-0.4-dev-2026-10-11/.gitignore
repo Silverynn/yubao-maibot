@@ -1,0 +1,9 @@
+.runtime/
+.test-tmp/
+__pycache__/
+*.pyc
+.venv/
+model-config.json
+local-config.json
+*.sqlite3*
+logs/
