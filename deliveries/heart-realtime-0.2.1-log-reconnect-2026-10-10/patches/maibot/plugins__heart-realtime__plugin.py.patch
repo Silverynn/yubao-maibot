@@ -1,0 +1,52 @@
+--- a/plugins/heart-realtime/plugin.py
++++ b/plugins/heart-realtime/plugin.py
+@@ -19,6 +19,7 @@
+ 
+ from heart_shared.card_writer import start_writer
+ from heart_shared.storage import AuditStore, clean
++from heart_shared.console_view import console_summary
+ 
+ from .engine import Conversation
+ from .runtime_config import DEFAULTS, VERSION, binding_names, check_asr_runtime, resolve_settings
+@@ -128,9 +129,10 @@
+         payload=clean(dict(plugin='heart.realtime',feature=feature,
+             **{'plugin_loaded':True,'plugin_config_enabled':bool(self.settings['enabled']),'plugin_enabled':False,
+                'session_enabled':False,'preemptive_enabled':False,**data}))
+-        # 常规日志 + Heart事件库 + 插件JSONL，任一功能的文字输出/结果均可回溯。
+-        self.ctx.logger.info('实时插件 | %s | %s | %s',feature,data.get('phase',''),
+-                             json.dumps(payload,ensure_ascii=False))
++        # 日常控制台不重抄每帧转写/协议字段；完整凭证仍在事件库和插件JSONL。
++        summary = console_summary(feature, payload)
++        if summary:
++            self.ctx.logger.info('实时插件 | %s', summary)
+         day=time.strftime('%Y-%m-%d')
+         with (self.ctx.paths.data_dir/f'{day}-realtime.jsonl').open('a',encoding='utf-8') as f:
+             f.write(json.dumps(dict(at=time.time(),session_id=session,**payload),ensure_ascii=False)+'\n')
+@@ -164,7 +166,8 @@
+         return web.json_response({'service':'heart.realtime','ready':True,'streaming_ready':self.asr_ready,
+                                  'connections':len(self.connections),'version':VERSION,
+                                  'asr_diagnostic':self.asr_diagnostic,
+-                                 'plugin_enabled':self.settings['enabled'],'route':'bounded-preemptive'})
++                                 'plugin_enabled':self.settings['enabled'],'route':'bounded-preemptive',
++                                 'input_end_supported':True,'connection_fence_supported':True})
+ 
+     async def start_stream(self,connection,utterance):
+         await self.finish_stream(connection,False)
+@@ -206,7 +209,7 @@
+         conversation=None
+         async def emit(packet):
+             if not socket.closed:
+-                await socket.send_json({'event':packet})
++                await socket.send_json({'event':dict(packet,connection_id=connection)})
+         try:
+             async for msg in socket:
+                 if msg.type!=WSMsgType.TEXT:
+@@ -252,6 +255,8 @@
+                             raise ValueError('录音帧包含无效数据')
+                         await self.asr[connection][0].send_bytes(struct.pack('<'+'f'*len(frames),*frames))
+                         result={'accepted':True}
++                    elif action=='input_end':
++                        result=await conversation.input_end(body['utterance_id'])
+                     elif action=='mode':
+                         await conversation.set_mode(body['preemptive'])
+                         result={'preemptive':conversation.preemptive,'session_enabled':True}

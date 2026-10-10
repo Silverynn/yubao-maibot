@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "id": "heart.storyroom-pc",
+  "name": "Heart 跑团PC连接",
+  "version": "0.2.0",
+  "description": "主持人点名后生成跑团玩家提案；不改日常聊天、记忆和心情。",
+  "author": {"name": "Heart project contributors"},
+  "license": "MIT",
+  "host_application": {"min_version": "1.2.5", "max_version": "1.2.99"},
+  "sdk": {"min_version": "2.8.1", "max_version": "2.8.99"},
+  "dependencies": [],
+  "capabilities": ["llm.generate"]
+}

@@ -1,0 +1,141 @@
+--- a/heart_realtime_client.py
++++ b/heart_realtime_client.py
+@@ -39,7 +39,7 @@
+ 
+ def observe_turn_mode(uid, trace):
+     link=LINKS.get(uid)
+-    enabled=bool(link and not link.closed)
++    enabled=bool(link and link.alive)
+     preemptive=bool(enabled and MODES.get(uid,{}).get('preemptive'))
+     trace.stage('realtime_plugin',plugin='heart.realtime',plugin_enabled=enabled,session_enabled=enabled,
+         preemptive_enabled=preemptive,status='实时插件开启；提前生成'+('开启' if preemptive else '关闭')
+@@ -64,6 +64,14 @@
+         self.ack_task=None
+         self.tasks=set()
+         self.listening=False
++        self.connection=''
++        self.needs_fence_reset=True
++        self.supports_input_end=False
++
++    @property
++    def alive(self):
++        return bool(not self.closed and self.socket and not self.socket.closed
++                    and self.reader and not self.reader.done())
+ 
+     def spawn(self,coro):
+         from loguru import logger
+@@ -81,10 +89,16 @@
+         location=json.loads((root/'runtime-location.json').read_text(encoding='utf-8'))
+         key=Path(location['key_path']).read_text(encoding='utf-8')
+         self.http=ClientSession(timeout=ClientTimeout(total=10))
++        async with self.http.get(f'http://127.0.0.1:{location["port"]}/health') as response:
++            response.raise_for_status()
++            health=await response.json()
++            self.supports_input_end=health.get('input_end_supported') is True
+         self.socket=await self.http.ws_connect(f'http://127.0.0.1:{location["port"]}/bridge',
+             headers={'X-Heart-Realtime':key},heartbeat=15,max_msg_size=128*1024)
+         self.reader=asyncio.create_task(self.receive())
+-        self.session=(await self.request('bind',visitor_id=self.uid))['session_id']
++        binding=await self.request('bind',visitor_id=self.uid)
++        self.session=binding['session_id']
++        self.connection=binding['connection_id']
+         self.heartbeat=self.spawn(self.keepalive())
+ 
+     async def warm_ack(self):
+@@ -156,7 +170,7 @@
+             await self.request('heartbeat')
+ 
+     async def request(self,action,**payload):
+-        if self.closed:
++        if self.closed or not self.socket or self.socket.closed or (self.reader and self.reader.done()):
+             raise RuntimeError('实时插件连接已结束')
+         self.serial+=1
+         key=str(self.serial)
+@@ -205,9 +219,17 @@
+                             client_uid=self.uid,user_input='[正在纠正先前表达，属于系统任务]',metadata=metadata))
+                         self.handler.current_conversation_tasks[self.uid]=task
+         finally:
++            was_closed=self.closed
++            self.closed=True
+             for future in self.pending.values():
+                 if not future.done():
+                     future.set_exception(ConnectionError('实时插件断开'))
++            if not was_closed:
++                try:
++                    await self.web.send_text(json.dumps({'type':'heart-rt-link-lost',
++                        'text':'实时连接已断开；完整输入将走普通链路，下一轮重新连接。'}))
++                except Exception:
++                    pass  # 网页自身也已断开时只清理连接，不制造新的回复。
+ 
+     async def close(self):
+         if self.socket and not self.socket.closed and self.reader and not self.reader.done():
+@@ -251,6 +273,15 @@
+             await websocket.send_text(json.dumps({'type':'heart-rt-mode','enabled':False,'preemptive':False}))
+             return
+     link=LINKS.get(uid)
++    fresh=False
++    if link and not link.alive:
++        desired=dict(MODES.get(uid,{}))
++        LINKS.pop(uid,None)
++        await link.close()
++        MODES[uid]=desired
++        link=None
++    if link is None and action in {'audio','receipt','input_end','stop'}:
++        return  # 失联期间不回放旧录音/回执；下一次 begin 才重新绑定。
+     if link is None:
+         link=Link(uid,handler,websocket)
+         try:
+@@ -263,6 +294,7 @@
+                 await websocket.send_text(json.dumps({'type':'heart-rt-mode','enabled':False,'preemptive':False}))
+             raise
+         LINKS[uid]=link
++        fresh=True
+     if action=='mode':
+         await link.request('mode',preemptive=MODES[uid]['preemptive'])
+         record_mode(uid,'changed',True,MODES[uid]['preemptive'],'实时插件已按界面选择启用')
+@@ -277,9 +309,15 @@
+         result=await link.request('begin',utterance_id=data['utterance_id'],voice=link.voice,
+                                   audio=data.get('audio',False))
+         link.utterance,link.epoch=data['utterance_id'],result['epoch']
+-        await websocket.send_text(json.dumps({'type':'heart-rt-bound',**result}))
++        await websocket.send_text(json.dumps({'type':'heart-rt-bound',**result,
++            'connection_id':link.connection,'new_connection':link.needs_fence_reset}))
++        link.needs_fence_reset=False
+     elif action=='audio':
+         await link.request('audio',utterance_id=data['utterance_id'],samples=data['samples'])
++    elif action=='input_end':
++        link.listening=False
++        if link.supports_input_end:
++            await link.request('input_end',utterance_id=data['utterance_id'])
+     elif action=='stop':
+         link.epoch=(await link.request('stop'))['epoch']
+     elif action=='receipt':
+@@ -304,8 +342,27 @@
+     utterance=metadata.get('heart_rt_utterance')
+     if not link or not utterance:
+         return None
++    from dialogue_trace import current_turn
++    trace=current_turn.get()
++    if trace:
++        trace.stage('realtime_correlation',_kind='实时对话插件',plugin='heart.realtime',
++            feature='输入关联',phase='bound',utterance_id=utterance,
++            plugin_enabled=link.alive,session_enabled=link.alive,
++            preemptive_enabled=bool(MODES.get(uid,{}).get('preemptive')))
+     link.listening=False
+-    result=await link.request('final',utterance_id=utterance,text=text)
++    try:
++        if not link.alive:
++            raise ConnectionError('实时连接已断开')
++        result=await link.request('final',utterance_id=utterance,text=text)
++    except (ConnectionError, asyncio.TimeoutError, RuntimeError) as error:
++        # 只在传输确实断开时退回完整输入。宿主业务错误保持报错，不掩盖错误。
++        if link.alive and not isinstance(error, (ConnectionError, asyncio.TimeoutError)):
++            raise
++        if trace:
++            trace.stage('realtime_fallback',plugin='heart.realtime',plugin_enabled=False,
++                preemptive_enabled=False,status='实时连接中断；本轮完整转写使用普通链路',
++                reason=type(error).__name__)
++        return None
+     if result.get('duplicate') or result.get('skip_brain'):
+         return {'skip_brain':True}
+     return {'link':link,'epoch':result['epoch'],'utterance_id':utterance}

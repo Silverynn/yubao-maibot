@@ -1,0 +1,7 @@
+{
+  ".gitignore": "0d41abbab4c5955bd4ac7cdaaab7d436859429f56bd135a4022b90fef1b092e3",
+  "_manifest.json": "b9ff2e6a733d0b4a32f9d68a271b137def4dd000d003d912ea56822dfbc3d204",
+  "config.example.toml": "112b2b152977efa6cf054c490edc9a94ae2ee001b0d176fcdb848006da68376c",
+  "plugin.py": "a4f88f0d813953981183a4d8d8d91b3a65fb79c6a7339912b4f891d0e0da4697",
+  "worker.py": "a2ca2570349c4be80c9ba6c96fd3f36a46f968bc9d956b9f67e3f30ec2ecd6e1"
+}

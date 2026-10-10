@@ -1,0 +1,26 @@
+{
+  "python_tests": 85,
+  "frontend_assertions": 27,
+  "models": "simulated",
+  "asr_tests": "simulated",
+  "host": "MaiBot1.2.5",
+  "sdk": "2.8.1",
+  "python": "3.12.14",
+  "actual_browser": [
+    "双Live2D表情",
+    "行动检定裁决",
+    "独立语音开关",
+    "完整键盘输入",
+    "快速停止与取消"
+  ],
+  "not_verified": [
+    "真人麦克风",
+    "真实模型回答",
+    "伙伴电脑",
+    "公网HTTPS",
+    "伙伴新形象",
+    "原定制声线"
+  ],
+  "included_vendor": false,
+  "note": "已有库保留；缺少时按固定版本下载，不重复安装用户环境。"
+}

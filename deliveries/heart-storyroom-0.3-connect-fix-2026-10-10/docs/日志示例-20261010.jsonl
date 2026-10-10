@@ -1,0 +1,10 @@
+{"说明":"以下均为模拟示例，不是真实模型调用或用户记录"}
+{"plugin":"heart.storyroom-pc","feature":"插件配置","enabled":false,"model_name":"replyer","max_tokens":4096,"timeout_seconds":40}
+{"plugin":"heart.storyroom-pc","feature":"插件配置","enabled":true,"model_name":"replyer","max_tokens":4096,"timeout_seconds":40}
+{"plugin":"heart.storyroom-pc","feature":"模型调用开始","enabled":true,"task":"示例任务","prompt":"示例：限定雾港世界、角色卡、心情45、信任1、已确认经历：上次修理失败，需要与同伴合作。"}
+{"plugin":"heart.storyroom-pc","feature":"模型调用结束","enabled":true,"task":"示例任务","failed":false,"output":{"speech":"上次单独修理没成功，这次请你帮我照亮工作台","action":"与同伴一起检查齿轮","emotion":"思考"},"raw_output":"{\"speech\":\"上次单独修理没成功，这次请你帮我照亮工作台\",\"action\":\"与同伴一起检查齿轮\",\"emotion\":\"思考\"}","duration_ms":2100}
+{"kind":"主持人裁决","actor":"示例GM","detail":{"任务":"示例任务","裁决":"找到齿轮，学会合作","心情变化":"45 → 50","关系信任变化":"1 → 2","已确认标记":["gear_found"]}}
+{"kind":"StoryRoom语音与实时状态","detail":{"角色":"示例角色甲","浏览器":"示例浏览器","功能":"语音开关","开关":true,"内容":"","详情":"只朗读此浏览器中新到的角色发言"}}
+{"kind":"StoryRoom语音与实时状态","detail":{"角色":"示例角色甲","功能":"播放开始","开关":true,"内容":"这次请你帮我照亮工作台","详情":"浏览器报告的播放开始"}}
+{"kind":"StoryRoom语音识别","detail":{"状态":"完成","角色":"示例角色甲","输出文字":"请先检查门口","耗时毫秒":430,"说明":"仅返回文字，尚未调用PC或修改剧情事实"}}
+{"plugin":"heart.storyroom-pc","feature":"行动生成取消","enabled":true,"task":"示例任务","status":{"status":"rejected","current":true},"reason":"提案取消或现场变化；远端模型是否停止计费取决于供应商"}

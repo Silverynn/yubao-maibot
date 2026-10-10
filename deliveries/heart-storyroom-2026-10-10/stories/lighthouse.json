@@ -1,0 +1,15 @@
+{
+  "id": "lighthouse",
+  "title": "雾港最后一盏灯",
+  "world": "现代海边小镇的一个暴雨夜。两位探索者需要修复旧灯塔，引导最后一艘渔船安全入港。没有穿越、魔法或突然出现的新大陆。人物可以提议，但只有主持人裁决才成为已发生事件。",
+  "start": "harbor",
+  "flags": ["gear_found", "lens_cleaned", "boat_warned"],
+  "nodes": {
+    "harbor": {"title": "第一幕 · 雾中的码头", "scene": "harbor", "description": "海风把灯塔的求救铃吹得断断续续。值班员告诉你们，灯塔已经熄灭；机械师的小屋就在坡下。你们只有今晚。", "outlook": "角色刚相识，仍在试探；共同目标是查明灯塔为何熄灭。", "next": [{"id": "workshop", "label": "前往机械师的小屋"}, {"id": "tower", "label": "直接检查灯塔"}]},
+    "workshop": {"title": "第二幕 · 机械师的小屋", "scene": "workshop", "description": "煤油灯照着一张旧工作台。备用齿轮可能藏在杂乱零件之中。主持人可以要求调查检定 d20，建议难度12；检定成功后由主持人确认获得齿轮。", "outlook": "开始合作搜寻，角色可以因对方帮助而逐渐信任对方。", "next": [{"id": "tower", "label": "带着线索前往灯塔"}]},
+    "tower": {"title": "第三幕 · 灯塔里的选择", "scene": "tower", "description": "镜片蒙着盐霜，传动齿轮已经断裂。获得备用齿轮并清理镜片可以修复灯塔；如果来不及，可改用手持灯给渔船预警。检定结果不会自行改写这些事实，主持人需要裁决。", "outlook": "时间紧迫，行动会影响角色对合作和责任的看法。", "next": [{"id": "light", "label": "共同点亮灯塔", "requires": ["gear_found", "lens_cleaned"]}, {"id": "warning", "label": "用手持灯预警", "requires": ["boat_warned"]}, {"id": "dark", "label": "接受未能及时修复的结局"}]},
+    "light": {"title": "结局 A · 港口的星光", "scene": "harbor", "description": "光束穿过雾墙，渔船安全入港。两位探索者记得这个共同承担责任的夜晚。故事结束，不自动开启新主线。", "outlook": "这段共同经历成为角色在此世界线中的过去。", "next": [], "ending": true},
+    "warning": {"title": "结局 B · 雨中的手持灯", "scene": "harbor", "description": "灯塔仍然沉默，但你们的手持灯让渔船发现了危险。值班员接手后续维修。故事结束。", "outlook": "角色意识到，改变计划也可以是一种负责。", "next": [], "ending": true},
+    "dark": {"title": "结局 C · 未亮起的灯", "scene": "harbor", "description": "你们未能在今晚修复灯塔，渔船选择留在外海避险。小镇没有凭空出现灾难或新的世界；两位探索者回顾各自的选择。故事结束。", "outlook": "角色可以遗憾，但不能擅自修改已经确认的结果。", "next": [], "ending": true}
+  }
+}

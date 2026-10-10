@@ -1,0 +1,13 @@
+--- a/heart_shared/readable.py
++++ b/heart_shared/readable.py
+@@ -53,6 +53,10 @@
+ 
+ def render_event(event, data):
+     kind = event["kind"]
++    if kind == '实时对话插件':
++        from .realtime_readable import render_realtime
++        timestamp = datetime.fromisoformat(event['time']).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
++        return '\n'.join([f"#{event['seq']} 时间：{timestamp}｜{kind}"] + render_realtime(data))
+     mood = data.get("mood") or {}
+     dialogue = data.get("dialogue") or []
+     names = list(dict.fromkeys(plain(m.get("name", ""), 80) for m in dialogue if m.get("name")))
