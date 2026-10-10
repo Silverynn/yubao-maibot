@@ -1,0 +1,6 @@
+{
+  "python": "C:/路径/MaiBot/.venv/Scripts/python.exe",
+  "vtuber_root": "C:/路径/Open-LLM-VTuber",
+  "port": 8790,
+  "asr_url": "http://127.0.0.1:12395/v1/audio/transcriptions"
+}

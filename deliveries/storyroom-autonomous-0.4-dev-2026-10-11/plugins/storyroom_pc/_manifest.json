@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+  "id": "heart.storyroom-pc",
+  "name": "Heart 跑团PC连接",
+  "version": "0.4.0",
+  "description": "持续旁听本房间，介绍结束后轮流自主讨论、提问和行动；记忆与QQ和日常Live2D隔离。",
+  "author": {
+    "name": "Heart project contributors",
+    "url": "https://github.com/Silverynn/yubao-maibot"
+  },
+  "urls": {
+    "repository": "https://github.com/Silverynn/yubao-maibot"
+  },
+  "i18n": {
+    "default_locale": "zh-CN",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  },
+  "license": "MIT",
+  "host_application": {
+    "min_version": "1.2.4",
+    "max_version": "1.2.99"
+  },
+  "sdk": {
+    "min_version": "2.8.1",
+    "max_version": "2.8.99"
+  },
+  "dependencies": [],
+  "capabilities": [
+    "llm.generate"
+  ]
+}

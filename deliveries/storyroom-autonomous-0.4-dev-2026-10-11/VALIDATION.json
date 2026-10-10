@@ -1,0 +1,12 @@
+{
+  "version": "0.4-dev",
+  "date": "2026-10-10",
+  "python_tests_passed": 155,
+  "frontend_groups_passed": 6,
+  "browser": ["takeover", "human-resume", "narrate", "pause", "checkpoint-preview", "branch-rewind", "live2d-load"],
+  "real_model_calls_tested": false,
+  "real_image_provider_tested": false,
+  "two_computer_three_ai_tested": false,
+  "full_fabula_rules_implemented": false,
+  "reference": "docs/本次实现与验收.md"
+}

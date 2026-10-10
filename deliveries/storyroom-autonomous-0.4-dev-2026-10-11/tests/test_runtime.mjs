@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {RoomRuntime} from '../web/runtime.js';
+const elements=new Map();
+function element(){return {value:'',textContent:'',hidden:false,disabled:false,options:[],append(e){this.options.push(e);if(!this.value)this.value=e.value;},replaceChildren(){this.options=[];this.value='';},click(){}};}
+globalThis.document={getElementById:id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:()=>element()};
+globalThis.addEventListener=()=>{};globalThis.EventSource=class{close(){}};globalThis.confirm=()=>true;
+const calls=[],resets=[];
+const state={id:'r',runtime:{enabled:1,state:'RUNNING',revision:7,gm_mode:'HUMAN',gm_status:'人工主持',gm_calls:0,gm_budget:100,pc_calls:0,pc_budget:200,branch:'original',gm_epoch:1,controller:'host',controller_until:Date.now()/1000+90,gm_configured:true},rules:{coverage:'属性检定'},scene_image:{status:'unconfigured'}};
+const context=()=>({room:'r',state,actor:{host:true,id:'host'}});
+const api=async(path,data)=>{calls.push({path,data});if(path.endsWith('/timeline'))return {runtime:state.runtime,checkpoints:[{id:'cp',branch:'original',seq:4,label:'场景',created:1}],branches:[{id:'original',label:'原始'}]};if(path.endsWith('/checkpoints/cp'))return {id:'cp',roles:[],warning:'预览'};return {ok:true};};
+const controller=new RoomRuntime({api,context,refresh:async()=>{},note:()=>{},media:{reset:reason=>resets.push(reason)}});
+controller.update(state);
+await elements.get('run-pause').onclick();assert.equal(calls.at(-1).data.operation,'pause');assert.equal(calls.at(-1).data.revision,7);assert.ok(resets.length);
+await elements.get('gm-takeover').onclick();assert.equal(calls.at(-1).data.operation,'takeover');
+await elements.get('gm-handoff').onclick();assert.equal(calls.at(-1).data.operation,'handoff');
+await controller.loadTimeline();await controller.preview();assert.equal(controller.previewId,'cp');assert.match(elements.get('rewind-details').textContent,/预览/);
+state.runtime.state='PAUSED';controller.update(state);assert.equal(elements.get('rewind-confirm').disabled,false);
+await controller.rewind();assert.ok(calls.some(c=>c.path.endsWith('/rewind')&&c.data.checkpoint==='cp'&&c.data.revision===7));
+controller.stream.onmessage({data:JSON.stringify({...state.runtime,branch:'fork'})});assert.ok(resets.some(r=>r.includes('回溯')));
+state.runtime.gm_status='未配置';controller.update(state);assert.match(elements.get('run-status').textContent,/已配置，等待交还AI/);
+state.runtime.gm_configured=false;controller.update(state);assert.equal(elements.get('gm-handoff').disabled,true);assert.match(elements.get('run-status').textContent,/AI状态：未配置/);
+clearInterval(controller.timer);controller.stream.close();
+console.log('运行控制、主持切换、回溯预览、版本提交、事件推送与模型配置状态：12项断言通过');
