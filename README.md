@@ -1,5 +1,7 @@
 # 极创二面题heart项目
 
+> **个人Live2D实时增量（2026-10-10）：** [ZIP](deliveries/heart-realtime-0.2.1-log-reconnect-2026-10-10.zip) · [给伙伴GPT的安装说明](deliveries/heart-realtime-0.2.1-log-reconnect-2026-10-10/docs/给伙伴GPT的安装说明.md) · [对比上次交付](deliveries/heart-realtime-0.2.1-log-reconnect-2026-10-10/docs/与上次交付的区别.md)。11文件增量，更新日志归组/精简、提前工具观测、查询去重、录音结束通知、失联重绑和旧音频隔离；需已有10月9日实时接缝并同时升级两端。保留原声线、形象、模型配置、自改代码和StoryRoom。旧包保留。
+
 > **StoryRoom连接修复包（2026-10-10）：** [ZIP](deliveries/heart-storyroom-0.3-connect-fix-2026-10-10.zip) · [给伙伴GPT的修复步骤](deliveries/heart-storyroom-0.3-connect-fix-2026-10-10/docs/给伙伴GPT-连接修复操作单-20261010.md) · [完整安装指南](deliveries/heart-storyroom-0.3-connect-fix-2026-10-10/docs/给同伴AI助手的安装说明-20261010.md)。修复插件清单加载失败、旧0.3升级识别及伙伴形象选择/缓存；新建房间默认“故机”和“鱼宝”。只作为PC加入时无需运行第二个平台；保留配置、密钥、自改代码、记忆与语音包。旧交付包保留。
 
 基于 **MaiBot + NapCatQQ** 的 QQ 角色机器人定制。用于学习和完成 [Heart Heart Heart 项目](https://join.geek-tech.club/problems2/heart-heart-heart)：理解对话、状态、记忆与工具执行，并逐步加入虚拟形象和实时语音。

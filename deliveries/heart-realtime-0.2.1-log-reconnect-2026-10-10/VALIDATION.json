@@ -1,0 +1,26 @@
+{
+  "python_offline_tests": 79,
+  "frontend_offline_checks": 26,
+  "final_query_tool_calls": 2,
+  "query_begun_before_input_end_seconds": 6.194,
+  "query_begun_before_last_voice_frame_seconds": 3.033,
+  "native_draft_begun_before_resumed_voice_seconds": 1.201,
+  "actual_native_draft_calls_total": 2,
+  "draft_cancelled_after_new_input": true,
+  "real_tools": "原生本人记忆、本地管理员事实表；测试独立访客返回无命中",
+  "limitations": [
+    "合成音频经真实ASR/真实工具/真实模型；未验证物理麦克风或真实扬声器",
+    "真实测试没有提交普通正式聊天，因此不声称草稿复用、正式语音播放或QQ实机回归已完成",
+    "提前生成是原生Replyer草稿，并非完整Planner；工具是规则触发的本地只读查询"
+  ],
+  "reconnect": {
+    "actual_bridge_rpc": true,
+    "dead_connection_rejected": true,
+    "complete_input_preserved": true,
+    "next_input_rebound": true,
+    "settings_preserved": true,
+    "new_connection_fence": true,
+    "model_calls": 0,
+    "scope": "真实接缝+真实插件服务；网页显示通过前端离线测试验证"
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "baseline_delivery": "heart-2026-10-09（选模增量保持已有状态）",
+  "baseline_repository_commit": "7b1b71de0179a375cfafaac0da9f650e58928ad4",
+  "release": "heart-realtime-0.2.1-log-reconnect-2026-10-10",
+  "plugin_version": "0.2.1",
+  "required_components": [
+    "shared",
+    "realtime",
+    "vt"
+  ],
+  "entries": [
+    {
+      "project": "maibot",
+      "target": "heart_shared/cards.py",
+      "path": "maibot/heart_shared/cards.py",
+      "component": "shared",
+      "sha256": "79f084c191a7efc47cca59ebedc1a3ce435704371231796829ba015e183651ed",
+      "before_sha256": "ab6f4fe41fccbcf143cbab5b696705695f298e3bfe9357934d3eec2a8795d255",
+      "baseline_source": "heart-2026-10-09",
+      "baseline": "baseline/maibot/heart_shared/cards.py",
+      "patch": "patches/maibot/heart_shared__cards.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/readable.py",
+      "path": "maibot/heart_shared/readable.py",
+      "component": "shared",
+      "sha256": "862e2bfce833689d9b9eaeb919db392cd7cc6fed5a3514290e66ce5cce106fb2",
+      "before_sha256": "5dcaa863b35139b696d8ba1adb6e44b6773f463b3e24b72299fe5825cf0a7ae3",
+      "baseline_source": "heart-2026-10-09",
+      "baseline": "baseline/maibot/heart_shared/readable.py",
+      "patch": "patches/maibot/heart_shared__readable.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/storage.py",
+      "path": "maibot/heart_shared/storage.py",
+      "component": "shared",
+      "sha256": "6557179959d10f0d9bc984e08b1157e0d2667dcc38d7e81512a4e57de4e20456",
+      "before_sha256": "fef8487e9c5fbb32034dfe58a569a5c47c403be1212df61942fe9506c988b284",
+      "baseline_source": "heart-2026-10-09",
+      "baseline": "baseline/maibot/heart_shared/storage.py",
+      "patch": "patches/maibot/heart_shared__storage.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/input_groups.py",
+      "path": "maibot/heart_shared/input_groups.py",
+      "component": "shared",
+      "sha256": "eccada04c7ac1dd826c595a62594a99bdd36ad9339debb7083c39458657df057",
+      "before_sha256": null,
+      "baseline_source": "旧交付中不存在；仅允许在目标不存在时新增",
+      "patch": "patches/maibot/heart_shared__input_groups.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/realtime_readable.py",
+      "path": "maibot/heart_shared/realtime_readable.py",
+      "component": "shared",
+      "sha256": "739b40db2359cbdaaecc976e82d456daccadf265ce0d69d1f09f8dd5a714adfd",
+      "before_sha256": null,
+      "baseline_source": "旧交付中不存在；仅允许在目标不存在时新增",
+      "patch": "patches/maibot/heart_shared__realtime_readable.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/conversation_view.py",
+      "path": "maibot/heart_shared/conversation_view.py",
+      "component": "shared",
+      "sha256": "1c11f6805fb30cc9f17030461e8ba4fd22e563adb42b6a90c063ccbbaac5e4df",
+      "before_sha256": null,
+      "baseline_source": "旧交付中不存在；仅允许在目标不存在时新增",
+      "patch": "patches/maibot/heart_shared__conversation_view.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/console_view.py",
+      "path": "maibot/heart_shared/console_view.py",
+      "component": "shared",
+      "sha256": "594190890e355af3167b4cd4d5241d3c9961000e5205c7db7627d751c5755330",
+      "before_sha256": null,
+      "baseline_source": "旧交付中不存在；仅允许在目标不存在时新增",
+      "patch": "patches/maibot/heart_shared__console_view.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart-realtime/engine.py",
+      "path": "maibot/plugins/heart-realtime/engine.py",
+      "component": "realtime",
+      "sha256": "a27e49441a83b4a79511b21a3bb36ba053e08cb6be9efa04eb88255660389743",
+      "before_sha256": "04573d7900096a64de608a2b79ee272a1b546f5351038375c3c13b31e0d5e4ce",
+      "baseline_source": "heart-2026-10-09",
+      "baseline": "baseline/maibot/plugins/heart-realtime/engine.py",
+      "patch": "patches/maibot/plugins__heart-realtime__engine.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart-realtime/plugin.py",
+      "path": "maibot/plugins/heart-realtime/plugin.py",
+      "component": "realtime",
+      "sha256": "3e449a0d5ad652b8a77bb8529a5dede92e2a0e75c1adf14ebb074f6aa907c8f0",
+      "before_sha256": "22a5d106ada6648e263d872e759d60ebc75c897645609a4e134d3f8414a719e5",
+      "baseline_source": "heart-2026-10-09",
+      "baseline": "baseline/maibot/plugins/heart-realtime/plugin.py",
+      "patch": "patches/maibot/plugins__heart-realtime__plugin.py.patch"
+    },
+    {
+      "project": "vt",
+      "target": "heart_realtime_client.py",
+      "path": "vt/heart_realtime_client.py",
+      "component": "vt",
+      "sha256": "7e2b00aed7be8a71fb17b6e64cecc85ff42fafd043611ead08feeaf9eb5ba4d8",
+      "before_sha256": "0a71261a9c2d6b7d102112134a908d6e4e7e4444dcd23f2d3028a962f478301b",
+      "baseline_source": "heart-2026-10-09",
+      "baseline": "baseline/vt/heart_realtime_client.py",
+      "patch": "patches/vt/heart_realtime_client.py.patch"
+    },
+    {
+      "project": "vt",
+      "target": "frontend/heart-realtime.mjs",
+      "path": "vt/frontend/heart-realtime.mjs",
+      "component": "vt",
+      "sha256": "dcf5040f5cc6a45c277d219323b2d1f384efdcb2928ecaf170a1b594f36c9897",
+      "before_sha256": "b6c6965ae85a8c6bc76194d1919a70c58fc96b7473b5d47bc2e32d13ba569fa0",
+      "baseline_source": "heart-2026-10-09",
+      "baseline": "baseline/vt/frontend/heart-realtime.mjs",
+      "patch": "patches/vt/frontend__heart-realtime.mjs.patch"
+    }
+  ],
+  "reference_only_not_deployed": [
+    "maibot/plugins/heart-realtime/speculation.py",
+    "maibot/plugins/heart-realtime/runtime_config.py",
+    "maibot/plugins/heart-realtime/_manifest.json",
+    "maibot/plugins/heart-realtime/LICENSE",
+    "maibot/src/services/heart_realtime.py",
+    "maibot/src/services/heart_realtime_drafts.py"
+  ]
+}

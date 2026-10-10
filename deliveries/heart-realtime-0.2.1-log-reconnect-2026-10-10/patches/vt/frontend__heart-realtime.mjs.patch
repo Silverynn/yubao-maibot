@@ -1,0 +1,35 @@
+--- a/frontend/heart-realtime.mjs
++++ b/frontend/heart-realtime.mjs
+@@ -1,8 +1,9 @@
+ // 只接入原生 VAD 的帧和原生播放队列；策略与检索均在 MaiBot 插件。
+ export class Fence {
+-  constructor(){this.epoch=0;this.stopped=false;}
++  constructor(){this.epoch=0;this.stopped=false;this.connection='';}
+   advance(epoch){if(Number.isInteger(epoch)&&epoch>this.epoch){this.epoch=epoch;this.stopped=true;}}
+-  accepts(packet){return !packet?.heart_rt || (packet.heart_rt.epoch===this.epoch&&!this.stopped);}
++  accepts(packet){return !packet?.heart_rt || (packet.heart_rt.epoch===this.epoch&&!this.stopped&&
++    (!this.connection||packet.heart_rt.connection_id===this.connection));}
+ }
+ 
+ if(typeof window!=='undefined') {
+@@ -81,7 +82,8 @@
+       if(frames.length)send('audio',{utterance_id:utterance,samples:frames.splice(0)});
+       show('正在听…后台可以查记忆，你可以继续说。');
+     },
+-    end(){if(!enabled||!listening)return; if(frames.length)send('audio',{utterance_id:utterance,samples:frames.splice(0)});listening=false;},
++    end(){if(!enabled||!listening)return; if(frames.length)send('audio',{utterance_id:utterance,samples:frames.splice(0)});
++      listening=false;send('input_end',{utterance_id:utterance});},
+     accept(packet){
+       if(!fence.accepts(packet))return false;
+       return true;
+@@ -99,6 +101,10 @@
+       if(enabled)send('mode',{enabled,preemptive});
+       this.addEventListener('message',e=>{try{
+         const p=JSON.parse(e.data);
++        if(p.type==='heart-rt-link-lost'){stopLocal();show(p.text);}
++        if(p.type==='heart-rt-bound'&&p.new_connection&&p.utterance_id===utterance){
++          stopLocal();fence.connection=p.connection_id;fence.epoch=p.epoch;fence.stopped=false;}
++        if(p.connection_id&&fence.connection&&p.connection_id!==fence.connection)return;
+         if(p.type==='heart-rt-mode'){enabled=p.enabled===true;preemptive=enabled&&p.preemptive===true;updateControls();}
+         if(p.type==='heart-rt-stop'){fence.advance(p.epoch);stopLocal();show('已停止旧输出，正在听或核实。');}
+         if(['heart-rt-bound','heart-rt-active'].includes(p.type)&&p.utterance_id===utterance&&p.epoch>=fence.epoch){fence.epoch=p.epoch;fence.stopped=false;}
