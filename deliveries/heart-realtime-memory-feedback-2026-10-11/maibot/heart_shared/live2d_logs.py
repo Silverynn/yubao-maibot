@@ -1,0 +1,68 @@
+"""Daily exports use explicit user identity, not transient transport sessions."""
+import hashlib
+import json
+import uuid
+
+
+def members(db, session):
+    db.execute('CREATE TABLE IF NOT EXISTS log_user_aliases(session TEXT PRIMARY KEY,user_key TEXT NOT NULL)')
+    source = db.execute('SELECT user_id FROM session_sources WHERE session=?', (session,)).fetchone()
+    alias = db.execute('SELECT user_key FROM log_user_aliases WHERE session=?', (session,)).fetchone()
+    key = alias[0] if alias else source[0] if source else session
+    rows = db.execute('''SELECT src.session FROM session_sources src
+        LEFT JOIN log_user_aliases a ON a.session=src.session
+        WHERE src.channel='Live2D' AND COALESCE(a.user_key,src.user_id)=?''', (key,)).fetchall()
+    return key, [r[0] for r in rows] or [session]
+
+
+def export(store, db, day, session, cards=False):
+    from .conversation_view import render_conversation, input_group, ids
+    from .input_groups import group_inputs
+    key, sessions = members(db, session)
+    marks = ','.join('?' for _ in sessions)
+    rows = db.execute(f'SELECT * FROM events WHERE session IN ({marks}) ORDER BY seq', sessions).fetchall()
+    events = [dict(row, data=json.loads(row['payload'])) for row in rows]
+    messages = {row['message_id']: dict(row) for row in db.execute(
+        f'SELECT * FROM messages WHERE session IN ({marks})', sessions)}
+    inputs = [g for g in group_inputs(events, messages, ids) if g['day'] == day and input_group(g)]
+    # Empty connection/topic housekeeping stays in SQLite; no empty text files.
+    filename = f'Live2D/{day}_私聊_Live2D 本地访客_{hashlib.sha256(key.encode()).hexdigest()[:10]}.txt'
+    table = 'card_exports' if cards else 'log_exports'
+    directory = store.root / ('消息卡片' if cards else 'logs')
+    old_names = [r[0] for r in db.execute(
+        f'SELECT filename FROM {table} WHERE day=? AND session IN ({marks})', [day, *sessions])]
+    for name in set(old_names):
+        if name != filename or not inputs:
+            if store.managed_log_name(name):
+                old = directory / name
+                if not old.is_symlink(): old.unlink(missing_ok=True)
+    if not inputs:
+        db.execute(f'DELETE FROM {table} WHERE day=? AND session IN ({marks})', [day, *sessions])
+        if cards:
+            db.execute(f'DELETE FROM card_pending WHERE day=? AND session IN ({marks})', [day, *sessions])
+        return
+    text = render_conversation(day, events, messages, 'Live2D')
+    if cards:
+        from .cards import FORMAT_VERSION, render_cards
+        from .recall_snapshot import annotate, read_catalog
+        catalog = read_catalog(store.root.parent / 'a-memorix/metadata/metadata.db')
+        for member in sessions:
+            annotate([e for e in events if e['session'] == member], catalog, member)
+        start = min((e['time'] for e in events), default=day)
+        info = {'title': 'Live2D 本地访客', 'channel': 'Live2D', 'chat_type': '私聊',
+                'started': start[:19].replace('T', ' ')}
+        text = render_cards(day, info, events, messages)
+    target = directory / filename
+    target.parent.mkdir(parents=True, exist_ok=True)
+    body = text.encode('utf-8-sig')
+    temporary = target.with_suffix('.' + uuid.uuid4().hex + '.tmp')
+    temporary.write_bytes(body); temporary.replace(target)
+    revision = max((e['seq'] for e in events), default=0)
+    for member in sessions:
+        if cards:
+            db.execute('INSERT OR REPLACE INTO card_exports VALUES(?,?,?,?,?,?)',
+                       (day, member, filename, revision, FORMAT_VERSION, len(body)))
+            db.execute('DELETE FROM card_pending WHERE day=? AND session=?', (day, member))
+        else:
+            db.execute('INSERT OR REPLACE INTO log_exports VALUES(?,?,?,?,?)', (day, member, filename, revision, len(body)))
+            db.execute('INSERT OR REPLACE INTO session_files VALUES(?,?,?)', (day, member, filename))

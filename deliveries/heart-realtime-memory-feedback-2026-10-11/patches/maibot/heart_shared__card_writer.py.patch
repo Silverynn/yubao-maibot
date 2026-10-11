@@ -1,0 +1,15 @@
+--- a/heart_shared/card_writer.py
++++ b/heart_shared/card_writer.py
+@@ -94,6 +94,12 @@
+         return f"{info['channel']}/{day}_{info['chat_type']}_{title}_会话开始{start}_{suffix}.txt"
+ 
+     def export(self, day: str, session: str) -> None:
++        with self.store.transaction() as db:
++            source = db.execute('SELECT channel FROM session_sources WHERE session=?', (session,)).fetchone()
++            if source and source[0] == 'Live2D':
++                from .live2d_logs import export
++                export(self.store, db, day, session, cards=True)
++                return
+         info, events, messages, revision = self.snapshot(day, session)
+         if not events:
+             with self.store.transaction() as db:

@@ -1,0 +1,13 @@
+--- a/heart_shared/storage.py
++++ b/heart_shared/storage.py
+@@ -310,6 +310,10 @@
+         logs.mkdir(exist_ok=True)
+         origin = db.execute("SELECT channel FROM session_sources WHERE session=?", (session,)).fetchone()
+         folder = origin[0] if origin and origin[0] in {"QQ", "Live2D"} else "其他"
++        if folder == 'Live2D':
++            from .live2d_logs import export
++            export(self, db, day, session)
++            return
+         filename = folder + "/" + self.session_filename(db, day, session)
+         target = logs / filename
+         target.parent.mkdir(exist_ok=True)

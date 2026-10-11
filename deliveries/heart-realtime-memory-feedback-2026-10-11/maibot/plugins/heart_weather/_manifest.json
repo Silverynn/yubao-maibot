@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "id": "heart.weather",
+  "name": "Heart 天气查询",
+  "version": "1.0.1",
+  "description": "城市天气和预报真实查询；中文配置、来源/时区/缓存和运行日志。共享消息卡片接口为可选，不依赖心情、记忆或跑团插件。",
+  "author": {"name": "Heart project contributors", "url": "https://github.com/Silverynn/yubao-maibot"},
+  "urls": {"repository": "https://github.com/Silverynn/yubao-maibot"},
+  "i18n": {"default_locale": "zh-CN", "locales_path": "_locales", "supported_locales": ["zh-CN"]},
+  "license": "GPL-3.0-or-later",
+  "host_application": {"min_version": "1.2.4", "max_version": "1.2.99"},
+  "sdk": {"min_version": "2.8.0", "max_version": "2.99.99"},
+  "dependencies": [],
+  "capabilities": ["send.text"]
+}

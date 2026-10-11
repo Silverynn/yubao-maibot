@@ -1,0 +1,29 @@
+"""无需额外语义判定模型的提前生成门禁；宁可弃稿，不猜测用户改口的含义。"""
+import hashlib
+import json
+import re
+
+
+def normalize_input(text: str) -> str:
+    # 仅忽略识别器常补的空白/句末标点；否定、数字、内部标点仍是有效信息。
+    return re.sub(r'\s+', ' ', str(text)).strip().rstrip('。！？!?，,；;')
+
+
+def eligible(text: str) -> bool:
+    value = normalize_input(text)
+    if not 6 <= len(value) <= 240 or value.startswith('/'):
+        return False
+    if re.search(r'记住|忘记|删除|提醒|发送|发给|保存|写入|运行|执行|支付|转账|购买|创建|取消任务', value):
+        return False
+    # 轻量的近结束判断，不能声称是通用语义轮次模型。
+    return not re.search(r'(但是|然后|因为|如果|还有|以及|并且|例如|比如|或者|首先|查一下|帮我)$', value)
+
+
+def evidence_key(result) -> str:
+    """来源版本/排序变化不等于事实改变；比较这轮提供给模型的实际材料。"""
+    if result is None:
+        return ''
+    native = sorted((str(x.get('id', '')), str(x.get('content', '')), str(x.get('status', '')))
+                    for x in result.get('native', {}).get('items', []))
+    local = sorted((str(x['key']), str(x['value'])) for x in result.get('local', {}).get('items', []))
+    return hashlib.sha256(json.dumps([native, local], ensure_ascii=False).encode()).hexdigest()
