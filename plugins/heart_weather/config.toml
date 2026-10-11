@@ -1,0 +1,6 @@
+[plugin]
+config_version = "1.0.1"
+enabled = true
+country = "CN"
+timeout_seconds = 12
+cache_seconds = 300
