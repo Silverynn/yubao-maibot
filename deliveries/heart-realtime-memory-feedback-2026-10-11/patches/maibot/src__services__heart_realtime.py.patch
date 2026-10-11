@@ -1,0 +1,42 @@
+--- a/src/services/heart_realtime.py
++++ b/src/services/heart_realtime.py
+@@ -215,7 +215,16 @@
+         from src.person_info.person_info import get_person_id
+         from src.services.heart_memory_backend import NativeBackend
+ 
+-        facts = await NativeBackend().person_facts(get_person_id(session.platform, session.user_id))
++        from heart_shared.storage import AuditStore
++        store = AuditStore()
++        from heart_shared.live2d_logs import members
++        with store.connect() as db:
++            _, owned_sessions = members(db, session_id)
++            owners = [r[0] for member in owned_sessions for r in db.execute(
++                "SELECT user_id FROM session_sources WHERE session=? AND channel='Live2D' AND platform='webui'", (member,))]
++        owners = list(dict.fromkeys([session.user_id, *owners]))
++        gathered = await asyncio.gather(*(NativeBackend().person_facts(get_person_id(session.platform, owner)) for owner in owners))
++        facts = list({fact['hash']: fact for group in gathered for fact in group}.values())
+         query = str(args.get('query') or '')[:512]
+         words = set(re.findall(r'[\u4e00-\u9fff]|[A-Za-z0-9]+', query.lower()))
+         ranked = sorted(facts, key=lambda x: len(words & set(re.findall(
+@@ -223,6 +232,21 @@
+         body = json.dumps(ranked, ensure_ascii=False, sort_keys=True)
+         return {'success': True, 'items': ranked, 'source': '原生本人记忆',
+                 'version': hashlib.sha256(body.encode()).hexdigest()}
++    if action == 'weather':
++        if args.get('epoch') != lease.epoch:
++            raise ValueError('已过期的天气查询')
++        from src.core.tooling import ToolInvocation, ToolExecutionContext
++        from src.plugin_runtime.component_query import component_query_service
++        invocation = ToolInvocation(tool_name='query_weather', session_id=session_id,
++            arguments={k: args[k] for k in ('city','days','period') if k in args},
++            reasoning='用户在实时输入中明确要求查询天气')
++        context = ToolExecutionContext(session_id=session_id, stream_id=session_id,
++            user_id=session.user_id, platform=session.platform, is_group_chat=False)
++        result = await component_query_service.invoke_tool_as_tool(invocation, context)
++        body = result.structured_content if isinstance(result.structured_content, dict) else {
++            'success':result.success, 'content':result.content or result.error_message,
++            'error':result.error_message}
++        return {'success':True, 'weather':body}
+     if action == 'context':
+         from src.chat.heart_flow.heartflow_manager import heartflow_manager
+         from src.maisaka.context.messages import SessionBackedMessage

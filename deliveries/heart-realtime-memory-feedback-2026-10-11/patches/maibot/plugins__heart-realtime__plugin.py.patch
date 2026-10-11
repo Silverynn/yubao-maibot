@@ -1,0 +1,11 @@
+--- a/plugins/heart-realtime/plugin.py
++++ b/plugins/heart-realtime/plugin.py
+@@ -160,7 +160,7 @@
+     async def call(self,name,**kwargs):
+         if name=='local.facts':
+             return await self.local_facts(kwargs['query'])
+-        return await self.ctx.call_capability(name,timeout_ms=30000 if kwargs.get('action')=='speculate' else 7000,**kwargs)
++        return await self.ctx.call_capability(name,timeout_ms=30000 if kwargs.get('action') in {'speculate','weather'} else 12000,**kwargs)
+ 
+     async def health(self,request):
+         return web.json_response({'service':'heart.realtime','ready':True,'streaming_ready':self.asr_ready,

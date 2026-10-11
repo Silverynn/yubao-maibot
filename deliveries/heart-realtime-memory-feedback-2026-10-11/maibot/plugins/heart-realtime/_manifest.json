@@ -1,0 +1,48 @@
+{
+  "manifest_version": 2,
+  "id": "heart.realtime",
+  "version": "0.2.1",
+  "name": "Heart 实时对话 Lv4.5",
+  "description": "有限提前生成与草稿复用、迟到证据接入、插话取消、播放账本和逐功能审计；QQ保持原链路",
+  "author": {
+    "name": "Heart Project",
+    "url": "https://github.com/Silverynn"
+  },
+  "license": "MIT",
+  "urls": {
+    "repository": "https://github.com/Silverynn/yubao-maibot",
+    "homepage": "https://github.com/Silverynn/yubao-maibot"
+  },
+  "host_application": {
+    "min_version": "1.2.5",
+    "max_version": "1.2.5"
+  },
+  "sdk": {
+    "min_version": "2.8.1",
+    "max_version": "2.8.1"
+  },
+  "capabilities": [
+    "heart.realtime",
+    "chat.open_session"
+  ],
+  "plugin_type": "media",
+  "dependencies": [
+    {
+      "type": "python_package",
+      "name": "aiohttp",
+      "version_spec": ">=3.9.0"
+    }
+  ],
+  "i18n": {
+    "default_locale": "zh-CN",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  },
+  "display": {
+    "icon": {
+      "type": "emoji",
+      "value": "☎️"
+    }
+  }
+}

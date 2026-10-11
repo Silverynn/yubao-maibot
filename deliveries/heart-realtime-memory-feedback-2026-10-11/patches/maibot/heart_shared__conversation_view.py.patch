@@ -1,0 +1,19 @@
+--- a/heart_shared/conversation_view.py
++++ b/heart_shared/conversation_view.py
+@@ -125,7 +125,15 @@
+     else:
+         skipped = next((e for e in reversed(drafts) if e['data'].get('phase') == 'skipped'), None)
+         reason = skipped['data'].get('reason') if skipped else None
+-        lines.append('提前生成：未启动' + ('，' + plain(reason, 220) if reason else '（开关关闭或未满足触发条件）'))
++        decision = skipped['data'].get('decision_by') if skipped else None
++        code = skipped['data'].get('decision_code') if skipped else None
++        lines.append('提前生成：未启动' + ('，' + plain(reason, 220) if reason else '（历史记录未提供具体原因，无法回溯判断）') +
++                     ('｜判断来源：' + plain(decision, 100) if decision else '') +
++                     ('｜原因码：' + plain(code, 60) if code else ''))
++    handoffs = [e for e in rt if e['data'].get('feature') == '回复查询依据']
++    for e in handoffs:
++        add(e, '回复模型查询依据 [' + plain(e['data'].get('generation_mode', ''), 30) + ']：' +
++            plain(e['data'].get('summary', ''), 800) + '（已构建请求上下文，实际生成另见回复记录）')
+     if not tools:
+         lines.append('提前查询：未触发（当前工具为本人记忆/本地事实查询，需要查询意图）')
+     generated = [e for e in events if e['kind'] == '生成回复（尚非送达）']

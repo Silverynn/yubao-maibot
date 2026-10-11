@@ -1,0 +1,177 @@
+{
+  "release": "heart-realtime-memory-feedback-2026-10-11",
+  "baseline": "PR #5 commit 1250a33e2b472d03c24a9a0c7cf2a6ffe7c7b3b7; heart-realtime-0.2.1-log-reconnect-2026-10-10",
+  "scope": "MaiBot only; no VT files/configuration installed",
+  "entries": [
+    {
+      "project": "maibot",
+      "target": "plugins/heart-realtime/query_plan.py",
+      "path": "maibot/plugins/heart-realtime/query_plan.py",
+      "sha256": "50179252b76cf04019a5b0e8f1bf776f00d98a2075f04a94bfd517f28df53c71",
+      "accepted_before": [
+        null,
+        "50179252b76cf04019a5b0e8f1bf776f00d98a2075f04a94bfd517f28df53c71"
+      ],
+      "patch": "patches/maibot/plugins__heart-realtime__query_plan.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart-realtime/engine.py",
+      "path": "maibot/plugins/heart-realtime/engine.py",
+      "sha256": "1e80d8f30a1e68ac93636731fe42d42f794eba8225de71721d0178456a598390",
+      "accepted_before": [
+        "a27e49441a83b4a79511b21a3bb36ba053e08cb6be9efa04eb88255660389743",
+        "9cbb2a8c523a74ac45e3e00c211c9cf8d22bfee64793eaec1dec66f85d9f2ff7"
+      ],
+      "baseline": "baseline/maibot/plugins/heart-realtime/engine.py",
+      "patch": "patches/maibot/plugins__heart-realtime__engine.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart-realtime/speculation.py",
+      "path": "maibot/plugins/heart-realtime/speculation.py",
+      "sha256": "72dc00f98a32c5da93ad89c621aba1a860242413c271fe9f82ad14a66d5f26b4",
+      "accepted_before": [
+        "7e2e5cf01ab5b9241c625be5cc46ad0e3594c90e0800e35616dcd7d9adf6248d",
+        "aa45c12cb80ffdca124dafbddf5b72925ebd3676f188f3a5607ca3a93d1895b4"
+      ],
+      "baseline": "baseline/maibot/plugins/heart-realtime/speculation.py",
+      "patch": "patches/maibot/plugins__heart-realtime__speculation.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart-realtime/plugin.py",
+      "path": "maibot/plugins/heart-realtime/plugin.py",
+      "sha256": "f70b967396f929a95045e32b24ef46917ca9e2bad00966cfd5c9cd00213f0e1a",
+      "accepted_before": [
+        "3e449a0d5ad652b8a77bb8529a5dede92e2a0e75c1adf14ebb074f6aa907c8f0",
+        "f70b967396f929a95045e32b24ef46917ca9e2bad00966cfd5c9cd00213f0e1a"
+      ],
+      "baseline": "baseline/maibot/plugins/heart-realtime/plugin.py",
+      "patch": "patches/maibot/plugins__heart-realtime__plugin.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "src/services/heart_realtime.py",
+      "path": "maibot/src/services/heart_realtime.py",
+      "sha256": "6bd0a0b76f9c715a5d2bdab3ee8db995d606eea03d74a1ca957195de2d8ebbf7",
+      "accepted_before": [
+        "779b334d4cd27403d00e34a75eeec8b67944b5b6159a93571687d4e36e085f21",
+        "6bd0a0b76f9c715a5d2bdab3ee8db995d606eea03d74a1ca957195de2d8ebbf7"
+      ],
+      "baseline": "baseline/maibot/src/services/heart_realtime.py",
+      "patch": "patches/maibot/src__services__heart_realtime.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "src/services/heart_realtime_drafts.py",
+      "path": "maibot/src/services/heart_realtime_drafts.py",
+      "sha256": "894b9e0add7a2ae6566e197027afbedbb1370d046a8fa6c6d3a864b5a4218841",
+      "accepted_before": [
+        "0f66fa7405bee33db25b9078b931e17d73f6c782b374ed2f85d2959fea4e5634"
+      ],
+      "baseline": "baseline/maibot/src/services/heart_realtime_drafts.py",
+      "patch": "patches/maibot/src__services__heart_realtime_drafts.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/storage.py",
+      "path": "maibot/heart_shared/storage.py",
+      "sha256": "7e17a62f58a9e6040f718cfdbf0d57489a80fdf196f797423990267a506e8ace",
+      "accepted_before": [
+        "6557179959d10f0d9bc984e08b1157e0d2667dcc38d7e81512a4e57de4e20456",
+        "7e17a62f58a9e6040f718cfdbf0d57489a80fdf196f797423990267a506e8ace"
+      ],
+      "baseline": "baseline/maibot/heart_shared/storage.py",
+      "patch": "patches/maibot/heart_shared__storage.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/card_writer.py",
+      "path": "maibot/heart_shared/card_writer.py",
+      "sha256": "4dd34f1ac9e461d9c12643112ebd0722d0966e7be2f4bd193ebf48445896ba11",
+      "accepted_before": [
+        "f23fb31ea0f11a284f70c01326947ed93e40003a92d404ec3da285e59c964cbc",
+        "4dd34f1ac9e461d9c12643112ebd0722d0966e7be2f4bd193ebf48445896ba11"
+      ],
+      "baseline": "baseline/maibot/heart_shared/card_writer.py",
+      "patch": "patches/maibot/heart_shared__card_writer.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/live2d_logs.py",
+      "path": "maibot/heart_shared/live2d_logs.py",
+      "sha256": "2717b464e860df25b5f3aed35797191b11e5ee88595ead2edcfe04d73ae105c0",
+      "accepted_before": [
+        null,
+        "2717b464e860df25b5f3aed35797191b11e5ee88595ead2edcfe04d73ae105c0"
+      ],
+      "patch": "patches/maibot/heart_shared__live2d_logs.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/conversation_view.py",
+      "path": "maibot/heart_shared/conversation_view.py",
+      "sha256": "f748829cf93a49ee89a0622ebbea98c28cb589034004c6ec8d3bfdc68dc10527",
+      "accepted_before": [
+        "1c11f6805fb30cc9f17030461e8ba4fd22e563adb42b6a90c063ccbbaac5e4df"
+      ],
+      "baseline": "baseline/maibot/heart_shared/conversation_view.py",
+      "patch": "patches/maibot/heart_shared__conversation_view.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "heart_shared/realtime_evidence.py",
+      "path": "maibot/heart_shared/realtime_evidence.py",
+      "sha256": "e20084ace81c7564dabe078fa3820159c542dbeb34ce2731fa4dd7ed625fa6d5",
+      "accepted_before": [
+        null
+      ],
+      "patch": "patches/maibot/heart_shared__realtime_evidence.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart_weather/plugin.py",
+      "path": "maibot/plugins/heart_weather/plugin.py",
+      "sha256": "2af39dd8cc826284f55f8f8ca532c90c7dab8be4d39714943d23265f07072ec4",
+      "accepted_before": [
+        null,
+        "dedda9280bb68c0c92875fa06626a37001fcf86232e6b58fc2e8ef2d1481d630",
+        "2af39dd8cc826284f55f8f8ca532c90c7dab8be4d39714943d23265f07072ec4"
+      ],
+      "patch": "patches/maibot/plugins__heart_weather__plugin.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart_weather/weather.py",
+      "path": "maibot/plugins/heart_weather/weather.py",
+      "sha256": "e668e121162d21f689d2581fb64fd007af7513432c302f2d5e1d92f67f0a2ac2",
+      "accepted_before": [
+        null,
+        "e940e62f80cb2944b51927d370b32f3e5868eb54e7d05f72c754ed5f566f3633",
+        "e668e121162d21f689d2581fb64fd007af7513432c302f2d5e1d92f67f0a2ac2"
+      ],
+      "patch": "patches/maibot/plugins__heart_weather__weather.py.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart_weather/_manifest.json",
+      "path": "maibot/plugins/heart_weather/_manifest.json",
+      "sha256": "129a4c5ad2b5bab628c32bf1c25b0c2369e862237dc47d0c3e72c4d63d988386",
+      "accepted_before": [
+        null
+      ],
+      "patch": "patches/maibot/plugins__heart_weather___manifest.json.patch"
+    },
+    {
+      "project": "maibot",
+      "target": "plugins/heart_weather/README.md",
+      "path": "maibot/plugins/heart_weather/README.md",
+      "sha256": "c6220bda3a6cfdc0c375e8b2bc3bbf70e1b244a58afabbe149b9cc07d46c47c3",
+      "accepted_before": [
+        null
+      ],
+      "patch": "patches/maibot/plugins__heart_weather__README.md.patch"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "python_tests": 107,
+  "new_tests": 13,
+  "regression_tests": 94,
+  "mode": "offline mocked interfaces",
+  "real_model_called": false,
+  "private_data_included": false,
+  "installer_tests": 6
+}

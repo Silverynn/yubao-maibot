@@ -1,0 +1,224 @@
+--- a/plugins/heart-realtime/engine.py
++++ b/plugins/heart-realtime/engine.py
+@@ -10,7 +10,8 @@
+ import time
+ import uuid
+ 
+-from .speculation import eligible, evidence_key, normalize_input
++from .speculation import eligibility_reason, eligible, evidence_key, normalize_input
++from heart_shared.realtime_evidence import evidence_note
+ 
+ 
+ FEATURES = {
+@@ -77,6 +78,8 @@
+         self.stable_seconds = .65
+         self.correction_count = 0
+         self.deferred_result = None
++        self.source_cache = {}
++        self.spec_skip_identity = None
+ 
+     def log(self, feature: str, phase: str, scope=None, **data):
+         identity=dict(plugin_loaded=True, plugin_enabled=not self.closed,
+@@ -128,6 +131,8 @@
+         self.voice, self.last_fast = type(voice) is bool and voice, ''
+         self.query, self.result, self.pending_correction = '', None, None
+         self.audio_input, self.final_text = audio is True, ''
++        self.source_cache = {}
++        self.spec_skip_identity = None
+         self.spec_attempts, self.spec_text, self.correction_count = 0, '', 0
+         self.deferred_result = None
+         self.log('listen', 'started', output='正在听，同时处理只读任务')
+@@ -160,6 +165,8 @@
+             raise ValueError('旧发言不能结束当前录音')
+         if not self.listening:
+             return {'duplicate': True}
++        if not self.spec_attempts:
++            self.log_speculation_skip(checkpoint='recording_end')
+         self.listening = False
+         if self.spec_attempts == 0 and self.spec_timer and not self.spec_timer.done():
+             self.spec_timer.cancel()
+@@ -168,16 +175,8 @@
+ 
+     @staticmethod
+     def intent(text: str) -> str:
+-        # 只读意图才提前执行；记住/删除/提醒/发送不走 partial 工具路径。
+-        if re.search(r'(?:不要|别|不用|取消).{0,4}(?:查|找|记)|(?:记住|忘记|删除|发给|提醒)', text):
+-            return ''
+-        match = re.search(r'(?:查一下|查查|查询(?:一下)?|核实(?:一下)?|找一下|还记得|记不记得|你记得|帮我查(?:一下)?|帮我找(?:一下)?)(.{0,80})', text)
+-        if not match:
+-            return ''
+-        query = match.group(1).strip('，。！？、 ')
+-        # 流式ASR通常没有标点；已明确的查询后追加“我还想……”不应逐字重查。
+-        query = re.split(r'[，。！？!?；;\n]|(?:我还|另外|顺便)(?:想|要|需要)?', query, maxsplit=1)[0].strip()
+-        return query if len(query) >= 2 and query != '一下' else ''
++        from .query_plan import encode
++        return encode(text)
+ 
+     async def partial_input(self, utterance: str, revision: int, text: str):
+         if utterance != self.utterance or not self.listening or utterance in self.finals:
+@@ -223,10 +222,40 @@
+         if text_changed:
+             self.schedule_speculation()
+ 
++    def speculation_reason(self):
++        if not self.preemptive:
++            return ('disabled', '提前生成开关关闭')
++        if not self.audio_input:
++            return ('text_input', '文字输入不提前生成')
++        reason = eligibility_reason(self.partial)
++        if reason:
++            return reason
++        if time.monotonic()-self.started > 20:
++            return ('time_limit', '发言超过20秒，避免猜测长输入')
++        if self.query and self.result is None:
++            return ('query_pending', '答案依赖的查询尚未完成，先等待只读结果')
++        return None
++
++    def log_speculation_skip(self, decision=None, checkpoint='partial'):
++        code, reason = decision or self.speculation_reason() or (
++            'not_stable', f'临时转写未连续稳定{self.stable_seconds:g}秒，录音就已结束')
++        identity = (code, reason, checkpoint == 'final')
++        if self.spec_skip_identity == identity:
++            return
++        self.spec_skip_identity = identity
++        self.log('speculate', 'skipped', reason=reason, decision_code=code,
++                 decision_by='程序规则（未调用语义判断模型）', checkpoint=checkpoint,
++                 input_length=len(normalize_input(self.partial)), stable_seconds=self.stable_seconds,
++                 query_pending=bool(self.query and self.result is None))
++
+     def schedule_speculation(self):
+         if self.spec_attempts==0 and self.spec_timer and not self.spec_timer.done():
+             self.spec_timer.cancel()
+-        if self.preemptive and self.audio_input and self.listening and self.spec_attempts == 0 and eligible(self.partial):
++        if self.listening and self.spec_attempts == 0:
++            reason = self.speculation_reason()
++            if reason:
++                self.log_speculation_skip(reason)
++                return
+             self.spec_timer = self.spawn(self.speculate_after_pause(self.epoch, self.utterance, self.partial))
+ 
+     async def speculate_after_pause(self, epoch: int, utterance: str, snapshot: str):
+@@ -234,11 +263,9 @@
+         if (not self.preemptive or not self.listening or self.closed or epoch != self.epoch
+                 or utterance != self.utterance or snapshot != self.partial or self.spec_attempts):
+             return
+-        if time.monotonic()-self.started > 20:
+-            self.log('speculate', 'skipped', reason='发言超过20秒，避免猜测长输入')
+-            return
+-        if self.query and self.result is None:
+-            self.log('speculate', 'skipped', reason='答案依赖的查询尚未完成')
++        reason = self.speculation_reason()
++        if reason:
++            self.log_speculation_skip(reason, checkpoint='stable_pause')
+             return
+         self.spec_attempts += 1
+         self.spec_text = self.partial
+@@ -276,7 +303,7 @@
+             try:
+                 output = await invoke()
+                 update_scope()
+-                self.log('tool', 'completed', **fields, output=output,
++                self.log('tool', 'failed' if isinstance(output,dict) and output.get('success') is False else 'completed', **fields, output=output,
+                          duration_ms=round((time.monotonic()-started)*1000, 1))
+                 return output
+             except asyncio.CancelledError:
+@@ -289,15 +316,40 @@
+                          **fields, reason=type(error).__name__,
+                          duration_ms=round((time.monotonic()-started)*1000, 1))
+                 raise
++        from .query_plan import decode
++        request = decode(query)
++        cache = self.source_cache
++        async def source(key, tool, invoke):
++            cached = cache.get(key)
++            if cached is not None and (purpose != '回复期间复查证据' or key.startswith('weather:')):
++                return cached
++            try:
++                result = await observed(tool, invoke)
++            except asyncio.CancelledError:
++                raise
++            except Exception as error:
++                return {'success': False, 'items': [], 'error': str(error),
++                        'content': '查询未核实：' + str(error)}
++            cache[key] = result
++            return result
+         async def all_sources():
+             async with self._workers:
+-                native = await observed('heart.realtime.read（原生本人记忆）',
+-                                        lambda: self.host('read', query=query))
+-                # 插件只读取管理员指定的同一个事实表；不接受浏览器传入文件路径。
+-                local = await observed('local.facts（管理员本地事实表）',
+-                                       lambda: self.call('local.facts', query=query))
+-                return {'native': native, 'local': local}
+-        body = await asyncio.wait_for(all_sources(), timeout=self.query_timeout_seconds)
++                tasks, names = [], []
++                memory = request.get('memory')
++                if memory:
++                    names += ['native', 'local']
++                    tasks += [source('memory:'+memory, 'heart.realtime.read（原生本人记忆）', lambda: self.host('read', query=memory)),
++                              source('facts:'+memory, 'local.facts（管理员本地事实表）', lambda: self.call('local.facts', query=memory))]
++                weather = request.get('weather')
++                if weather:
++                    async def get_weather():
++                        result = await self.host('weather', epoch=self.epoch, **weather)
++                        return result['weather']
++                    names.append('weather')
++                    tasks.append(source('weather:'+json.dumps(weather,sort_keys=True), 'query_weather（天气插件）', get_weather))
++                return dict(zip(names, await asyncio.gather(*tasks)))
++        body = await asyncio.wait_for(all_sources(), timeout=max(self.query_timeout_seconds, 15) if request.get('weather') else self.query_timeout_seconds)
++        body['request'] = request
+         body['version'] = hashlib.sha256(json.dumps(body,ensure_ascii=False,
+             sort_keys=True).encode()).hexdigest()
+         return body
+@@ -318,7 +370,7 @@
+             previous = self.result
+             self.result = result
+             admission = await self.host('evidence',epoch=epoch,result=result,evidence_key=evidence_key(result))
+-            log('completed',input=query,output=result)
++            log('partial' if any(isinstance(v,dict) and v.get('success') is False for v in result.values()) else 'completed',input=query,output=result)
+             if utterance in self.finals:
+                 self.log('prefetch','late_adopted', output=result,
+                     note='已提交给本轮回复接缝；实际采用看生成或播放记录')
+@@ -329,7 +381,7 @@
+             if len(result.get('local',{}).get('items',[]))>1 and self.listening:
+                 await self.clarify('我找到不止一项。你指的是哪一项？可以补充名字。','同一检索词匹配多个事实')
+             await self.emit({'type':'heart-rt-state','epoch':epoch,'state':'working',
+-                             'text':'已开始核对相关记忆；你可以继续说。'})
++                             'text':'记忆或天气查询已返回；你可以继续说。'})
+         except asyncio.CancelledError:
+             log('cancelled',input=query,reason='话题改变或插话；远端只读调用可能仍完成')
+             raise
+@@ -355,12 +407,7 @@
+         self.listening = False
+         self.final_text = text
+         if not self.spec_attempts:
+-            reason = ('提前生成开关关闭' if not self.preemptive else
+-                      '文字输入不提前生成' if not self.audio_input else
+-                      '输入过短、不完整或含需要正式确认的操作' if not eligible(self.partial) else
+-                      '查询尚未完成' if self.query and self.result is None else
+-                      '录音结束前未形成足够稳定的临时文字')
+-            self.log('speculate', 'skipped', reason=reason)
++            self.log_speculation_skip(checkpoint='final')
+         if self.spec_text and normalize_input(text)!=normalize_input(self.spec_text):
+             await self.host('spec_cancel',reason='最终转写修订了临时输入')
+             if self.spec_task and not self.spec_task.done():
+@@ -388,8 +435,8 @@
+             self.finals[utterance] = digest
+             self.log('fast','completed',signal=compact,output='停下并等待下一句')
+             return {'epoch':self.epoch,'skip_brain':True}
+-        context = ('[实时插件只读观测；不是用户说的话。未经核实的结果不要当成事实。]\n'
+-            + json.dumps(self.result,ensure_ascii=False)) if self.result else ''
++        from heart_shared.realtime_evidence import evidence_note
++        context = evidence_note(self.result) if self.result else ''
+         if query and not self.result:
+             context='[实时插件只读观测：提前检索尚未核实，不得声称查到了结果。若原生工具也未能核实，应明确告诉用户。]'
+         await self.host('context', epoch=self.epoch, text=context)
+@@ -480,7 +527,7 @@
+     async def admit_late_result(self, previous, result, epoch: int, utterance: str, reply_ready_stale=False):
+         if evidence_key(previous)==evidence_key(result) or epoch!=self.epoch or self.listening:
+             return
+-        await self.host('context',epoch=epoch,text='[实时插件最新只读查询材料]\n'+json.dumps(result,ensure_ascii=False))
++        await self.host('context',epoch=epoch,text=evidence_note(result))
+         # 生成中的结果由 Replyer 接缝处理；已进入展示/播放队列的结果必须明确冻结再更正。
+         clips=[c for c in self.clips.values() if c.epoch==epoch and not c.draft_id.startswith('fast:')]
+         if (clips or reply_ready_stale) and self.correction_count==0:
